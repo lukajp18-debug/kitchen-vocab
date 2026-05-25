@@ -17,3 +17,19 @@ Stage Summary:
 - Fixed: Spelling order is now word → spell letters → word (instead of spell → word)
 - Improved: isSpelling state now resets after speech completes, allowing replay without advancing round
 - Build: Successful
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Temporarily unlock all lessons so user can test any exercise without completing prerequisites
+
+Work Log:
+- Found `isUnlocked()` function in Dashboard component (line 296) that checks sequential completion
+- Changed `isUnlocked` to always return `true` for all lessons
+- Commented out original logic with clear "restore after testing" note
+- Verified build succeeds
+
+Stage Summary:
+- All lessons are now selectable from the dashboard regardless of completion order
+- Original sequential unlock code is preserved in comments for easy restoration
+- Build: Successful

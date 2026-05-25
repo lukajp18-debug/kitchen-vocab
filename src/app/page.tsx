@@ -293,10 +293,16 @@ function LessonHeader({ title, hearts, current, total, onBack }: {
 
 // ============ DASHBOARD ============
 function Dashboard({ progress, onSelectLesson }: { progress: ProgressData; onSelectLesson: (id: LessonViewType) => void }) {
-  const isUnlocked = (index: number): boolean => {
-    if (index === 0) return true
-    return progress.completedLessons.includes(LESSONS[index - 1].id)
+  // TEMP: All lessons unlocked for testing — revert to sequential unlock later
+  const isUnlocked = (_index: number): boolean => {
+    return true
   }
+
+  // ORIGINAL: Sequential unlock (restore after testing)
+  // const isUnlocked = (index: number): boolean => {
+  //   if (index === 0) return true
+  //   return progress.completedLessons.includes(LESSONS[index - 1].id)
+  // }
 
   const isCompleted = (id: string): boolean => progress.completedLessons.includes(id)
 
