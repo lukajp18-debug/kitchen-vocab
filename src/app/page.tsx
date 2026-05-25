@@ -113,14 +113,26 @@ function speakWord(word: string) {
   window.speechSynthesis.speak(utterance)
 }
 
-function spellAndSpeak(word: string): ReturnType<typeof setTimeout> | null {
+function spellAndSpeak(word: string, onComplete?: () => void): ReturnType<typeof setTimeout> | null {
   if (typeof window === 'undefined' || !window.speechSynthesis) return null
   window.speechSynthesis.cancel()
-  const letters = word.split('')
   let delay = 0
+
+  // Step 1: Say the complete word first
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(word)
+    u.lang = 'en-US'
+    u.rate = 0.8
+    u.pitch = 1.1
+    window.speechSynthesis.speak(u)
+  }, delay)
+  delay += 1200
+
+  // Step 2: Spell each letter (use lowercase so TTS says "a" not "capital A")
+  const letters = word.split('')
   letters.forEach((letter) => {
     setTimeout(() => {
-      const u = new SpeechSynthesisUtterance(letter.toUpperCase())
+      const u = new SpeechSynthesisUtterance(letter.toLowerCase())
       u.lang = 'en-US'
       u.rate = 0.7
       u.pitch = 1.2
@@ -128,13 +140,22 @@ function spellAndSpeak(word: string): ReturnType<typeof setTimeout> | null {
     }, delay)
     delay += 800
   })
-  return setTimeout(() => {
+  delay += 500
+
+  // Step 3: Say the complete word again at the end
+  setTimeout(() => {
     const u = new SpeechSynthesisUtterance(word)
     u.lang = 'en-US'
     u.rate = 0.8
     u.pitch = 1.1
     window.speechSynthesis.speak(u)
-  }, delay + 500)
+  }, delay)
+
+  // Step 4: Fire onComplete callback after speech is done
+  delay += 1200 // wait for the final word to finish speaking
+  return onComplete
+    ? setTimeout(onComplete, delay)
+    : null
 }
 
 function speakSentence(sentence: string) {
@@ -637,7 +658,7 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
     if (!roundData || isSpelling) return
     setIsSpelling(true)
     if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    timeoutRef.current = spellAndSpeak(roundData.targetWord.word)
+    timeoutRef.current = spellAndSpeak(roundData.targetWord.word, () => setIsSpelling(false))
   }, [roundData, isSpelling])
 
   // Auto-spell when round data changes (new round)
@@ -645,7 +666,7 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
     const timer = setTimeout(() => {
       setIsSpelling(true)
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
-      timeoutRef.current = spellAndSpeak(roundData.targetWord.word)
+      timeoutRef.current = spellAndSpeak(roundData.targetWord.word, () => setIsSpelling(false))
     }, 500)
     return () => clearTimeout(timer)
   }, [roundData.targetWord.word])
