@@ -11,30 +11,24 @@ type ViewType =
   | 'flashcards'
   | 'picture-match'
   | 'listen-choose'
-  | 'sentence-builder'
-  | 'grammar-practice'
   | 'spelling-challenge'
+  | 'whats-missing'
   | 'final-test'
   | 'lesson-complete'
   | 'game-over'
 
 type LessonViewType = Exclude<ViewType, 'dashboard' | 'lesson-complete' | 'game-over'>
 
-interface ActionWord {
+interface KitchenWord {
   word: string
   image: string
-}
-
-interface SentenceExercise {
-  sentence: string
-  options: [string, string]
-  answer: string
 }
 
 interface ProgressData {
   xp: number
   streak: number
   completedLessons: string[]
+  unlockedRewards: string[]
   lastPlayedDate: string
 }
 
@@ -48,59 +42,46 @@ interface LessonDef {
   xpReward: number
 }
 
+interface RewardDef {
+  id: string
+  name: string
+  image: string
+  lessonsRequired: number
+  description: string
+  is3D: boolean
+}
+
 // ============ CONSTANTS ============
-const ACTION_WORDS: ActionWord[] = [
-  { word: 'run', image: '/images/actions/run.png' },
-  { word: 'write', image: '/images/actions/write.png' },
-  { word: 'sing', image: '/images/actions/sing.png' },
-  { word: 'read', image: '/images/actions/read.png' },
-  { word: 'eat', image: '/images/actions/eat.png' },
-  { word: 'jump', image: '/images/actions/jump.png' },
-  { word: 'exercise', image: '/images/actions/exercise.png' },
-  { word: 'swim', image: '/images/actions/swim.png' },
-  { word: 'play', image: '/images/actions/play.png' },
-  { word: 'laugh', image: '/images/actions/laugh.png' },
-  { word: 'sleep', image: '/images/actions/sleep.png' },
-  { word: 'climb', image: '/images/actions/climb.png' },
+const KITCHEN_WORDS: KitchenWord[] = [
+  { word: 'spoon', image: '/images/kitchen/spoon.png' },
+  { word: 'fork', image: '/images/kitchen/fork.png' },
+  { word: 'cup', image: '/images/kitchen/cup.png' },
+  { word: 'pan', image: '/images/kitchen/pan.png' },
+  { word: 'knife', image: '/images/kitchen/knife.png' },
+  { word: 'glass', image: '/images/kitchen/glass.png' },
+  { word: 'blender', image: '/images/kitchen/blender.png' },
+  { word: 'plate', image: '/images/kitchen/plate.png' },
+  { word: 'pot', image: '/images/kitchen/pot.png' },
+  { word: 'kettle', image: '/images/kitchen/kettle.png' },
 ]
 
-const SENTENCE_EXERCISES_3: SentenceExercise[] = [
-  { sentence: 'My mother ____ on Sundays.', options: ['work', 'works'], answer: 'works' },
-  { sentence: 'We ____ the answers.', options: ['write', 'writes'], answer: 'write' },
-  { sentence: 'It ____ grass.', options: ['eat', 'eats'], answer: 'eats' },
-  { sentence: 'I ____ more ice cream.', options: ['want', 'wants'], answer: 'want' },
-  { sentence: 'She never ____ chess.', options: ['play', 'plays'], answer: 'plays' },
-  { sentence: 'They ____ to school.', options: ['walk', 'walks'], answer: 'walk' },
-  { sentence: 'He ____ a bus.', options: ['drive', 'drives'], answer: 'drives' },
-  { sentence: 'Monkeys ____ a lot of noise.', options: ['make', 'makes'], answer: 'make' },
-  { sentence: 'This girl ____ Italian.', options: ['speak', 'speaks'], answer: 'speaks' },
-]
-
-const SENTENCE_EXERCISES_4: SentenceExercise[] = [
-  { sentence: 'She ____ that toy.', options: ['want', 'wants'], answer: 'wants' },
-  { sentence: 'Ben and his mom ____ home.', options: ['drive', 'drives'], answer: 'drive' },
-  { sentence: 'The girls ____ at the park.', options: ['play', 'plays'], answer: 'play' },
-  { sentence: 'My dog ____ his bone.', options: ['bury', 'buries'], answer: 'buries' },
-  { sentence: 'Sal and I ____ a cake.', options: ['bake', 'bakes'], answer: 'bake' },
-  { sentence: 'Dr. Bell ____ the cat.', options: ['feed', 'feeds'], answer: 'feeds' },
-  { sentence: 'Her dad ____ the red van.', options: ['clean', 'cleans'], answer: 'cleans' },
-  { sentence: 'Our friends ____ outside.', options: ['run', 'runs'], answer: 'run' },
-  { sentence: 'Three birds ____ in the tree.', options: ['sit', 'sits'], answer: 'sits' },
-  { sentence: 'Tom ____ a pretty picture.', options: ['paint', 'paints'], answer: 'paints' },
+const REWARDS: RewardDef[] = [
+  { id: 'panelita', name: 'Panelita de leche', image: '/images/rewards/panelita.png', lessonsRequired: 2, description: 'Complete 2 lessons (33%)', is3D: false },
+  { id: 'trululu', name: 'Gomas Trululu', image: '/images/rewards/trululu.png', lessonsRequired: 4, description: 'Complete 4 lessons (66%)', is3D: true },
+  { id: 'hotwheels', name: 'Carro Hotwheels', image: '/images/rewards/hotwheels.png', lessonsRequired: 6, description: 'Complete ALL lessons (100%)', is3D: true },
 ]
 
 const LESSONS: LessonDef[] = [
-  { id: 'flashcards', name: 'Learn Action Words', icon: '📚', color: '#58CC02', bgColor: '#E5F9D0', description: 'Learn 12 action words with pictures!', xpReward: 50 },
-  { id: 'picture-match', name: 'Picture Match', icon: '🖼️', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Match words to pictures!', xpReward: 50 },
-  { id: 'listen-choose', name: 'Listen & Choose', icon: '👂', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Listen and pick the right word!', xpReward: 50 },
-  { id: 'sentence-builder', name: 'Sentence Builder', icon: '🏗️', color: '#FFC800', bgColor: '#FFF3CC', description: 'Complete sentences with verbs!', xpReward: 50 },
-  { id: 'grammar-practice', name: 'Grammar Rules', icon: '📝', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Learn He/She/It verb rules!', xpReward: 50 },
-  { id: 'spelling-challenge', name: 'Spelling Challenge', icon: '✏️', color: '#00CD9C', bgColor: '#CCF5EA', description: 'Spell the words you hear!', xpReward: 50 },
-  { id: 'final-test', name: 'Final Test', icon: '🏆', color: '#FFB700', bgColor: '#FFF0CC', description: 'Show what you know!', xpReward: 100 },
+  { id: 'flashcards', name: 'Learn the Words', icon: '📚', color: '#58CC02', bgColor: '#E5F9D0', description: 'Learn 10 kitchen words with pictures!', xpReward: 10 },
+  { id: 'picture-match', name: 'Match the Picture', icon: '🖼️', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Match words to pictures!', xpReward: 80 },
+  { id: 'listen-choose', name: 'Listen and Pick', icon: '👂', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Listen and pick the right word!', xpReward: 80 },
+  { id: 'spelling-challenge', name: 'Spell the Word', icon: '✏️', color: '#00CD9C', bgColor: '#CCF5EA', description: 'Spell the words you hear!', xpReward: 80 },
+  { id: 'whats-missing', name: 'Fill the Blank', icon: '❓', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Find the missing letter!', xpReward: 80 },
+  { id: 'final-test', name: 'Show What You Know!', icon: '🏆', color: '#FFB700', bgColor: '#FFF0CC', description: 'Final test - prove your skills!', xpReward: 120 },
 ]
 
-const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD93D', '#6BCB77', '#9B59B6', '#58CC02', '#CE82FF']
-const ENCOURAGEMENTS = ['Amazing! 🌟', 'Great job! 🎉', 'You rock! 🎸', 'Fantastic! ✨', 'Super! 🦸', 'Wow! 🎊', 'Brilliant! 💡', 'Awesome! 🚀']
+const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD93D', '#6BCB77', '#9B59B6', '#58CC02', '#CE82FF', '#FF9600', '#FFC800']
+const ENCOURAGEMENTS = ['Amazing! 🌟', 'Great job! 🎉', 'You rock! 🎸', 'Fantastic! ✨', 'Super! 🦸', 'Wow! 🎊', 'Brilliant! 💡', 'Awesome! 🚀', 'Nice one! 🎯', 'Perfect! 💯']
 
 // ============ UTILITY FUNCTIONS ============
 function speakWord(word: string) {
@@ -118,7 +99,6 @@ function spellAndSpeak(word: string, onComplete?: () => void): ReturnType<typeof
   window.speechSynthesis.cancel()
   let delay = 0
 
-  // Step 1: Say the complete word first
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(word)
     u.lang = 'en-US'
@@ -128,7 +108,6 @@ function spellAndSpeak(word: string, onComplete?: () => void): ReturnType<typeof
   }, delay)
   delay += 1200
 
-  // Step 2: Spell each letter (use lowercase so TTS says "a" not "capital A")
   const letters = word.split('')
   letters.forEach((letter) => {
     setTimeout(() => {
@@ -142,7 +121,6 @@ function spellAndSpeak(word: string, onComplete?: () => void): ReturnType<typeof
   })
   delay += 500
 
-  // Step 3: Say the complete word again at the end
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(word)
     u.lang = 'en-US'
@@ -150,22 +128,9 @@ function spellAndSpeak(word: string, onComplete?: () => void): ReturnType<typeof
     u.pitch = 1.1
     window.speechSynthesis.speak(u)
   }, delay)
+  delay += 1200
 
-  // Step 4: Fire onComplete callback after speech is done
-  delay += 1200 // wait for the final word to finish speaking
-  return onComplete
-    ? setTimeout(onComplete, delay)
-    : null
-}
-
-function speakSentence(sentence: string) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(sentence)
-  u.lang = 'en-US'
-  u.rate = 0.75
-  u.pitch = 1.0
-  window.speechSynthesis.speak(u)
+  return onComplete ? setTimeout(onComplete, delay) : null
 }
 
 function shuffleArray<T>(array: T[]): T[] {
@@ -184,18 +149,18 @@ function getRandomItems<T>(array: T[], count: number, exclude?: T[]): T[] {
 
 function loadProgress(): ProgressData {
   if (typeof window === 'undefined') {
-    return { xp: 0, streak: 0, completedLessons: [], lastPlayedDate: '' }
+    return { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' }
   }
   try {
-    const stored = localStorage.getItem('wordwizard-progress')
+    const stored = localStorage.getItem('kitchen-vocab-progress')
     if (stored) return JSON.parse(stored) as ProgressData
   } catch { /* ignore */ }
-  return { xp: 0, streak: 0, completedLessons: [], lastPlayedDate: '' }
+  return { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' }
 }
 
 function saveProgress(progress: ProgressData) {
   if (typeof window === 'undefined') return
-  try { localStorage.setItem('wordwizard-progress', JSON.stringify(progress)) } catch { /* ignore */ }
+  try { localStorage.setItem('kitchen-vocab-progress', JSON.stringify(progress)) } catch { /* ignore */ }
 }
 
 function getTodayString(): string {
@@ -209,7 +174,7 @@ function getYesterdayString(): string {
 }
 
 function generateConfettiParticles() {
-  return Array.from({ length: 50 }, (_, i) => ({
+  return Array.from({ length: 60 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
@@ -226,7 +191,6 @@ function randomEncouragement(): string {
 // ============ CONFETTI COMPONENT ============
 function ConfettiEffect() {
   const particles = useMemo(() => generateConfettiParticles(), [])
-
   return (
     <div className="fixed inset-0 pointer-events-none z-50">
       {particles.map((p) => (
@@ -248,12 +212,69 @@ function ConfettiEffect() {
   )
 }
 
+// ============ REWARD CELEBRATION COMPONENT ============
+function RewardCelebration({ reward, onDismiss }: { reward: RewardDef; onDismiss: () => void }) {
+  const [showConfetti, setShowConfetti] = useState(true)
+  const sparkles = useMemo(() =>
+    Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      x: 30 + Math.random() * 40,
+      y: 10 + Math.random() * 50,
+      delay: Math.random() * 2,
+      size: 10 + Math.random() * 15,
+    })), []
+  )
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowConfetti(false), 4000)
+    return () => clearTimeout(timer)
+  }, [])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onDismiss}>
+      {showConfetti && <ConfettiEffect />}
+      {sparkles.map((s) => (
+        <div
+          key={s.id}
+          className="absolute animate-sparkle pointer-events-none"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            fontSize: `${s.size}px`,
+            animationDelay: `${s.delay}s`,
+          }}
+        >
+          ✨
+        </div>
+      ))}
+      <div className="relative bg-white rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full text-center animate-reward-bounce" onClick={(e) => e.stopPropagation()}>
+        <div className="text-5xl mb-2">🎉</div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-1">YOU EARNED A REWARD!</h2>
+        <div className="animate-reward-glow rounded-2xl p-4 mb-4">
+          <img src={reward.image} alt={reward.name} className="w-40 h-40 object-contain mx-auto" />
+        </div>
+        <h3 className="text-xl font-bold text-duo-gold mb-2">{reward.name}</h3>
+        {reward.is3D && (
+          <span className="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full mb-2">🎮 3D Image</span>
+        )}
+        <p className="text-lg text-gray-600 mb-4 font-semibold">Ask Mom or Dad for your prize! 🎁</p>
+        <Button
+          onClick={onDismiss}
+          className="duo-button bg-duo-green hover:bg-duo-green-dark text-white font-bold text-lg px-8 py-5 rounded-2xl"
+          size="lg"
+        >
+          Claim your prize! 🌟
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 // ============ MASCOT COMPONENT ============
-function Mascot({ mood = 'happy', size = 48 }: { mood?: 'happy' | 'sad' | 'excited'; size?: number }) {
-  const faces = { happy: '(ᵔᴗᵔ)', sad: '(ᵕ̩̩ㅅᵕ̩̩)', excited: '(★ᴗ★)' }
+function Mascot({ size = 48 }: { size?: number }) {
   return (
     <div className="select-none animate-float" style={{ fontSize: `${size}px`, lineHeight: 1 }}>
-      {faces[mood]}
+      🦉
     </div>
   )
 }
@@ -276,7 +297,6 @@ function LessonHeader({ title, hearts, current, total, onBack }: {
   title: string; hearts: number; current: number; total: number; onBack: () => void
 }) {
   const progressPercent = total > 0 ? (current / total) * 100 : 0
-
   return (
     <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-sm pb-3">
       <div className="flex items-center gap-3 mb-2">
@@ -293,33 +313,21 @@ function LessonHeader({ title, hearts, current, total, onBack }: {
 
 // ============ DASHBOARD ============
 function Dashboard({ progress, onSelectLesson }: { progress: ProgressData; onSelectLesson: (id: LessonViewType) => void }) {
-  // TEMP: All lessons unlocked for testing — revert to sequential unlock later
-  const isUnlocked = (_index: number): boolean => {
-    return true
-  }
-
-  // ORIGINAL: Sequential unlock (restore after testing)
-  // const isUnlocked = (index: number): boolean => {
-  //   if (index === 0) return true
-  //   return progress.completedLessons.includes(LESSONS[index - 1].id)
-  // }
-
   const isCompleted = (id: string): boolean => progress.completedLessons.includes(id)
-
   const totalLessons = LESSONS.length
   const completedCount = progress.completedLessons.filter((id) => LESSONS.some((l) => l.id === id)).length
   const overallProgress = (completedCount / totalLessons) * 100
 
   return (
-    <div className="min-h-screen bg-duo-bg flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       {/* Top Bar */}
       <div className="bg-white shadow-sm px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🦉</span>
-            <span className="font-bold text-lg text-gray-800">Word Wizard</span>
+            <span className="font-bold text-lg text-gray-800">Kitchen Vocab</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -337,11 +345,11 @@ function Dashboard({ progress, onSelectLesson }: { progress: ProgressData; onSel
         <div className="max-w-lg mx-auto">
           {/* Welcome */}
           <div className="text-center mb-6">
-            <Mascot mood={overallProgress === 100 ? 'excited' : 'happy'} size={56} />
+            <Mascot size={56} />
             <h1 className="text-2xl font-bold text-gray-800 mt-2">
-              {overallProgress === 100 ? 'You did it! All done! 🎉' : "Let's learn Action Words!"}
+              {overallProgress === 100 ? 'You did it! All done! 🎉' : "Let's learn Kitchen Words!"}
             </h1>
-            <p className="text-gray-500 mt-1">Action Words & Simple Present Tense</p>
+            <p className="text-gray-500 mt-1">Kitchen Vocabulary for Kids</p>
           </div>
 
           {/* Overall Progress */}
@@ -357,38 +365,90 @@ function Dashboard({ progress, onSelectLesson }: { progress: ProgressData; onSel
             </CardContent>
           </Card>
 
+          {/* Rewards Section */}
+          <div className="mb-6">
+            <h2 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
+              🎁 Rewards
+            </h2>
+            <div className="grid grid-cols-3 gap-3">
+              {REWARDS.map((reward) => {
+                const isUnlocked = progress.unlockedRewards.includes(reward.id)
+                const lessonsCompleted = progress.completedLessons.filter((id) => LESSONS.some((l) => l.id === id)).length
+                const rewardProgress = Math.min((lessonsCompleted / reward.lessonsRequired) * 100, 100)
+                return (
+                  <Card
+                    key={reward.id}
+                    className={`border-0 shadow-md overflow-hidden ${isUnlocked ? 'animate-reward-glow' : ''}`}
+                  >
+                    <CardContent className="p-3 flex flex-col items-center text-center">
+                      <div className={`relative w-20 h-20 mb-2 ${!isUnlocked ? 'reward-locked' : ''}`}>
+                        <img
+                          src={reward.image}
+                          alt={reward.name}
+                          className="w-full h-full object-contain"
+                        />
+                        {!isUnlocked && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-3xl">🔒</span>
+                          </div>
+                        )}
+                        {isUnlocked && (
+                          <div className="absolute -top-1 -right-1 text-lg animate-float-star">⭐</div>
+                        )}
+                      </div>
+                      <p className={`text-xs font-bold leading-tight ${isUnlocked ? 'text-duo-gold' : 'text-gray-400'}`}>
+                        {reward.name}
+                      </p>
+                      {!isUnlocked && (
+                        <div className="w-full mt-1.5">
+                          <div className="w-full bg-gray-200 rounded-full h-1.5">
+                            <div
+                              className="bg-duo-orange rounded-full h-1.5 transition-all"
+                              style={{ width: `${rewardProgress}%` }}
+                            />
+                          </div>
+                          <p className="text-[10px] text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
+                        </div>
+                      )}
+                      {isUnlocked && (
+                        <span className="text-[10px] font-bold text-duo-green mt-1">✅ Claimed!</span>
+                      )}
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Lesson Path */}
           <div className="flex flex-col items-center">
             {LESSONS.map((lesson, index) => {
-              const unlocked = isUnlocked(index)
               const completed = isCompleted(lesson.id)
-
               return (
                 <div key={lesson.id} className="flex flex-col items-center w-full">
                   {index > 0 && (
                     <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isCompleted(LESSONS[index - 1].id) ? lesson.color : '#E0E0E0' }} />
                   )}
                   <button
-                    onClick={() => unlocked && onSelectLesson(lesson.id)}
-                    disabled={!unlocked}
-                    className={`w-full max-w-xs mb-2 transition-all duration-200 ${unlocked ? 'lesson-card-hover cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+                    onClick={() => onSelectLesson(lesson.id)}
+                    className="w-full max-w-xs mb-2 transition-all duration-200 lesson-card-hover cursor-pointer"
                   >
                     <Card
                       className={`border-0 shadow-md overflow-hidden ${completed ? 'ring-2' : ''}`}
-                      style={{ backgroundColor: unlocked ? lesson.bgColor : '#F5F5F5', ...(completed ? { ringColor: lesson.color } : {}) }}
+                      style={{ backgroundColor: lesson.bgColor, ...(completed ? { ringColor: lesson.color } : {}) }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0" style={{ backgroundColor: unlocked ? lesson.color : '#D0D0D0' }}>
-                            {unlocked ? lesson.icon : '🔒'}
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0" style={{ backgroundColor: lesson.color }}>
+                            {lesson.icon}
                           </div>
                           <div className="flex-1 text-left">
-                            <h3 className="font-bold text-sm" style={{ color: unlocked ? '#333' : '#999' }}>{lesson.name}</h3>
-                            <p className="text-xs mt-0.5" style={{ color: unlocked ? '#666' : '#BBB' }}>{lesson.description}</p>
+                            <h3 className="font-bold text-sm text-gray-800">{lesson.name}</h3>
+                            <p className="text-xs mt-0.5 text-gray-600">{lesson.description}</p>
                           </div>
                           <div className="shrink-0 flex items-center gap-1">
                             {completed && <span className="text-xl animate-pop-in">✅</span>}
-                            <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: unlocked ? `${lesson.color}20` : '#E8E8E8', color: unlocked ? lesson.color : '#BBB' }}>
+                            <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: `${lesson.color}20`, color: lesson.color }}>
                               +{lesson.xpReward}XP
                             </span>
                           </div>
@@ -400,23 +460,6 @@ function Dashboard({ progress, onSelectLesson }: { progress: ProgressData; onSel
               )
             })}
           </div>
-
-          {/* Grammar Rules Card */}
-          <Card className="mt-6 border-0 shadow-md bg-gradient-to-r from-purple-50 to-pink-50">
-            <CardContent className="p-4">
-              <h3 className="font-bold text-purple-700 mb-2">📖 Grammar Rules</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-start gap-2">
-                  <span className="text-duo-green font-bold shrink-0">I, You, We, They</span>
-                  <span className="text-gray-600">→ base verb (no -s)</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <span className="text-duo-purple font-bold shrink-0">He, She, It</span>
-                  <span className="text-gray-600">→ verb + s</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
@@ -426,16 +469,15 @@ function Dashboard({ progress, onSelectLesson }: { progress: ProgressData; onSel
 // ============ LESSON COMPLETE VIEW ============
 function LessonCompleteView({ xpEarned, lessonName, onContinue }: { xpEarned: number; lessonName: string; onContinue: () => void }) {
   const [showConfetti, setShowConfetti] = useState(true)
-
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 3500)
     return () => clearTimeout(timer)
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-duo-green/10 to-duo-blue/10 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 flex flex-col items-center justify-center p-6">
       {showConfetti && <ConfettiEffect />}
-      <div className="text-center animate-bounce-custom"><Mascot mood="excited" size={64} /></div>
+      <div className="text-center animate-bounce-custom"><Mascot size={64} /></div>
       <h1 className="text-3xl font-bold text-gray-800 mt-4 animate-slide-up">Lesson Complete! 🎉</h1>
       <p className="text-lg text-gray-600 mt-2 animate-slide-up">{lessonName}</p>
       <div className="mt-6 animate-star-burst">
@@ -455,7 +497,7 @@ function LessonCompleteView({ xpEarned, lessonName, onContinue }: { xpEarned: nu
 function GameOverView({ xpEarned, lessonName, onRetry, onBack }: { xpEarned: number; lessonName: string; onRetry: () => void; onBack: () => void }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-red-50 to-orange-50 flex flex-col items-center justify-center p-6">
-      <div className="text-center"><Mascot mood="sad" size={64} /></div>
+      <div className="text-center"><Mascot size={64} /></div>
       <h1 className="text-2xl font-bold text-gray-800 mt-4">Oh no! 😢</h1>
       <p className="text-lg text-gray-600 mt-2">You ran out of hearts in</p>
       <p className="text-lg font-bold text-gray-700">{lessonName}</p>
@@ -475,8 +517,8 @@ function GameOverView({ xpEarned, lessonName, onRetry, onBack }: { xpEarned: num
 function FlashcardView({ onComplete, onBack }: { onComplete: (xp: number) => void; onBack: () => void }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [animClass, setAnimClass] = useState('')
-  const total = ACTION_WORDS.length
-  const currentWord = ACTION_WORDS[currentIndex]
+  const total = KITCHEN_WORDS.length
+  const currentWord = KITCHEN_WORDS[currentIndex]
 
   const handleSpeak = useCallback(() => {
     speakWord(currentWord.word)
@@ -490,12 +532,16 @@ function FlashcardView({ onComplete, onBack }: { onComplete: (xp: number) => voi
       setTimeout(() => setAnimClass(''), 400)
       setCurrentIndex((prev) => prev + 1)
     } else {
-      onComplete(50)
+      onComplete(10)
     }
   }, [currentIndex, total, onComplete])
 
   const handlePrev = useCallback(() => {
-    if (currentIndex > 0) setCurrentIndex((prev) => prev - 1)
+    if (currentIndex > 0) {
+      setAnimClass('animate-slide-in-right')
+      setTimeout(() => setAnimClass(''), 400)
+      setCurrentIndex((prev) => prev - 1)
+    }
   }, [currentIndex])
 
   useEffect(() => {
@@ -504,9 +550,9 @@ function FlashcardView({ onComplete, onBack }: { onComplete: (xp: number) => voi
   }, [currentIndex, currentWord.word])
 
   return (
-    <div className="min-h-screen bg-duo-bg flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Learn Action Words" hearts={3} current={currentIndex + 1} total={total} onBack={onBack} />
+        <LessonHeader title="Learn the Words" hearts={3} current={currentIndex + 1} total={total} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className={`w-full max-w-sm ${animClass}`}>
@@ -533,10 +579,10 @@ function FlashcardView({ onComplete, onBack }: { onComplete: (xp: number) => voi
 }
 
 // ============ PICTURE MATCH VIEW ============
-function createPictureMatchRound(): { targetWord: ActionWord; options: ActionWord[] } {
-  const shuffled = shuffleArray(ACTION_WORDS)
+function createPictureMatchRound(): { targetWord: KitchenWord; options: KitchenWord[] } {
+  const shuffled = shuffleArray(KITCHEN_WORDS)
   const target = shuffled[0]
-  const distractors = getRandomItems(ACTION_WORDS, 3, [target])
+  const distractors = getRandomItems(KITCHEN_WORDS, 3, [target])
   const options = shuffleArray([target, ...distractors])
   return { targetWord: target, options }
 }
@@ -590,9 +636,9 @@ function PictureMatchView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
   }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound])
 
   return (
-    <div className="min-h-screen bg-duo-bg flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Picture Match" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+        <LessonHeader title="Match the Picture" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className="mb-6 text-center">
@@ -631,10 +677,10 @@ function PictureMatchView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
 }
 
 // ============ LISTEN & CHOOSE VIEW ============
-function createListenRound(): { targetWord: ActionWord; options: string[] } {
-  const shuffled = shuffleArray(ACTION_WORDS)
+function createListenRound(): { targetWord: KitchenWord; options: string[] } {
+  const shuffled = shuffleArray(KITCHEN_WORDS)
   const target = shuffled[0]
-  const distractors = getRandomItems(ACTION_WORDS.map((w) => w.word), 3, [target.word])
+  const distractors = getRandomItems(KITCHEN_WORDS.map((w) => w.word), 3, [target.word])
   const options = shuffleArray([target.word, ...distractors])
   return { targetWord: target, options }
 }
@@ -667,7 +713,6 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
     timeoutRef.current = spellAndSpeak(roundData.targetWord.word, () => setIsSpelling(false))
   }, [roundData, isSpelling])
 
-  // Auto-spell when round data changes (new round)
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsSpelling(true)
@@ -712,9 +757,9 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
   }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound])
 
   return (
-    <div className="min-h-screen bg-duo-bg flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Listen & Choose" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+        <LessonHeader title="Listen and Pick" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className="mb-6 text-center">
@@ -751,96 +796,169 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
   )
 }
 
-// ============ SENTENCE BUILDER VIEW ============
-function SentenceBuilderView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
-  const allExercises = useMemo(() => shuffleArray([...SENTENCE_EXERCISES_3, ...SENTENCE_EXERCISES_4]), [])
+// ============ SPELLING CHALLENGE VIEW ============
+function createSpellingRound(): { targetWord: KitchenWord; scrambledLetters: string[] } {
+  const shuffled = shuffleArray(KITCHEN_WORDS)
+  const target = shuffled[0]
+  const letters = shuffleArray(target.word.split(''))
+  return { targetWord: target, scrambledLetters: letters }
+}
+
+function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
-  const [selected, setSelected] = useState<string | null>(null)
+  const [roundData, setRoundData] = useState(() => createSpellingRound())
+  const [selectedLetters, setSelectedLetters] = useState<(string | null)[]>(() => Array(roundData.targetWord.word.length).fill(null))
+  const [usedIndices, setUsedIndices] = useState<Set<number>>(() => new Set())
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [animClass, setAnimClass] = useState('')
-  const [showHint, setShowHint] = useState(false)
+  const [animClass, setAnimClass] = useState('animate-slide-up')
+  const totalRounds = 8
+  const targetWord = roundData.targetWord.word
 
-  const totalRounds = Math.min(10, allExercises.length)
-  const currentExercise = allExercises[round]
+  const advanceRound = useCallback(() => {
+    const newRoundData = createSpellingRound()
+    setRoundData(newRoundData)
+    setSelectedLetters(Array(newRoundData.targetWord.word.length).fill(null))
+    setUsedIndices(new Set())
+    setFeedback(null)
+    setAnimClass('animate-slide-up')
+    setTimeout(() => setAnimClass(''), 400)
+  }, [])
 
-  const handleSelect = useCallback((option: string) => {
-    if (feedback || !currentExercise) return
-    setSelected(option)
+  useEffect(() => {
+    const timer = setTimeout(() => speakWord(roundData.targetWord.word), 300)
+    return () => clearTimeout(timer)
+  }, [roundData.targetWord.word])
 
-    if (option === currentExercise.answer) {
-      setFeedback('correct')
-      const newXp = xpEarned + 10
-      setXpEarned(newXp)
-      const fullSentence = currentExercise.sentence.replace('____', option)
-      setTimeout(() => speakSentence(fullSentence), 300)
-      setTimeout(() => {
-        if (round + 1 >= totalRounds) onComplete(newXp)
-        else {
-          setRound((prev) => prev + 1)
-          setSelected(null)
-          setFeedback(null)
-          setShowHint(false)
-          setAnimClass('animate-slide-in-right')
-          setTimeout(() => setAnimClass(''), 400)
-        }
-      }, 1800)
-    } else {
-      setFeedback('wrong')
-      setAnimClass('animate-shake')
-      setTimeout(() => setAnimClass(''), 500)
-      setShowHint(true)
-      const newHearts = hearts - 1
-      setHearts(newHearts)
-      if (newHearts <= 0) {
-        setTimeout(() => onGameOver(xpEarned), 800)
+  const handleLetterTap = useCallback((letter: string, index: number) => {
+    if (feedback || usedIndices.has(index)) return
+
+    const newUsedIndices = new Set(usedIndices)
+    newUsedIndices.add(index)
+    setUsedIndices(newUsedIndices)
+
+    const firstEmpty = selectedLetters.findIndex((l) => l === null)
+    if (firstEmpty === -1) return
+
+    const newSelected = [...selectedLetters]
+    newSelected[firstEmpty] = letter
+    setSelectedLetters(newSelected)
+
+    const wordSoFar = newSelected.filter((l) => l !== null).join('')
+    if (wordSoFar.length === targetWord.length) {
+      if (wordSoFar === targetWord) {
+        setFeedback('correct')
+        const newXp = xpEarned + 10
+        setXpEarned(newXp)
+        speakWord(targetWord)
+        setTimeout(() => {
+          if (round + 1 >= totalRounds) onComplete(newXp)
+          else {
+            setRound((prev) => prev + 1)
+            advanceRound()
+          }
+        }, 1500)
       } else {
-        setTimeout(() => { setSelected(null); setFeedback(null) }, 1500)
+        setFeedback('wrong')
+        setAnimClass('animate-shake')
+        setTimeout(() => setAnimClass(''), 500)
+        const newHearts = hearts - 1
+        setHearts(newHearts)
+        if (newHearts <= 0) {
+          setTimeout(() => onGameOver(xpEarned), 800)
+        } else {
+          setTimeout(() => {
+            setSelectedLetters(Array(targetWord.length).fill(null))
+            setUsedIndices(new Set())
+            setFeedback(null)
+            speakWord(targetWord)
+          }, 1200)
+        }
       }
     }
-  }, [feedback, currentExercise, hearts, xpEarned, round, totalRounds, onComplete, onGameOver])
+  }, [feedback, usedIndices, selectedLetters, targetWord, xpEarned, hearts, round, totalRounds, onComplete, onGameOver, advanceRound])
 
-  if (!currentExercise) return null
+  const handleRemoveLetter = useCallback((slotIndex: number) => {
+    if (feedback) return
+    if (selectedLetters[slotIndex] === null) return
 
-  const needsS = ['he', 'she', 'it'].some((p) => currentExercise.sentence.toLowerCase().includes(p))
-  const grammarHint = needsS ? '💡 Hint: He/She/It needs verb + s!' : '💡 Hint: I/You/We/They use the base verb (no -s)!'
+    const newSelected = [...selectedLetters]
+    newSelected[slotIndex] = null
+    setSelectedLetters(newSelected)
+    setUsedIndices((prev) => {
+      const newSet = new Set<number>()
+      const remaining = newSelected.filter((l) => l !== null)
+      const letterCounts: Record<string, number> = {}
+      remaining.forEach((l) => {
+        if (l) letterCounts[l] = (letterCounts[l] || 0) + 1
+      })
+      roundData.scrambledLetters.forEach((letter, idx) => {
+        if (letterCounts[letter] && letterCounts[letter] > 0) {
+          newSet.add(idx)
+          letterCounts[letter]--
+        }
+      })
+      return newSet
+    })
+  }, [feedback, selectedLetters, roundData.scrambledLetters])
+
+  const handleHearWord = useCallback(() => {
+    speakWord(targetWord)
+  }, [targetWord])
 
   return (
-    <div className="min-h-screen bg-duo-bg flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Sentence Builder" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+        <LessonHeader title="Spell the Word" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className={`w-full max-w-sm ${animClass}`}>
-          <Card className="border-0 shadow-lg mb-6">
-            <CardContent className="p-6 text-center">
-              <p className="text-xl font-bold text-gray-800">{currentExercise.sentence.replace('____', '______')}</p>
-            </CardContent>
-          </Card>
-          {showHint && (
-            <div className="mb-4 bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-3 text-center animate-slide-up">
-              <p className="text-sm font-semibold text-yellow-700">{grammarHint}</p>
-            </div>
-          )}
-          <div className="flex gap-3">
-            {currentExercise.options.map((option) => {
-              const isCorrect = option === currentExercise.answer
-              const isSelected = option === selected
-              let btnClass = 'flex-1 duo-button text-xl font-bold py-6 rounded-2xl transition-all'
-              if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white animate-pulse-grow'
-              else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white animate-shake'
-              else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 hover:border-duo-orange'
-              return (
-                <button key={option} className={btnClass} onClick={() => handleSelect(option)}>
-                  {option}
-                </button>
-              )
-            })}
+          <div className="text-center mb-4">
+            <Card className="border-0 shadow-md inline-block">
+              <CardContent className="p-4 flex flex-col items-center">
+                <img src={roundData.targetWord.image} alt={targetWord} className="w-32 h-32 object-contain" />
+              </CardContent>
+            </Card>
           </div>
+
+          <Button onClick={handleHearWord} className="w-full duo-button bg-duo-blue hover:bg-duo-blue/90 text-white font-bold text-base py-4 rounded-2xl mb-4">
+            🔊 Hear the word
+          </Button>
+
+          <div className="flex justify-center gap-2 mb-6 flex-wrap">
+            {selectedLetters.map((letter, i) => (
+              <button
+                key={i}
+                onClick={() => handleRemoveLetter(i)}
+                className={`spelling-slot ${letter !== null ? 'filled' : ''} ${feedback === 'wrong' && letter !== null ? 'wrong' : ''} ${feedback === 'correct' && letter !== null ? 'animate-slot-fill' : ''}`}
+                disabled={feedback !== null}
+              >
+                {letter !== null ? letter.toUpperCase() : ''}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex justify-center gap-2 flex-wrap">
+            {roundData.scrambledLetters.map((letter, i) => (
+              <button
+                key={i}
+                onClick={() => handleLetterTap(letter, i)}
+                disabled={usedIndices.has(i) || feedback !== null}
+                className={`w-12 h-12 rounded-xl font-bold text-xl flex items-center justify-center letter-tile
+                  ${usedIndices.has(i)
+                    ? 'bg-gray-200 text-gray-400 opacity-30 pointer-events-none'
+                    : 'bg-white text-gray-800 border-2 border-gray-300 shadow-md hover:border-duo-teal hover:shadow-lg'
+                  }`}
+              >
+                {letter.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
           {feedback && (
             <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-              {feedback === 'correct' ? randomEncouragement() : 'Oops! Wrong form! 💪'}
+              {feedback === 'correct' ? randomEncouragement() : `It was "${targetWord.toUpperCase()}"! Try again 💪`}
             </div>
           )}
         </div>
@@ -849,90 +967,64 @@ function SentenceBuilderView({ onComplete, onGameOver, onBack }: { onComplete: (
   )
 }
 
-// ============ GRAMMAR PRACTICE VIEW ============
-function GrammarPracticeView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
-  const ADD_S_PRONOUNS = ['He', 'She', 'It']
-  const ALL_PRONOUNS = ['I', 'You', 'We', 'They', 'He', 'She', 'It']
+// ============ WHAT'S MISSING VIEW ============
+function createMissingRound(): { targetWord: KitchenWord; displayWord: string; missingIndex: number; missingLetter: string; options: string[] } {
+  const shuffled = shuffleArray(KITCHEN_WORDS)
+  const target = shuffled[0]
+  const word = target.word
 
-  const [phase, setPhase] = useState<'sort' | 'practice'>('sort')
+  const possibleIndices = word.length > 1 ? Array.from({ length: word.length }, (_, i) => i).slice(1) : [0]
+  const missingIndex = possibleIndices[Math.floor(Math.random() * possibleIndices.length)]
+  const missingLetter = word[missingIndex]
+  const displayWord = word.substring(0, missingIndex) + '_' + word.substring(missingIndex + 1)
+
+  const alphabet = 'abcdefghijklmnopqrstuvwxyz'
+  const wrongOptions = getRandomItems(
+    alphabet.split('').filter((l) => l !== missingLetter),
+    3
+  )
+  const options = shuffleArray([missingLetter, ...wrongOptions])
+
+  return { targetWord: target, displayWord, missingIndex, missingLetter, options }
+}
+
+function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+  const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
-  const [addSGroup, setAddSGroup] = useState<string[]>([])
-  const [noSGroup, setNoSGroup] = useState<string[]>([])
-  const [unsorted, setUnsorted] = useState<string[]>(ALL_PRONOUNS)
-  const [sortFeedback, setSortFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [practiceRound, setPracticeRound] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [animClass, setAnimClass] = useState('')
+  const [roundData, setRoundData] = useState(() => createMissingRound())
+  const [animClass, setAnimClass] = useState('animate-slide-up')
+  const totalRounds = 8
 
-  const practiceQuestions = useMemo(() => [
-    { pronoun: 'He', verb: 'run', correct: 'runs' },
-    { pronoun: 'They', verb: 'swim', correct: 'swim' },
-    { pronoun: 'She', verb: 'read', correct: 'reads' },
-    { pronoun: 'I', verb: 'play', correct: 'play' },
-    { pronoun: 'It', verb: 'eat', correct: 'eats' },
-    { pronoun: 'We', verb: 'sing', correct: 'sing' },
-    { pronoun: 'You', verb: 'jump', correct: 'jump' },
-    { pronoun: 'He', verb: 'write', correct: 'writes' },
-  ], [])
+  const advanceRound = useCallback(() => {
+    setRoundData(createMissingRound())
+    setSelected(null)
+    setFeedback(null)
+    setAnimClass('animate-slide-up')
+    setTimeout(() => setAnimClass(''), 400)
+  }, [])
 
-  const handleSortPronoun = useCallback((pronoun: string, group: 'add-s' | 'no-s') => {
-    if (sortFeedback) return
-    const isAddS = ADD_S_PRONOUNS.includes(pronoun)
-    const correctGroup = isAddS ? 'add-s' : 'no-s'
+  useEffect(() => {
+    const timer = setTimeout(() => speakWord(roundData.targetWord.word), 300)
+    return () => clearTimeout(timer)
+  }, [roundData.targetWord.word])
 
-    if (group === correctGroup) {
-      let newAddS = addSGroup
-      let newNoS = noSGroup
-      if (group === 'add-s') {
-        newAddS = [...addSGroup, pronoun]
-        setAddSGroup(newAddS)
-      } else {
-        newNoS = [...noSGroup, pronoun]
-        setNoSGroup(newNoS)
-      }
-      setUnsorted((prev) => prev.filter((p) => p !== pronoun))
-      speakWord(pronoun)
+  const handleSelect = useCallback((letter: string) => {
+    if (feedback || !roundData) return
+    setSelected(letter)
 
-      // Check if sorting is complete after this placement
-      const willBeComplete = newAddS.length === 3 && newNoS.length === 4
-      if (willBeComplete) {
-        setSortFeedback('correct')
-        setXpEarned((prev) => prev + 30)
-        setTimeout(() => setPhase('practice'), 1500)
-      }
-    } else {
-      setSortFeedback('wrong')
-      const newHearts = hearts - 1
-      setHearts(newHearts)
-      if (newHearts <= 0) {
-        setTimeout(() => onGameOver(xpEarned), 500)
-        return
-      }
-      setTimeout(() => setSortFeedback(null), 1000)
-    }
-  }, [sortFeedback, hearts, xpEarned, onGameOver, ADD_S_PRONOUNS, addSGroup, noSGroup])
-
-  const currentPractice = practiceQuestions[practiceRound]
-
-  const handlePracticeSelect = useCallback((option: string) => {
-    if (feedback || !currentPractice) return
-    setSelected(option)
-
-    if (option === currentPractice.correct) {
+    if (letter === roundData.missingLetter) {
       setFeedback('correct')
       const newXp = xpEarned + 10
       setXpEarned(newXp)
-      speakWord(`${currentPractice.pronoun} ${option}`)
+      speakWord(roundData.targetWord.word)
       setTimeout(() => {
-        if (practiceRound + 1 >= practiceQuestions.length) onComplete(newXp)
+        if (round + 1 >= totalRounds) onComplete(newXp)
         else {
-          setPracticeRound((prev) => prev + 1)
-          setSelected(null)
-          setFeedback(null)
-          setAnimClass('animate-slide-in-right')
-          setTimeout(() => setAnimClass(''), 400)
+          setRound((prev) => prev + 1)
+          advanceRound()
         }
       }, 1500)
     } else {
@@ -947,107 +1039,76 @@ function GrammarPracticeView({ onComplete, onGameOver, onBack }: { onComplete: (
         setTimeout(() => { setSelected(null); setFeedback(null) }, 1000)
       }
     }
-  }, [feedback, currentPractice, hearts, xpEarned, practiceRound, practiceQuestions.length, onComplete, onGameOver])
+  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound])
 
-  // SORT PHASE
-  if (phase === 'sort') {
-    return (
-      <div className="min-h-screen bg-duo-bg flex flex-col">
-        <div className="px-4 pt-4">
-          <LessonHeader title="Grammar Rules - Sort" hearts={hearts} current={addSGroup.length + noSGroup.length} total={7} onBack={onBack} />
-        </div>
-        <div className="flex-1 flex flex-col px-4 pb-6 overflow-y-auto custom-scrollbar">
-          <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 mb-4 text-center">
-            <p className="font-bold text-purple-700">📖 He, She, It → Add -s</p>
-            <p className="font-bold text-duo-green mt-1">📖 I, You, We, They → No -s</p>
-          </div>
-          <div className="flex flex-wrap gap-2 justify-center mb-4">
-            {unsorted.map((pronoun) => {
-              const isAddS = ADD_S_PRONOUNS.includes(pronoun)
-              return (
-                <button
-                  key={pronoun}
-                  className="px-5 py-3 rounded-2xl bg-white shadow-md font-bold text-lg text-gray-800 clickable-image border-2 border-gray-200"
-                  onClick={() => handleSortPronoun(pronoun, isAddS ? 'add-s' : 'no-s')}
-                >
-                  {pronoun}
-                </button>
-              )
-            })}
-            {unsorted.length === 0 && !sortFeedback && <p className="text-gray-400 text-sm">All sorted! ✨</p>}
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-green-50 border-2 border-duo-green/30 rounded-2xl p-3 min-h-[120px]">
-              <p className="text-xs font-bold text-duo-green mb-2 text-center">➕ Add -s</p>
-              <div className="flex flex-wrap gap-1 justify-center">
-                {addSGroup.map((p) => (
-                  <span key={p} className="px-3 py-1.5 bg-duo-green text-white rounded-xl text-sm font-bold animate-pop-in">{p}</span>
-                ))}
-              </div>
-            </div>
-            <div className="bg-blue-50 border-2 border-duo-blue/30 rounded-2xl p-3 min-h-[120px]">
-              <p className="text-xs font-bold text-duo-blue mb-2 text-center">✖️ No -s</p>
-              <div className="flex flex-wrap gap-1 justify-center">
-                {noSGroup.map((p) => (
-                  <span key={p} className="px-3 py-1.5 bg-duo-blue text-white rounded-xl text-sm font-bold animate-pop-in">{p}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-          {sortFeedback && (
-            <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${sortFeedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-              {sortFeedback === 'correct' ? 'Perfect! All sorted! 🎉' : 'Wrong group! Try again! 💪'}
-            </div>
-          )}
-        </div>
-      </div>
-    )
+  const renderDisplayWord = () => {
+    return roundData.displayWord.split('').map((char, i) => (
+      <span
+        key={i}
+        className={`inline-block w-10 h-12 leading-[48px] text-center text-2xl font-bold border-b-4 mx-0.5
+          ${char === '_'
+            ? feedback === 'correct'
+              ? 'bg-duo-green/20 border-duo-green rounded-lg'
+              : 'border-duo-pink bg-pink-50 rounded-lg'
+            : 'border-gray-300'
+          }`}
+      >
+        {char === '_' ? (
+          feedback === 'correct' ? roundData.missingLetter.toUpperCase() : (
+            feedback === 'wrong' ? roundData.missingLetter.toUpperCase() : '?'
+          )
+        ) : char.toUpperCase()}
+      </span>
+    ))
   }
 
-  // PRACTICE PHASE
-  if (!currentPractice) return null
-  const options = [currentPractice.verb, currentPractice.correct].sort()
-
   return (
-    <div className="min-h-screen bg-duo-bg flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Grammar Practice" hearts={hearts} current={practiceRound + 1} total={practiceQuestions.length} onBack={onBack} />
+        <LessonHeader title="Fill the Blank" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className={`w-full max-w-sm ${animClass}`}>
-          <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-3 mb-4 text-center">
-            <p className="text-sm font-bold text-purple-700">
-              {ADD_S_PRONOUNS.includes(currentPractice.pronoun)
-                ? `${currentPractice.pronoun} → Add -s to the verb!`
-                : `${currentPractice.pronoun} → Base verb, no -s!`}
-            </p>
+          <div className="text-center mb-4">
+            <Card className="border-0 shadow-md inline-block">
+              <CardContent className="p-4 flex flex-col items-center">
+                <img src={roundData.targetWord.image} alt={roundData.targetWord.word} className="w-28 h-28 object-contain" />
+              </CardContent>
+            </Card>
           </div>
-          <Card className="border-0 shadow-lg mb-6">
-            <CardContent className="p-6 text-center">
-              <span className="text-3xl font-bold text-duo-purple">{currentPractice.pronoun}</span>
-              <span className="text-2xl text-gray-400 mx-2">→</span>
-              <span className="text-3xl font-bold text-gray-800">{currentPractice.verb}</span>
-              <p className="text-sm text-gray-500 mt-2">What is the correct form?</p>
-            </CardContent>
-          </Card>
-          <div className="flex gap-3">
-            {options.map((option) => {
-              const isCorrect = option === currentPractice.correct
-              const isSelected = option === selected
-              let btnClass = 'flex-1 duo-button text-xl font-bold py-6 rounded-2xl transition-all'
-              if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white animate-pulse-grow'
+
+          <div className="flex justify-center mb-6 flex-wrap">
+            {renderDisplayWord()}
+          </div>
+
+          <div className="grid grid-cols-4 gap-3">
+            {roundData.options.map((letter) => {
+              const isCorrect = letter === roundData.missingLetter
+              const isSelected = letter === selected
+              let btnClass = 'w-full aspect-square rounded-2xl text-2xl font-bold flex items-center justify-center transition-all'
+              if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white animate-pulse-grow shadow-lg'
               else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white animate-shake'
-              else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 hover:border-duo-pink'
+              else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
+              else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 shadow-md hover:border-duo-pink'
               return (
-                <button key={option} className={btnClass} onClick={() => handlePracticeSelect(option)}>
-                  {option}
+                <button key={letter} className={btnClass} onClick={() => handleSelect(letter)}>
+                  {letter.toUpperCase()}
                 </button>
               )
             })}
           </div>
+
+          <Button
+            variant="ghost"
+            className="w-full mt-4 text-duo-blue font-bold"
+            onClick={() => speakWord(roundData.targetWord.word)}
+          >
+            🔊 Hear the word
+          </Button>
+
           {feedback && (
             <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-              {feedback === 'correct' ? `${currentPractice.pronoun} ${currentPractice.correct} ✅` : 'Try again! 💪'}
+              {feedback === 'correct' ? randomEncouragement() : 'Not quite! Try again 💪'}
             </div>
           )}
         </div>
@@ -1056,448 +1117,574 @@ function GrammarPracticeView({ onComplete, onGameOver, onBack }: { onComplete: (
   )
 }
 
-// ============ SPELLING CHALLENGE VIEW ============
-function createSpellingRound(roundIndex: number): { roundData: ActionWord; scrambledLetters: string[] } {
-  const words = shuffleArray(ACTION_WORDS)
-  const target = words[roundIndex % ACTION_WORDS.length]
-  return { roundData: target, scrambledLetters: shuffleArray(target.word.split('')) }
-}
-
-function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
-  const [round, setRound] = useState(0)
-  const [hearts, setHearts] = useState(3)
-  const [xpEarned, setXpEarned] = useState(0)
-  const [spelledLetters, setSpelledLetters] = useState<string[]>([])
+// ============ FINAL TEST - PICTURE MATCH SUB-COMPONENT ============
+function FinalPictureMatch({ targetWord, options, onAnswer }: {
+  targetWord: KitchenWord; options: KitchenWord[]
+  onAnswer: (correct: boolean) => void
+}) {
+  const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [animClass, setAnimClass] = useState('animate-slide-up')
-  const [roundData, setRoundData] = useState(() => {
-    const r = createSpellingRound(0)
-    speakWord(r.roundData.word)
-    return r.roundData
-  })
-  const [scrambledLetters, setScrambledLetters] = useState(() => createSpellingRound(0).scrambledLetters)
-  const totalRounds = 8
 
-  const advanceRound = useCallback((nextRound: number) => {
-    const r = createSpellingRound(nextRound)
-    setRoundData(r.roundData)
-    setScrambledLetters(r.scrambledLetters)
-    setSpelledLetters([])
-    setFeedback(null)
-    setAnimClass('animate-slide-up')
-    setTimeout(() => setAnimClass(''), 400)
-    speakWord(r.roundData.word)
-  }, [])
-
-  const handleLetterClick = useCallback((letter: string, index: number) => {
-    if (feedback || !roundData) return
-    const newSpelled = [...spelledLetters, letter]
-    setSpelledLetters(newSpelled)
-    setScrambledLetters((prev) => prev.filter((_, i) => i !== index))
-
-    if (newSpelled.length === roundData.word.length) {
-      const spelled = newSpelled.join('')
-      if (spelled === roundData.word) {
-        setFeedback('correct')
-        const newXp = xpEarned + 10
-        setXpEarned(newXp)
-        speakWord(roundData.word)
-        setTimeout(() => {
-          if (round + 1 >= totalRounds) onComplete(newXp)
-          else {
-            setRound((prev) => prev + 1)
-            advanceRound(round + 1)
-          }
-        }, 1500)
-      } else {
-        setFeedback('wrong')
-        setAnimClass('animate-shake')
-        setTimeout(() => setAnimClass(''), 500)
-        const newHearts = hearts - 1
-        setHearts(newHearts)
-        if (newHearts <= 0) {
-          setTimeout(() => onGameOver(xpEarned), 800)
-        } else {
-          setTimeout(() => {
-            setSpelledLetters([])
-            if (roundData) setScrambledLetters(shuffleArray(roundData.word.split('')))
-            setFeedback(null)
-          }, 1200)
-        }
-      }
-    }
-  }, [feedback, roundData, spelledLetters, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound])
-
-  const handleClear = useCallback(() => {
-    if (feedback || !roundData) return
-    setSpelledLetters([])
-    setScrambledLetters(shuffleArray(roundData.word.split('')))
-  }, [feedback, roundData])
-
-  if (!roundData) return null
+  const handleSelect = (word: string) => {
+    if (feedback) return
+    setSelected(word)
+    const correct = word === targetWord.word
+    setFeedback(correct ? 'correct' : 'wrong')
+    if (correct) speakWord(word)
+    setTimeout(() => onAnswer(correct), correct ? 1200 : 800)
+  }
 
   return (
-    <div className="min-h-screen bg-duo-bg flex flex-col">
-      <div className="px-4 pt-4">
-        <LessonHeader title="Spelling Challenge" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+    <>
+      <div className="mb-4 text-center">
+        <h2 className="text-2xl font-bold text-gray-800">Find: <span className="text-duo-blue">{targetWord.word.toUpperCase()}</span></h2>
+        <Button variant="ghost" size="sm" className="mt-1 text-duo-blue" onClick={() => speakWord(targetWord.word)}>🔊 Hear again</Button>
       </div>
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
-        <div className={`w-full max-w-sm ${animClass}`}>
-          <div className="flex justify-center mb-4">
-            <Card className="border-0 shadow-md cursor-pointer clickable-image" onClick={() => speakWord(roundData.word)}>
-              <CardContent className="p-3">
-                <img src={roundData.image} alt={roundData.word} className="w-28 h-28 object-contain" />
+      <div className="grid grid-cols-2 gap-3 w-full">
+        {options.map((option) => {
+          const isCorrect = option.word === targetWord.word
+          const isSelectedOpt = option.word === selected
+          let cardClass = 'border-0 shadow-md cursor-pointer transition-all duration-200'
+          if (feedback === 'correct' && isCorrect) cardClass += ' ring-4 ring-duo-green bg-green-50'
+          else if (feedback === 'wrong' && isSelectedOpt && !isCorrect) cardClass += ' ring-4 ring-duo-red bg-red-50'
+          return (
+            <Card key={option.word} className={cardClass} onClick={() => handleSelect(option.word)}>
+              <CardContent className="p-3 flex flex-col items-center">
+                <img src={option.image} alt={option.word} className="w-24 h-24 object-contain" />
               </CardContent>
             </Card>
-          </div>
-          <Button variant="ghost" size="sm" className="text-duo-teal mb-3" onClick={() => speakWord(roundData.word)}>🔊 Hear the word</Button>
-          <div className="bg-white rounded-2xl shadow-md p-4 mb-4 min-h-[60px] flex items-center justify-center gap-2">
-            {spelledLetters.length === 0 ? (
-              <p className="text-gray-300 text-sm">Tap letters to spell the word!</p>
-            ) : (
-              spelledLetters.map((letter, i) => (
-                <span key={i} className="w-10 h-10 flex items-center justify-center bg-duo-teal/10 rounded-xl text-xl font-bold text-duo-teal animate-pop-in">
-                  {letter.toUpperCase()}
-                </span>
-              ))
-            )}
-          </div>
-          {spelledLetters.length > 0 && !feedback && (
-            <Button variant="ghost" size="sm" className="text-gray-400 mb-2 w-full" onClick={handleClear}>↩ Clear</Button>
-          )}
-          <div className="flex flex-wrap gap-2 justify-center">
-            {scrambledLetters.map((letter, i) => (
-              <button
-                key={`${letter}-${i}`}
-                className="letter-tile w-12 h-12 flex items-center justify-center bg-white shadow-md rounded-xl text-xl font-bold text-gray-800 border-2 border-gray-100"
-                onClick={() => handleLetterClick(letter, i)}
-              >
-                {letter.toUpperCase()}
-              </button>
-            ))}
-          </div>
-          {feedback && (
-            <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-              {feedback === 'correct' ? `${roundData.word.toUpperCase()} - ${randomEncouragement()}` : `The word is: ${roundData.word.toUpperCase()} 💪`}
-            </div>
-          )}
-        </div>
+          )
+        })}
       </div>
-    </div>
+    </>
+  )
+}
+
+// ============ FINAL TEST - LISTEN CHOOSE SUB-COMPONENT ============
+function FinalListenChoose({ targetWord, options, onAnswer }: {
+  targetWord: KitchenWord; options: string[]
+  onAnswer: (correct: boolean) => void
+}) {
+  const [selected, setSelected] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
+
+  useEffect(() => {
+    const timer = setTimeout(() => spellAndSpeak(targetWord.word), 500)
+    return () => clearTimeout(timer)
+  }, [targetWord.word])
+
+  const handleSelect = (word: string) => {
+    if (feedback) return
+    setSelected(word)
+    const correct = word === targetWord.word
+    setFeedback(correct ? 'correct' : 'wrong')
+    if (correct) speakWord(word)
+    setTimeout(() => onAnswer(correct), correct ? 1200 : 800)
+  }
+
+  return (
+    <>
+      <div className="mb-4 text-center">
+        <button
+          onClick={() => spellAndSpeak(targetWord.word)}
+          className="w-20 h-20 rounded-full bg-duo-purple text-white flex items-center justify-center text-3xl shadow-lg mx-auto clickable-image"
+        >🔊</button>
+        <p className="text-sm text-gray-500 mt-2">Tap to hear the word!</p>
+      </div>
+      <div className="w-full space-y-3">
+        {options.map((option) => {
+          const isCorrect = option === targetWord.word
+          const isSelectedOpt = option === selected
+          let btnClass = 'w-full duo-button text-lg font-bold py-5 rounded-2xl transition-all'
+          if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white'
+          else if (feedback === 'wrong' && isSelectedOpt && !isCorrect) btnClass += ' bg-duo-red text-white'
+          else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
+          else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 hover:border-duo-purple'
+          return (
+            <button key={option} className={btnClass} onClick={() => handleSelect(option)}>
+              {option.toUpperCase()}
+            </button>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+// ============ FINAL TEST - SPELLING SUB-COMPONENT ============
+function FinalSpelling({ targetWord, scrambledLetters, onAnswer }: {
+  targetWord: KitchenWord; scrambledLetters: string[]
+  onAnswer: (correct: boolean) => void
+}) {
+  const [selectedLetters, setSelectedLetters] = useState<(string | null)[]>(() => Array(targetWord.word.length).fill(null))
+  const [usedIndices, setUsedIndices] = useState<Set<number>>(() => new Set())
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
+  const word = targetWord.word
+
+  useEffect(() => {
+    const timer = setTimeout(() => speakWord(word), 300)
+    return () => clearTimeout(timer)
+  }, [word])
+
+  const handleLetterTap = (letter: string, index: number) => {
+    if (feedback || usedIndices.has(index)) return
+    const newUsedIndices = new Set(usedIndices)
+    newUsedIndices.add(index)
+    setUsedIndices(newUsedIndices)
+
+    const firstEmpty = selectedLetters.findIndex((l) => l === null)
+    if (firstEmpty === -1) return
+
+    const newSelected = [...selectedLetters]
+    newSelected[firstEmpty] = letter
+    setSelectedLetters(newSelected)
+
+    const wordSoFar = newSelected.filter((l) => l !== null).join('')
+    if (wordSoFar.length === word.length) {
+      const correct = wordSoFar === word
+      setFeedback(correct ? 'correct' : 'wrong')
+      if (correct) speakWord(word)
+      setTimeout(() => onAnswer(correct), correct ? 1200 : 800)
+    }
+  }
+
+  const handleRemoveLetter = (slotIndex: number) => {
+    if (feedback || selectedLetters[slotIndex] === null) return
+    const newSelected = [...selectedLetters]
+    newSelected[slotIndex] = null
+    setSelectedLetters(newSelected)
+    setUsedIndices((prev) => {
+      const newSet = new Set<number>()
+      const remaining = newSelected.filter((l) => l !== null)
+      const letterCounts: Record<string, number> = {}
+      remaining.forEach((l) => {
+        if (l) letterCounts[l] = (letterCounts[l] || 0) + 1
+      })
+      scrambledLetters.forEach((letter, idx) => {
+        if (letterCounts[letter] && letterCounts[letter] > 0) {
+          newSet.add(idx)
+          letterCounts[letter]--
+        }
+      })
+      return newSet
+    })
+  }
+
+  return (
+    <>
+      <div className="text-center mb-3">
+        <img src={targetWord.image} alt={word} className="w-24 h-24 object-contain mx-auto" />
+      </div>
+      <Button onClick={() => speakWord(word)} className="w-full duo-button bg-duo-blue hover:bg-duo-blue/90 text-white font-bold text-base py-3 rounded-2xl mb-3">
+        🔊 Hear the word
+      </Button>
+      <div className="flex justify-center gap-1.5 mb-4 flex-wrap">
+        {selectedLetters.map((letter, i) => (
+          <button
+            key={i}
+            onClick={() => handleRemoveLetter(i)}
+            className={`spelling-slot ${letter !== null ? 'filled' : ''} ${feedback === 'wrong' && letter !== null ? 'wrong' : ''}`}
+            disabled={feedback !== null}
+          >
+            {letter !== null ? letter.toUpperCase() : ''}
+          </button>
+        ))}
+      </div>
+      <div className="flex justify-center gap-2 flex-wrap">
+        {scrambledLetters.map((letter, i) => (
+          <button
+            key={i}
+            onClick={() => handleLetterTap(letter, i)}
+            disabled={usedIndices.has(i) || feedback !== null}
+            className={`w-11 h-11 rounded-xl font-bold text-lg flex items-center justify-center letter-tile
+              ${usedIndices.has(i)
+                ? 'bg-gray-200 text-gray-400 opacity-30'
+                : 'bg-white text-gray-800 border-2 border-gray-300 shadow-md'
+              }`}
+          >
+            {letter.toUpperCase()}
+          </button>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// ============ FINAL TEST - WHATS MISSING SUB-COMPONENT ============
+function FinalWhatsMissing({ targetWord, displayWord, missingLetter, options, onAnswer }: {
+  targetWord: KitchenWord; displayWord: string; missingLetter: string; options: string[]
+  onAnswer: (correct: boolean) => void
+}) {
+  const [selected, setSelected] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
+
+  useEffect(() => {
+    const timer = setTimeout(() => speakWord(targetWord.word), 300)
+    return () => clearTimeout(timer)
+  }, [targetWord.word])
+
+  const handleSelect = (letter: string) => {
+    if (feedback) return
+    setSelected(letter)
+    const correct = letter === missingLetter
+    setFeedback(correct ? 'correct' : 'wrong')
+    if (correct) speakWord(targetWord.word)
+    setTimeout(() => onAnswer(correct), correct ? 1200 : 800)
+  }
+
+  return (
+    <>
+      <div className="text-center mb-3">
+        <img src={targetWord.image} alt={targetWord.word} className="w-24 h-24 object-contain mx-auto" />
+      </div>
+      <div className="flex justify-center mb-4 flex-wrap">
+        {displayWord.split('').map((char, i) => (
+          <span
+            key={i}
+            className={`inline-block w-9 h-11 leading-[44px] text-center text-xl font-bold border-b-4 mx-0.5
+              ${char === '_'
+                ? feedback === 'correct'
+                  ? 'bg-duo-green/20 border-duo-green rounded-lg'
+                  : 'border-duo-pink bg-pink-50 rounded-lg'
+                : 'border-gray-300'
+              }`}
+          >
+            {char === '_' ? (feedback ? missingLetter.toUpperCase() : '?') : char.toUpperCase()}
+          </span>
+        ))}
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {options.map((letter) => {
+          const isCorrect = letter === missingLetter
+          const isSelectedOpt = letter === selected
+          let btnClass = 'w-full aspect-square rounded-2xl text-xl font-bold flex items-center justify-center transition-all'
+          if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white'
+          else if (feedback === 'wrong' && isSelectedOpt && !isCorrect) btnClass += ' bg-duo-red text-white'
+          else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
+          else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 shadow-md'
+          return (
+            <button key={letter} className={btnClass} onClick={() => handleSelect(letter)}>
+              {letter.toUpperCase()}
+            </button>
+          )
+        })}
+      </div>
+    </>
   )
 }
 
 // ============ FINAL TEST VIEW ============
-interface TestQuestion {
-  type: 'picture-match' | 'sentence' | 'listen' | 'grammar'
-  target?: ActionWord
-  options: ActionWord[] | string[] | [string, string]
-  sentence?: string
-  answer: string
-  pronoun?: string
-  verb?: string
+type FinalTestQuestionType = 'picture-match' | 'listen-choose' | 'spelling' | 'whats-missing'
+
+interface FinalTestQuestion {
+  type: FinalTestQuestionType
+  targetWord: KitchenWord
+  pictureOptions?: KitchenWord[]
+  wordOptions?: string[]
+  scrambledLetters?: string[]
+  displayWord?: string
+  missingLetter?: string
+  letterOptions?: string[]
+}
+
+function createFinalTestQuestions(): FinalTestQuestion[] {
+  const questions: FinalTestQuestion[] = []
+
+  for (let i = 0; i < 3; i++) {
+    const pm = createPictureMatchRound()
+    questions.push({ type: 'picture-match', targetWord: pm.targetWord, pictureOptions: pm.options })
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const lc = createListenRound()
+    questions.push({ type: 'listen-choose', targetWord: lc.targetWord, wordOptions: lc.options })
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const sp = createSpellingRound()
+    questions.push({ type: 'spelling', targetWord: sp.targetWord, scrambledLetters: sp.scrambledLetters })
+  }
+
+  for (let i = 0; i < 3; i++) {
+    const wm = createMissingRound()
+    questions.push({ type: 'whats-missing', targetWord: wm.targetWord, displayWord: wm.displayWord, missingLetter: wm.missingLetter, letterOptions: wm.options })
+  }
+
+  return shuffleArray(questions)
 }
 
 function FinalTestView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
-  const [questions] = useState<TestQuestion[]>(() => {
-    const qs: TestQuestion[] = []
-
-    // Picture match (3)
-    const shuffledWords = shuffleArray(ACTION_WORDS)
-    for (let i = 0; i < 3; i++) {
-      const word = shuffledWords[i]
-      const distractors = getRandomItems(ACTION_WORDS, 3, [word])
-      const options = shuffleArray([word, ...distractors])
-      qs.push({ type: 'picture-match', target: word, options, answer: word.word })
-    }
-
-    // Sentence (4)
-    const sentenceQs = shuffleArray([...SENTENCE_EXERCISES_3, ...SENTENCE_EXERCISES_4]).slice(0, 4)
-    sentenceQs.forEach((q) => {
-      qs.push({ type: 'sentence', sentence: q.sentence, options: q.options, answer: q.answer })
-    })
-
-    // Listen (3)
-    for (let i = 3; i < 6; i++) {
-      const word = shuffledWords[i % ACTION_WORDS.length]
-      const distractors = getRandomItems(ACTION_WORDS.map((w) => w.word), 3, [word.word])
-      const options = shuffleArray([word.word, ...distractors])
-      qs.push({ type: 'listen', target: word, options, answer: word.word })
-    }
-
-    // Grammar (2)
-    const grammarQs = [
-      { pronoun: 'She', verb: 'dance', correct: 'dances', wrong: 'dance' },
-      { pronoun: 'They', verb: 'laugh', correct: 'laugh', wrong: 'laughs' },
-    ]
-    grammarQs.forEach((q) => {
-      qs.push({ type: 'grammar', pronoun: q.pronoun, verb: q.verb, options: [q.correct, q.wrong].sort() as [string, string], answer: q.correct })
-    })
-
-    return shuffleArray(qs)
-  })
-
-  const [currentQ, setCurrentQ] = useState(0)
+  const [questions] = useState(() => createFinalTestQuestions())
+  const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
-  const [selected, setSelected] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [animClass, setAnimClass] = useState('')
+  const [animClass, setAnimClass] = useState('animate-slide-up')
+  const totalRounds = 12
 
-  const totalQuestions = questions.length
-  const question = questions[currentQ]
+  const currentQuestion = questions[round]
 
-  const handleAnswer = useCallback((answer: string) => {
-    if (feedback || !question) return
-    setSelected(answer)
-
-    const isCorrect = answer === question.answer
-    if (isCorrect) {
-      setFeedback('correct')
+  const handleAnswer = useCallback((correct: boolean) => {
+    if (correct) {
       const newXp = xpEarned + 10
       setXpEarned(newXp)
-      if (question.type === 'listen') speakWord(answer)
       setTimeout(() => {
-        if (currentQ + 1 >= totalQuestions) onComplete(newXp)
+        if (round + 1 >= totalRounds) onComplete(newXp)
         else {
-          setCurrentQ((prev) => prev + 1)
-          setSelected(null)
-          setFeedback(null)
-          setAnimClass('animate-slide-in-right')
+          setRound((prev) => prev + 1)
+          setAnimClass('animate-slide-up')
           setTimeout(() => setAnimClass(''), 400)
         }
-      }, 1200)
+      }, 200)
     } else {
-      setFeedback('wrong')
-      setAnimClass('animate-shake')
-      setTimeout(() => setAnimClass(''), 500)
       const newHearts = hearts - 1
       setHearts(newHearts)
       if (newHearts <= 0) {
         setTimeout(() => onGameOver(xpEarned), 800)
       } else {
-        setTimeout(() => { setSelected(null); setFeedback(null) }, 1000)
+        setTimeout(() => {
+          setRound((prev) => prev + 1)
+          setAnimClass('animate-slide-up')
+          setTimeout(() => setAnimClass(''), 400)
+        }, 800)
       }
     }
-  }, [feedback, question, hearts, xpEarned, currentQ, totalQuestions, onComplete, onGameOver])
+  }, [xpEarned, hearts, round, totalRounds, onComplete, onGameOver])
 
-  if (!question) return null
+  if (!currentQuestion) return null
 
   const renderQuestion = () => {
-    if (question.type === 'picture-match' && question.target) {
-      const target = question.target
-      const options = question.options as ActionWord[]
-      return (
-        <div className={animClass}>
-          <h2 className="text-xl font-bold text-gray-800 text-center mb-4">
-            Find: <span className="text-duo-blue">{target.word.toUpperCase()}</span>
-          </h2>
-          <Button variant="ghost" size="sm" className="text-duo-blue mb-2 w-full" onClick={() => speakWord(target.word)}>🔊 Hear the word</Button>
-          <div className="grid grid-cols-2 gap-3">
-            {options.map((opt) => {
-              const isCorrect = opt.word === target.word
-              const isSelected = opt.word === selected
-              let cardClass = 'border-0 shadow-md cursor-pointer transition-all'
-              if (feedback === 'correct' && isCorrect) cardClass += ' ring-4 ring-duo-green bg-green-50'
-              else if (feedback === 'wrong' && isSelected && !isCorrect) cardClass += ' ring-4 ring-duo-red bg-red-50'
-              return (
-                <Card key={opt.word} className={cardClass} onClick={() => handleAnswer(opt.word)}>
-                  <CardContent className="p-2 flex flex-col items-center">
-                    <img src={opt.image} alt={opt.word} className="w-24 h-24 object-contain" />
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      )
+    switch (currentQuestion.type) {
+      case 'picture-match':
+        return (
+          <FinalPictureMatch
+            targetWord={currentQuestion.targetWord}
+            options={currentQuestion.pictureOptions!}
+            onAnswer={handleAnswer}
+          />
+        )
+      case 'listen-choose':
+        return (
+          <FinalListenChoose
+            targetWord={currentQuestion.targetWord}
+            options={currentQuestion.wordOptions!}
+            onAnswer={handleAnswer}
+          />
+        )
+      case 'spelling':
+        return (
+          <FinalSpelling
+            targetWord={currentQuestion.targetWord}
+            scrambledLetters={currentQuestion.scrambledLetters!}
+            onAnswer={handleAnswer}
+          />
+        )
+      case 'whats-missing':
+        return (
+          <FinalWhatsMissing
+            targetWord={currentQuestion.targetWord}
+            displayWord={currentQuestion.displayWord!}
+            missingLetter={currentQuestion.missingLetter!}
+            options={currentQuestion.letterOptions!}
+            onAnswer={handleAnswer}
+          />
+        )
     }
-
-    if (question.type === 'sentence' && question.sentence) {
-      const options = question.options as [string, string]
-      return (
-        <div className={animClass}>
-          <Card className="border-0 shadow-lg mb-4">
-            <CardContent className="p-4 text-center">
-              <p className="text-lg font-bold text-gray-800">{question.sentence.replace('____', '______')}</p>
-            </CardContent>
-          </Card>
-          <div className="flex gap-3">
-            {options.map((option) => {
-              const isCorrect = option === question.answer
-              const isSelected = option === selected
-              let btnClass = 'flex-1 duo-button text-lg font-bold py-5 rounded-2xl transition-all'
-              if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white'
-              else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white'
-              else btnClass += ' bg-white text-gray-800 border-2 border-gray-200'
-              return <button key={option} className={btnClass} onClick={() => handleAnswer(option)}>{option}</button>
-            })}
-          </div>
-        </div>
-      )
-    }
-
-    if (question.type === 'listen' && question.target) {
-      const target = question.target
-      const options = question.options as string[]
-      return (
-        <div className={animClass}>
-          <div className="text-center mb-4">
-            <button
-              onClick={() => spellAndSpeak(target.word)}
-              className="w-20 h-20 rounded-full bg-duo-purple text-white flex items-center justify-center text-3xl shadow-lg mx-auto clickable-image"
-            >🔊</button>
-            <p className="text-sm text-gray-500 mt-2">Listen and choose!</p>
-          </div>
-          <div className="space-y-2">
-            {options.map((option) => {
-              const isCorrect = option === target.word
-              const isSelected = option === selected
-              let btnClass = 'w-full duo-button text-base font-bold py-4 rounded-2xl transition-all'
-              if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white'
-              else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white'
-              else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
-              else btnClass += ' bg-white text-gray-800 border-2 border-gray-200'
-              return <button key={option} className={btnClass} onClick={() => handleAnswer(option)}>{option.toUpperCase()}</button>
-            })}
-          </div>
-        </div>
-      )
-    }
-
-    if (question.type === 'grammar' && question.pronoun && question.verb) {
-      const options = question.options as [string, string]
-      return (
-        <div className={animClass}>
-          <Card className="border-0 shadow-lg mb-4">
-            <CardContent className="p-4 text-center">
-              <span className="text-2xl font-bold text-duo-purple">{question.pronoun}</span>
-              <span className="text-xl text-gray-400 mx-2">→</span>
-              <span className="text-2xl font-bold text-gray-800">{question.verb}</span>
-              <p className="text-sm text-gray-500 mt-1">Choose the correct form</p>
-            </CardContent>
-          </Card>
-          <div className="flex gap-3">
-            {options.map((option) => {
-              const isCorrect = option === question.answer
-              const isSelected = option === selected
-              let btnClass = 'flex-1 duo-button text-lg font-bold py-5 rounded-2xl transition-all'
-              if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white'
-              else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white'
-              else btnClass += ' bg-white text-gray-800 border-2 border-gray-200'
-              return <button key={option} className={btnClass} onClick={() => handleAnswer(option)}>{option}</button>
-            })}
-          </div>
-        </div>
-      )
-    }
-
-    return null
   }
 
+  const questionLabel = currentQuestion.type === 'picture-match' ? '🖼️ Picture Match' :
+    currentQuestion.type === 'listen-choose' ? '👂 Listen & Pick' :
+    currentQuestion.type === 'spelling' ? '✏️ Spelling' : '❓ Fill the Blank'
+
   return (
-    <div className="min-h-screen bg-duo-bg flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="🏆 Final Test" hearts={hearts} current={currentQ + 1} total={totalQuestions} onBack={onBack} />
+        <LessonHeader title="Show What You Know!" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
-        <div className="w-full max-w-sm">{renderQuestion()}</div>
-        {feedback && (
-          <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-            {feedback === 'correct' ? randomEncouragement() : 'Keep trying! 💪'}
+        <div className={`w-full max-w-sm ${animClass}`}>
+          <div className="text-center mb-3">
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-duo-gold/20 text-duo-gold">
+              {questionLabel}
+            </span>
           </div>
-        )}
+          {renderQuestion()}
+        </div>
       </div>
     </div>
   )
 }
 
 // ============ MAIN APP ============
-export default function Home() {
+export default function KitchenVocabApp() {
   const [view, setView] = useState<ViewType>('dashboard')
-  const [progress, setProgress] = useState<ProgressData>(() => {
-    if (typeof window !== 'undefined') return loadProgress()
-    return { xp: 0, streak: 0, completedLessons: [], lastPlayedDate: '' }
+  const [progress, setProgress] = useState<ProgressData>({
+    xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: ''
   })
-  const [currentLessonName, setCurrentLessonName] = useState('')
+  const [currentLessonId, setCurrentLessonId] = useState<LessonViewType>('flashcards')
+  const [pendingReward, setPendingReward] = useState<RewardDef | null>(null)
   const [lastXpEarned, setLastXpEarned] = useState(0)
-  const [activeLessonId, setActiveLessonId] = useState<LessonViewType>('flashcards')
+  const [isHydrated, setIsHydrated] = useState(false)
 
-  const updateProgress = useCallback((lessonId: string, xpGained: number) => {
+  // Load progress from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    const loaded = loadProgress()
     const today = getTodayString()
     const yesterday = getYesterdayString()
+    if (loaded.lastPlayedDate === today) {
+      // Same day, keep streak
+    } else if (loaded.lastPlayedDate === yesterday) {
+      loaded.streak += 1
+    } else if (loaded.lastPlayedDate) {
+      loaded.streak = 1
+    } else {
+      loaded.streak = 1
+    }
+    loaded.lastPlayedDate = today
+    saveProgress(loaded)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Legitimate: loading initial data from external store (localStorage) after hydration
+    setProgress(loaded)
+    setIsHydrated(true)
+  }, [])
 
+  // Save progress to localStorage whenever it changes
+  useEffect(() => {
+    if (isHydrated) {
+      saveProgress(progress)
+    }
+  }, [progress, isHydrated])
+
+  // Check for reward unlocks
+  const checkRewards = useCallback((updatedProgress: ProgressData): RewardDef | null => {
+    const lessonsCompleted = updatedProgress.completedLessons.filter((id) => LESSONS.some((l) => l.id === id)).length
+    for (const reward of REWARDS) {
+      if (!updatedProgress.unlockedRewards.includes(reward.id) && lessonsCompleted >= reward.lessonsRequired) {
+        return reward
+      }
+    }
+    return null
+  }, [])
+
+  const handleSelectLesson = useCallback((id: LessonViewType) => {
+    setCurrentLessonId(id)
+    setView(id)
+  }, [])
+
+  const handleLessonComplete = useCallback((xpEarned: number) => {
+    setLastXpEarned(xpEarned)
     setProgress((prev) => {
-      const newCompleted = prev.completedLessons.includes(lessonId) ? prev.completedLessons : [...prev.completedLessons, lessonId]
-      let newStreak = prev.streak
-      if (prev.lastPlayedDate !== today && prev.lastPlayedDate === yesterday) newStreak = prev.streak + 1
-      else if (prev.lastPlayedDate !== today) newStreak = 1
-
-      const newProgress: ProgressData = { xp: prev.xp + xpGained, streak: newStreak, completedLessons: newCompleted, lastPlayedDate: today }
-      saveProgress(newProgress)
-      return newProgress
+      const newCompleted = prev.completedLessons.includes(currentLessonId)
+        ? prev.completedLessons
+        : [...prev.completedLessons, currentLessonId]
+      const updated = {
+        ...prev,
+        xp: prev.xp + xpEarned,
+        completedLessons: newCompleted,
+        lastPlayedDate: getTodayString(),
+      }
+      const reward = checkRewards(updated)
+      if (reward) {
+        const withReward = {
+          ...updated,
+          unlockedRewards: [...updated.unlockedRewards, reward.id],
+        }
+        setTimeout(() => setPendingReward(reward), 500)
+        return withReward
+      }
+      return updated
     })
-  }, [])
-
-  const handleSelectLesson = useCallback((lessonId: LessonViewType) => {
-    const lesson = LESSONS.find((l) => l.id === lessonId)
-    setCurrentLessonName(lesson?.name ?? '')
-    setActiveLessonId(lessonId)
-    setView(lessonId)
-  }, [])
-
-  const handleLessonComplete = useCallback((xpGained: number) => {
-    updateProgress(activeLessonId, xpGained)
-    setLastXpEarned(xpGained)
     setView('lesson-complete')
-  }, [activeLessonId, updateProgress])
+  }, [currentLessonId, checkRewards])
 
-  const handleGameOver = useCallback((xpGained: number) => {
-    // Still give XP for what they accomplished
-    updateProgress(activeLessonId, xpGained)
-    setLastXpEarned(xpGained)
+  const handleGameOver = useCallback((xpEarned: number) => {
+    setLastXpEarned(xpEarned)
+    setProgress((prev) => ({
+      ...prev,
+      xp: prev.xp + xpEarned,
+      lastPlayedDate: getTodayString(),
+    }))
     setView('game-over')
-  }, [activeLessonId, updateProgress])
+  }, [])
 
   const handleBackToDashboard = useCallback(() => {
-    window.speechSynthesis?.cancel()
     setView('dashboard')
-    setProgress(loadProgress())
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
+    }
   }, [])
 
   const handleRetry = useCallback(() => {
-    window.speechSynthesis?.cancel()
-    setView(activeLessonId)
-  }, [activeLessonId])
+    setView(currentLessonId)
+  }, [currentLessonId])
 
-  const lessonProps = { onComplete: handleLessonComplete, onGameOver: handleGameOver, onBack: handleBackToDashboard }
-
-  const renderCurrentView = () => {
-    switch (view) {
-      case 'dashboard':
-        return <Dashboard progress={progress} onSelectLesson={handleSelectLesson} />
-      case 'flashcards':
-        return <FlashcardView onComplete={handleLessonComplete} onBack={handleBackToDashboard} />
-      case 'picture-match':
-        return <PictureMatchView {...lessonProps} />
-      case 'listen-choose':
-        return <ListenChooseView {...lessonProps} />
-      case 'sentence-builder':
-        return <SentenceBuilderView {...lessonProps} />
-      case 'grammar-practice':
-        return <GrammarPracticeView {...lessonProps} />
-      case 'spelling-challenge':
-        return <SpellingChallengeView {...lessonProps} />
-      case 'final-test':
-        return <FinalTestView {...lessonProps} />
-      case 'lesson-complete':
-        return <LessonCompleteView xpEarned={lastXpEarned} lessonName={currentLessonName} onContinue={handleBackToDashboard} />
-      case 'game-over':
-        return <GameOverView xpEarned={lastXpEarned} lessonName={currentLessonName} onRetry={handleRetry} onBack={handleBackToDashboard} />
-      default:
-        return <Dashboard progress={progress} onSelectLesson={handleSelectLesson} />
+  const handleContinue = useCallback(() => {
+    setView('dashboard')
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel()
     }
+  }, [])
+
+  const getLessonName = (id: LessonViewType): string => {
+    const lesson = LESSONS.find((l) => l.id === id)
+    return lesson ? lesson.name : ''
   }
 
-  return <main className="min-h-screen">{renderCurrentView()}</main>
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-5xl animate-float">🦉</div>
+          <p className="text-gray-500 mt-4 font-bold">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen">
+      {view === 'dashboard' && (
+        <Dashboard progress={progress} onSelectLesson={handleSelectLesson} />
+      )}
+      {view === 'flashcards' && (
+        <FlashcardView onComplete={handleLessonComplete} onBack={handleBackToDashboard} />
+      )}
+      {view === 'picture-match' && (
+        <PictureMatchView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+      )}
+      {view === 'listen-choose' && (
+        <ListenChooseView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+      )}
+      {view === 'spelling-challenge' && (
+        <SpellingChallengeView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+      )}
+      {view === 'whats-missing' && (
+        <WhatsMissingView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+      )}
+      {view === 'final-test' && (
+        <FinalTestView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+      )}
+      {view === 'lesson-complete' && (
+        <LessonCompleteView
+          xpEarned={lastXpEarned}
+          lessonName={getLessonName(currentLessonId)}
+          onContinue={handleContinue}
+        />
+      )}
+      {view === 'game-over' && (
+        <GameOverView
+          xpEarned={lastXpEarned}
+          lessonName={getLessonName(currentLessonId)}
+          onRetry={handleRetry}
+          onBack={handleBackToDashboard}
+        />
+      )}
+
+      {/* Reward Celebration Overlay */}
+      {pendingReward && (
+        <RewardCelebration
+          reward={pendingReward}
+          onDismiss={() => setPendingReward(null)}
+        />
+      )}
+    </div>
+  )
 }

@@ -14,23 +14,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Word Wizard - Learn Action Words!",
+  title: "Kitchen Vocabulary - Learn Kitchen Words!",
   description:
-    "A fun, Duolingo-style learning app for kids to learn Action Words & Simple Present Tense. Perfect for first graders!",
+    "A fun, Duolingo-style learning app for kids to learn kitchen and utensil words. Perfect for first graders!",
   keywords: [
     "kids learning",
-    "action words",
-    "present tense",
-    "grammar",
+    "kitchen words",
+    "vocabulary",
+    "spelling",
     "first grade",
     "Duolingo-style",
     "educational game",
   ],
-  authors: [{ name: "Word Wizard" }],
+  authors: [{ name: "Kitchen Vocabulary" }],
   openGraph: {
-    title: "Word Wizard - Learn Action Words!",
+    title: "Kitchen Vocabulary - Learn Kitchen Words!",
     description:
-      "A fun learning app for kids to master Action Words & Simple Present Tense!",
+      "A fun learning app for kids to master kitchen vocabulary words!",
     type: "website",
   },
 };

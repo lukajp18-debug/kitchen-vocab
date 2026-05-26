@@ -33,3 +33,36 @@ Stage Summary:
 - All lessons are now selectable from the dashboard regardless of completion order
 - Original sequential unlock code is preserved in comments for easy restoration
 - Build: Successful
+
+---
+Task ID: 3
+Agent: Main Agent + Full-stack Developer Subagent
+Task: Build new Kitchen Vocabulary app with Week 34 vocabulary, reward system, and Duolingo-style exercises
+
+Work Log:
+- Analyzed uploaded "Vocabulary week 34.png" using VLM - extracted 10 kitchen/utensil words: spoon, fork, cup, pan, knife, glass, blender, plate, pot, kettle
+- Analyzed 3 reward images: Panelita de leche (fudge squares), Gomas Trululu ChoColores (candy wrapper), Carro Hotwheels (Dodge Charger Hellcat)
+- Generated 10 vocabulary images using AI image generation (cartoon-style, kid-friendly, white background)
+- Generated 3 reward images: panelita (2D), trululu (3D), hotwheels (3D)
+- Built complete app in /home/z/my-project/ with 6 exercise types:
+  1. Learn the Words (flashcards) - 10 XP
+  2. Match the Picture (image selection) - 80 XP
+  3. Listen and Pick (TTS spelling + word selection) - 80 XP
+  4. Spell the Word (scrambled letter tiles) - 80 XP
+  5. Fill the Blank (missing letter) - 80 XP
+  6. Show What You Know! (final test) - 120 XP
+- Implemented 3-tier reward system:
+  - Panelita de leche: unlocked at 2 lessons completed (33%)
+  - Gomas Trululu: unlocked at 4 lessons completed (66%)
+  - Carro Hotwheels: unlocked at 6 lessons completed (100%)
+- Reward celebration with confetti, sparkles, glow effects, and "Claim your prize!" popup
+- All lessons unlocked from start (testing mode)
+- TTS uses correct spelling: word → lowercase letters → word (no "capital A")
+- Verified build succeeds
+
+Stage Summary:
+- New Kitchen Vocabulary app fully built and running
+- 10 vocabulary words with AI-generated cartoon images
+- 3 real reward tiers with animated celebrations
+- 6 Duolingo-style exercise types with hearts and XP
+- Build: Successful
