@@ -164,7 +164,29 @@ function getRandomItems<T>(array: T[], count: number, exclude?: T[]): T[] {
   return shuffleArray(filtered).slice(0, count)
 }
 
-function loadProgress(): ProgressData {
+// API-based progress functions (SQLite via Prisma)
+async function loadProgressFromDB(studentName: string): Promise<ProgressData & { isNew?: boolean }> {
+  try {
+    const res = await fetch(`/api/progress?name=${encodeURIComponent(studentName)}`)
+    if (!res.ok) throw new Error('Failed to load')
+    return await res.json()
+  } catch {
+    return { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '', isNew: true }
+  }
+}
+
+async function saveProgressToDB(studentName: string, progress: ProgressData) {
+  try {
+    await fetch('/api/progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: studentName, ...progress }),
+    })
+  } catch { /* ignore */ }
+}
+
+// Fallback localStorage for offline
+function loadProgressLocal(): ProgressData {
   if (typeof window === 'undefined') {
     return { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' }
   }
@@ -175,7 +197,7 @@ function loadProgress(): ProgressData {
   return { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' }
 }
 
-function saveProgress(progress: ProgressData) {
+function saveProgressLocal(progress: ProgressData) {
   if (typeof window === 'undefined') return
   try { localStorage.setItem('kitchen-vocab-progress', JSON.stringify(progress)) } catch { /* ignore */ }
 }
@@ -329,7 +351,7 @@ function LessonHeader({ title, hearts, current, total, onBack }: {
 }
 
 // ============ DASHBOARD ============
-function Dashboard({ progress, onSelectLesson }: { progress: ProgressData; onSelectLesson: (id: LessonViewType) => void }) {
+function Dashboard({ progress, onSelectLesson, studentName, onSwitchStudent }: { progress: ProgressData; onSelectLesson: (id: LessonViewType) => void; studentName: string; onSwitchStudent: () => void }) {
   const isCompleted = (id: string): boolean => progress.completedLessons.includes(id)
   const totalLessons = LESSONS.length
   const completedCount = progress.completedLessons.filter((id) => LESSONS.some((l) => l.id === id)).length
@@ -342,9 +364,13 @@ function Dashboard({ progress, onSelectLesson }: { progress: ProgressData; onSel
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🦉</span>
-            <span className="font-bold text-lg text-gray-800">Kitchen Vocab</span>
+            <div>
+              <span className="font-bold text-lg text-gray-800">Kitchen Vocab</span>
+              <p className="text-xs text-gray-400 -mt-0.5">Hi, {studentName}! 👋</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
+            <button onClick={onSwitchStudent} className="text-xs text-gray-400 hover:text-gray-600 underline" title="Switch student">Switch</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -1558,6 +1584,8 @@ function FinalTestView({ onComplete, onGameOver, onBack }: { onComplete: (xp: nu
 
 // ============ MAIN APP ============
 export default function KitchenVocabApp() {
+  const [studentName, setStudentName] = useState<string>('')
+  const [nameInput, setNameInput] = useState('')
   const [view, setView] = useState<ViewType>('dashboard')
   const [progress, setProgress] = useState<ProgressData>({
     xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: ''
@@ -1566,10 +1594,54 @@ export default function KitchenVocabApp() {
   const [pendingReward, setPendingReward] = useState<RewardDef | null>(null)
   const [lastXpEarned, setLastXpEarned] = useState(0)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [welcomeBack, setWelcomeBack] = useState(false)
 
-  // Load progress from localStorage after mount to avoid hydration mismatch
+  // Check if student name is saved in localStorage on mount
   useEffect(() => {
-    const loaded = loadProgress()
+    const savedName = typeof window !== 'undefined' ? localStorage.getItem('kitchen-vocab-student') : ''
+    if (savedName) {
+      setStudentName(savedName)
+      setNameInput(savedName)
+      // Load progress from DB
+      loadProgressFromDB(savedName).then((loaded) => {
+        const today = getTodayString()
+        const yesterday = getYesterdayString()
+        if (loaded.lastPlayedDate === today) {
+          // Same day, keep streak
+        } else if (loaded.lastPlayedDate === yesterday) {
+          loaded.streak += 1
+        } else if (loaded.lastPlayedDate) {
+          loaded.streak = 1
+        } else {
+          loaded.streak = 1
+        }
+        loaded.lastPlayedDate = today
+        if (!loaded.isNew) setWelcomeBack(true)
+        setProgress(loaded)
+        saveProgressToDB(savedName, loaded)
+        setIsHydrated(true)
+      })
+    } else {
+      setIsHydrated(true) // Show name entry screen
+    }
+  }, [])
+
+  // Save progress to DB + localStorage whenever it changes
+  useEffect(() => {
+    if (isHydrated && studentName) {
+      saveProgressToDB(studentName, progress)
+      saveProgressLocal(progress)
+    }
+  }, [progress, isHydrated, studentName])
+
+  const handleNameSubmit = async () => {
+    const trimmed = nameInput.trim()
+    if (!trimmed) return
+    setIsLoading(true)
+    localStorage.setItem('kitchen-vocab-student', trimmed)
+    setStudentName(trimmed)
+    const loaded = await loadProgressFromDB(trimmed)
     const today = getTodayString()
     const yesterday = getYesterdayString()
     if (loaded.lastPlayedDate === today) {
@@ -1582,18 +1654,19 @@ export default function KitchenVocabApp() {
       loaded.streak = 1
     }
     loaded.lastPlayedDate = today
-    saveProgress(loaded)
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Legitimate: loading initial data from external store (localStorage) after hydration
+    if (!loaded.isNew) setWelcomeBack(true)
     setProgress(loaded)
-    setIsHydrated(true)
-  }, [])
+    saveProgressToDB(trimmed, loaded)
+    setIsLoading(false)
+  }
 
-  // Save progress to localStorage whenever it changes
-  useEffect(() => {
-    if (isHydrated) {
-      saveProgress(progress)
-    }
-  }, [progress, isHydrated])
+  const handleSwitchStudent = () => {
+    setStudentName('')
+    setNameInput('')
+    setWelcomeBack(false)
+    localStorage.removeItem('kitchen-vocab-student')
+    setProgress({ xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' })
+  }
 
   // Check for reward unlocks
   const checkRewards = useCallback((updatedProgress: ProgressData): RewardDef | null => {
@@ -1670,6 +1743,37 @@ export default function KitchenVocabApp() {
     return lesson ? lesson.name : ''
   }
 
+  // Name entry screen
+  if (isHydrated && !studentName) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center px-4">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
+          <div className="text-6xl mb-4 animate-float">🦉</div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Kitchen Vocabulary</h1>
+          <p className="text-gray-500 mb-6">What&apos;s your name?</p>
+          <input
+            type="text"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
+            placeholder="Type your name..."
+            autoFocus
+            className="w-full text-center text-2xl font-bold py-4 px-6 rounded-2xl border-2 border-gray-200 focus:border-duo-green focus:outline-none transition-colors mb-4"
+            disabled={isLoading}
+          />
+          <button
+            onClick={handleNameSubmit}
+            disabled={!nameInput.trim() || isLoading}
+            className="w-full py-4 rounded-2xl font-bold text-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: nameInput.trim() ? '#58CC02' : '#D0D0D0' }}
+          >
+            {isLoading ? 'Loading...' : 'Let\'s go! 🚀'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (!isHydrated) {
     return (
       <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center">
@@ -1684,7 +1788,7 @@ export default function KitchenVocabApp() {
   return (
     <div className="min-h-screen">
       {view === 'dashboard' && (
-        <Dashboard progress={progress} onSelectLesson={handleSelectLesson} />
+        <Dashboard progress={progress} onSelectLesson={handleSelectLesson} studentName={studentName} onSwitchStudent={handleSwitchStudent} />
       )}
       {view === 'flashcards' && (
         <FlashcardView onComplete={handleLessonComplete} onBack={handleBackToDashboard} />

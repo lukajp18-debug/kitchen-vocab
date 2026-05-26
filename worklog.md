@@ -83,3 +83,27 @@ Stage Summary:
 - Final Test bug fixed: no more pre-selected correct answer on new questions
 - Panelita reward image updated to user's uploaded photo
 - Build: Successful
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Add student name-based progress saving with SQLite/Prisma (no login, just name)
+
+Work Log:
+- Updated Prisma schema: replaced User/Post models with Student model (name unique, xp, streak, completedLessons JSON, unlockedRewards JSON, lastPlayedDate)
+- Ran prisma db push to sync database
+- Created /api/progress API route with GET (load by name) and POST (save/upsert by name)
+- Added name entry screen to page.tsx: cute owl + "What's your name?" input + "Let's go!" button
+- Student name stored in localStorage for auto-login on return visits
+- Progress now saved to SQLite via API on every change, with localStorage as offline fallback
+- Added "Switch" button in dashboard top bar to change student
+- Added "Hi, {name}! 👋" greeting in dashboard header
+- Tested API round-trip: new student → save → load → all data persists correctly
+- Build: Successful
+
+Stage Summary:
+- Student progress saved to SQLite database by name (no login/password)
+- Name entry screen on first visit, auto-loads returning students
+- "Switch" button to change student (sibling support)
+- API tested and working: GET /api/progress?name=X, POST /api/progress
+- Build: Successful
