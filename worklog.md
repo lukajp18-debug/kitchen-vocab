@@ -66,3 +66,20 @@ Stage Summary:
 - 3 real reward tiers with animated celebrations
 - 6 Duolingo-style exercise types with hearts and XP
 - Build: Successful
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Fix double letter spelling ("double S") and Final Test bug where correct option was pre-selected
+
+Work Log:
+- Fixed `spellAndSpeak()` to group consecutive duplicate letters as "double [letter]" (e.g., GLASS → G, L, A, double S)
+- Added useEffect resets to all 4 Final Test subcomponents (FinalPictureMatch, FinalListenChoose, FinalSpelling, FinalWhatsMissing) to clear selected/feedback state when question changes
+- Replaced panelita.png with user's uploaded image
+- Verified build succeeds
+
+Stage Summary:
+- Double letters now spelled as "double [letter]" (GLASS: G, L, A, double S)
+- Final Test bug fixed: no more pre-selected correct answer on new questions
+- Panelita reward image updated to user's uploaded photo
+- Build: Successful

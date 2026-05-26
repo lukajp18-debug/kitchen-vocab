@@ -99,6 +99,7 @@ function spellAndSpeak(word: string, onComplete?: () => void): ReturnType<typeof
   window.speechSynthesis.cancel()
   let delay = 0
 
+  // Step 1: Say the complete word first
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(word)
     u.lang = 'en-US'
@@ -108,10 +109,25 @@ function spellAndSpeak(word: string, onComplete?: () => void): ReturnType<typeof
   }, delay)
   delay += 1200
 
-  const letters = word.split('')
-  letters.forEach((letter) => {
+  // Step 2: Spell each letter, grouping consecutive duplicates as "double [letter]"
+  const spellParts: string[] = []
+  let i = 0
+  while (i < word.length) {
+    let count = 1
+    while (i + count < word.length && word[i + count].toLowerCase() === word[i].toLowerCase()) {
+      count++
+    }
+    if (count >= 2) {
+      spellParts.push(`double ${word[i].toLowerCase()}`)
+    } else {
+      spellParts.push(word[i].toLowerCase())
+    }
+    i += count
+  }
+
+  spellParts.forEach((part) => {
     setTimeout(() => {
-      const u = new SpeechSynthesisUtterance(letter.toLowerCase())
+      const u = new SpeechSynthesisUtterance(part)
       u.lang = 'en-US'
       u.rate = 0.7
       u.pitch = 1.2
@@ -121,6 +137,7 @@ function spellAndSpeak(word: string, onComplete?: () => void): ReturnType<typeof
   })
   delay += 500
 
+  // Step 3: Say the complete word again at the end
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(word)
     u.lang = 'en-US'
@@ -1125,6 +1142,12 @@ function FinalPictureMatch({ targetWord, options, onAnswer }: {
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
 
+  // Reset state when question changes
+  useEffect(() => {
+    setSelected(null)
+    setFeedback(null)
+  }, [targetWord.word])
+
   const handleSelect = (word: string) => {
     if (feedback) return
     setSelected(word)
@@ -1167,6 +1190,12 @@ function FinalListenChoose({ targetWord, options, onAnswer }: {
 }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
+
+  // Reset state when question changes
+  useEffect(() => {
+    setSelected(null)
+    setFeedback(null)
+  }, [targetWord.word])
 
   useEffect(() => {
     const timer = setTimeout(() => spellAndSpeak(targetWord.word), 500)
@@ -1220,6 +1249,13 @@ function FinalSpelling({ targetWord, scrambledLetters, onAnswer }: {
   const [usedIndices, setUsedIndices] = useState<Set<number>>(() => new Set())
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
   const word = targetWord.word
+
+  // Reset state when question changes
+  useEffect(() => {
+    setSelectedLetters(Array(word.length).fill(null))
+    setUsedIndices(new Set())
+    setFeedback(null)
+  }, [word])
 
   useEffect(() => {
     const timer = setTimeout(() => speakWord(word), 300)
@@ -1317,6 +1353,12 @@ function FinalWhatsMissing({ targetWord, displayWord, missingLetter, options, on
 }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
+
+  // Reset state when question changes
+  useEffect(() => {
+    setSelected(null)
+    setFeedback(null)
+  }, [targetWord.word])
 
   useEffect(() => {
     const timer = setTimeout(() => speakWord(targetWord.word), 300)
