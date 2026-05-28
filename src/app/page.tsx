@@ -737,6 +737,8 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
   const [roundData, setRoundData] = useState(() => createListenRound())
   const [animClass, setAnimClass] = useState('animate-slide-up')
   const [isSpelling, setIsSpelling] = useState(false)
+  const [wrongAttempts, setWrongAttempts] = useState(0) // Track wrong attempts per word
+  const [showHint, setShowHint] = useState(false) // Show spelling hint
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const totalRounds = 8
 
@@ -745,6 +747,8 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
     setSelected(null)
     setFeedback(null)
     setIsSpelling(false)
+    setWrongAttempts(0)
+    setShowHint(false)
     setAnimClass('animate-slide-up')
     setTimeout(() => setAnimClass(''), 400)
   }, [])
@@ -790,6 +794,17 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
       setAnimClass('animate-shake')
       setTimeout(() => setAnimClass(''), 500)
       const newHearts = hearts - 1
+      const newWrongAttempts = wrongAttempts + 1
+      setWrongAttempts(newWrongAttempts)
+
+      // After 2 wrong attempts, spell the word to help the child learn
+      if (newWrongAttempts >= 2 && !showHint) {
+        setShowHint(true)
+        setTimeout(() => {
+          spellAndSpeak(roundData.targetWord.word)
+        }, 1200)
+      }
+
       setHearts(newHearts)
       if (newHearts <= 0) {
         setTimeout(() => onGameOver(xpEarned), 800)
@@ -797,7 +812,7 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
         setTimeout(() => { setSelected(null); setFeedback(null) }, 1000)
       }
     }
-  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound])
+  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound, wrongAttempts, showHint])
 
   return (
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
@@ -812,6 +827,11 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
             className={`w-24 h-24 rounded-full bg-duo-purple text-white flex items-center justify-center text-4xl shadow-lg transition-all ${isSpelling ? 'animate-pulse-grow' : 'clickable-image'}`}
           >🔊</button>
           <p className="text-sm text-gray-500 mt-2">{isSpelling ? 'Spelling the word...' : 'Tap to hear the word!'}</p>
+          {showHint && (
+            <div className="mt-2 bg-purple-50 border-2 border-duo-purple/30 rounded-xl px-4 py-2 animate-slide-up">
+              <p className="text-sm font-bold text-duo-purple">💡 Hint: {roundData.targetWord.word.toUpperCase().split('').join(' - ')}</p>
+            </div>
+          )}
         </div>
         <div className={`w-full max-w-sm space-y-3 ${animClass}`}>
           {roundData.options.map((option) => {
@@ -856,6 +876,8 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
   const [usedIndices, setUsedIndices] = useState<Set<number>>(() => new Set())
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
   const [animClass, setAnimClass] = useState('animate-slide-up')
+  const [wrongAttempts, setWrongAttempts] = useState(0)
+  const [showHint, setShowHint] = useState(false)
   const totalRounds = 8
   const targetWord = roundData.targetWord.word
 
@@ -865,6 +887,8 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
     setSelectedLetters(Array(newRoundData.targetWord.word.length).fill(null))
     setUsedIndices(new Set())
     setFeedback(null)
+    setWrongAttempts(0)
+    setShowHint(false)
     setAnimClass('animate-slide-up')
     setTimeout(() => setAnimClass(''), 400)
   }, [])
@@ -907,6 +931,17 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
         setAnimClass('animate-shake')
         setTimeout(() => setAnimClass(''), 500)
         const newHearts = hearts - 1
+        const newWrongAttempts = wrongAttempts + 1
+        setWrongAttempts(newWrongAttempts)
+
+        // After 2 wrong attempts, spell the word and show hint
+        if (newWrongAttempts >= 2 && !showHint) {
+          setShowHint(true)
+          setTimeout(() => {
+            spellAndSpeak(targetWord)
+          }, 1200)
+        }
+
         setHearts(newHearts)
         if (newHearts <= 0) {
           setTimeout(() => onGameOver(xpEarned), 800)
@@ -965,9 +1000,15 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
             </Card>
           </div>
 
-          <Button onClick={handleHearWord} className="w-full duo-button bg-duo-blue hover:bg-duo-blue/90 text-white font-bold text-base py-4 rounded-2xl mb-4">
+          <Button onClick={handleHearWord} className="w-full duo-button bg-duo-blue hover:bg-duo-blue/90 text-white font-bold text-base py-4 rounded-2xl mb-2">
             🔊 Hear the word
           </Button>
+
+          {showHint && (
+            <div className="mb-4 bg-blue-50 border-2 border-duo-blue/30 rounded-xl px-4 py-2 text-center animate-slide-up">
+              <p className="text-sm font-bold text-duo-blue">💡 Hint: {targetWord.toUpperCase().split('').join(' - ')}</p>
+            </div>
+          )}
 
           <div className="flex justify-center gap-2 mb-6 flex-wrap">
             {selectedLetters.map((letter, i) => (
@@ -1039,12 +1080,16 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
   const [roundData, setRoundData] = useState(() => createMissingRound())
   const [animClass, setAnimClass] = useState('animate-slide-up')
+  const [wrongAttempts, setWrongAttempts] = useState(0)
+  const [showHint, setShowHint] = useState(false)
   const totalRounds = 8
 
   const advanceRound = useCallback(() => {
     setRoundData(createMissingRound())
     setSelected(null)
     setFeedback(null)
+    setWrongAttempts(0)
+    setShowHint(false)
     setAnimClass('animate-slide-up')
     setTimeout(() => setAnimClass(''), 400)
   }, [])
@@ -1075,6 +1120,17 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
       setAnimClass('animate-shake')
       setTimeout(() => setAnimClass(''), 500)
       const newHearts = hearts - 1
+      const newWrongAttempts = wrongAttempts + 1
+      setWrongAttempts(newWrongAttempts)
+
+      // After 2 wrong attempts, spell the word to help
+      if (newWrongAttempts >= 2 && !showHint) {
+        setShowHint(true)
+        setTimeout(() => {
+          spellAndSpeak(roundData.targetWord.word)
+        }, 1200)
+      }
+
       setHearts(newHearts)
       if (newHearts <= 0) {
         setTimeout(() => onGameOver(xpEarned), 800)
@@ -1082,7 +1138,7 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
         setTimeout(() => { setSelected(null); setFeedback(null) }, 1000)
       }
     }
-  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound])
+  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound, wrongAttempts, showHint])
 
   const renderDisplayWord = () => {
     return roundData.displayWord.split('').map((char, i) => (
@@ -1120,9 +1176,15 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
             </Card>
           </div>
 
-          <div className="flex justify-center mb-6 flex-wrap">
+          <div className="flex justify-center mb-2 flex-wrap">
             {renderDisplayWord()}
           </div>
+
+          {showHint && (
+            <div className="mb-4 bg-pink-50 border-2 border-duo-pink/30 rounded-xl px-4 py-2 text-center animate-slide-up">
+              <p className="text-sm font-bold text-duo-pink">💡 Hint: {roundData.targetWord.word.toUpperCase().split('').join(' - ')}</p>
+            </div>
+          )}
 
           <div className="grid grid-cols-4 gap-3">
             {roundData.options.map((letter) => {
@@ -1603,23 +1665,47 @@ export default function KitchenVocabApp() {
     if (savedName) {
       setStudentName(savedName)
       setNameInput(savedName)
-      // Load progress from DB
-      loadProgressFromDB(savedName).then((loaded) => {
+      // Load progress: localStorage is primary (reliable), API is secondary
+      const localProgress = loadProgressLocal()
+      loadProgressFromDB(savedName).then((dbProgress) => {
+        // Pick the one with MORE progress (more XP = more saved data)
+        const bestProgress = dbProgress.xp > localProgress.xp ? dbProgress : localProgress
+
         const today = getTodayString()
         const yesterday = getYesterdayString()
-        if (loaded.lastPlayedDate === today) {
+        if (bestProgress.lastPlayedDate === today) {
           // Same day, keep streak
-        } else if (loaded.lastPlayedDate === yesterday) {
-          loaded.streak += 1
-        } else if (loaded.lastPlayedDate) {
-          loaded.streak = 1
+        } else if (bestProgress.lastPlayedDate === yesterday) {
+          bestProgress.streak += 1
+        } else if (bestProgress.lastPlayedDate) {
+          bestProgress.streak = 1
         } else {
-          loaded.streak = 1
+          bestProgress.streak = 1
         }
-        loaded.lastPlayedDate = today
-        if (!loaded.isNew) setWelcomeBack(true)
-        setProgress(loaded)
-        saveProgressToDB(savedName, loaded)
+        bestProgress.lastPlayedDate = today
+        if (bestProgress.xp > 0) setWelcomeBack(true)
+        setProgress(bestProgress)
+        // Save the best version to both storages
+        saveProgressLocal(bestProgress)
+        saveProgressToDB(savedName, bestProgress)
+        setIsHydrated(true)
+      }).catch(() => {
+        // API failed (Vercel ephemeral), use localStorage only
+        const today = getTodayString()
+        const yesterday = getYesterdayString()
+        if (localProgress.lastPlayedDate === today) {
+          // Same day, keep streak
+        } else if (localProgress.lastPlayedDate === yesterday) {
+          localProgress.streak += 1
+        } else if (localProgress.lastPlayedDate) {
+          localProgress.streak = 1
+        } else {
+          localProgress.streak = 1
+        }
+        localProgress.lastPlayedDate = today
+        if (localProgress.xp > 0) setWelcomeBack(true)
+        setProgress(localProgress)
+        saveProgressLocal(localProgress)
         setIsHydrated(true)
       })
     } else {
@@ -1641,22 +1727,31 @@ export default function KitchenVocabApp() {
     setIsLoading(true)
     localStorage.setItem('kitchen-vocab-student', trimmed)
     setStudentName(trimmed)
-    const loaded = await loadProgressFromDB(trimmed)
+    // Load progress: localStorage is primary, API is secondary
+    const localProgress = loadProgressLocal()
+    let bestProgress: ProgressData
+    try {
+      const dbProgress = await loadProgressFromDB(trimmed)
+      bestProgress = dbProgress.xp > localProgress.xp ? dbProgress : localProgress
+    } catch {
+      bestProgress = localProgress
+    }
     const today = getTodayString()
     const yesterday = getYesterdayString()
-    if (loaded.lastPlayedDate === today) {
+    if (bestProgress.lastPlayedDate === today) {
       // Same day, keep streak
-    } else if (loaded.lastPlayedDate === yesterday) {
-      loaded.streak += 1
-    } else if (loaded.lastPlayedDate) {
-      loaded.streak = 1
+    } else if (bestProgress.lastPlayedDate === yesterday) {
+      bestProgress.streak += 1
+    } else if (bestProgress.lastPlayedDate) {
+      bestProgress.streak = 1
     } else {
-      loaded.streak = 1
+      bestProgress.streak = 1
     }
-    loaded.lastPlayedDate = today
-    if (!loaded.isNew) setWelcomeBack(true)
-    setProgress(loaded)
-    saveProgressToDB(trimmed, loaded)
+    bestProgress.lastPlayedDate = today
+    if (bestProgress.xp > 0) setWelcomeBack(true)
+    setProgress(bestProgress)
+    saveProgressLocal(bestProgress)
+    saveProgressToDB(trimmed, bestProgress)
     setIsLoading(false)
   }
 
