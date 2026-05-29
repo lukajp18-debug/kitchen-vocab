@@ -185,7 +185,7 @@ async function saveProgressToDB(studentName: string, progress: ProgressData) {
   } catch { /* ignore */ }
 }
 
-// Fallback localStorage for offline
+// localStorage for progress - with defensive protection against overwriting with empty data
 function loadProgressLocal(): ProgressData {
   if (typeof window === 'undefined') {
     return { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' }
@@ -198,6 +198,23 @@ function loadProgressLocal(): ProgressData {
 }
 
 function saveProgressLocal(progress: ProgressData) {
+  if (typeof window === 'undefined') return
+  try {
+    // Defensive: never overwrite existing progress with empty/zero data
+    const existing = localStorage.getItem('kitchen-vocab-progress')
+    if (existing) {
+      const existingData = JSON.parse(existing) as ProgressData
+      // If new progress has zero XP but existing has progress, don't overwrite
+      if (progress.xp === 0 && existingData.xp > 0) {
+        return
+      }
+    }
+    localStorage.setItem('kitchen-vocab-progress', JSON.stringify(progress))
+  } catch { /* ignore */ }
+}
+
+// Force save - used when we're certain the data is correct (e.g., after loading from DB)
+function forceSaveProgressLocal(progress: ProgressData) {
   if (typeof window === 'undefined') return
   try { localStorage.setItem('kitchen-vocab-progress', JSON.stringify(progress)) } catch { /* ignore */ }
 }
@@ -739,16 +756,24 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
   const [isSpelling, setIsSpelling] = useState(false)
   const [wrongAttempts, setWrongAttempts] = useState(0) // Track wrong attempts per word
   const [showHint, setShowHint] = useState(false) // Show spelling hint
+  const [learningMode, setLearningMode] = useState(false) // Auto-spell repeatedly after 3 misses
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const spellingLoopRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const totalRounds = 8
 
   const advanceRound = useCallback(() => {
+    // Stop any repeating spelling loop
+    if (spellingLoopRef.current) {
+      clearInterval(spellingLoopRef.current)
+      spellingLoopRef.current = null
+    }
     setRoundData(createListenRound())
     setSelected(null)
     setFeedback(null)
     setIsSpelling(false)
     setWrongAttempts(0)
     setShowHint(false)
+    setLearningMode(false)
     setAnimClass('animate-slide-up')
     setTimeout(() => setAnimClass(''), 400)
   }, [])
@@ -797,7 +822,7 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
       const newWrongAttempts = wrongAttempts + 1
       setWrongAttempts(newWrongAttempts)
 
-      // After 2 wrong attempts, spell the word to help the child learn
+      // After 2 wrong attempts, show hint and spell once
       if (newWrongAttempts >= 2 && !showHint) {
         setShowHint(true)
         setTimeout(() => {
@@ -805,14 +830,42 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
         }, 1200)
       }
 
+      // After 3 wrong attempts, enter learning mode: spell the word REPEATEDLY
+      if (newWrongAttempts >= 3 && !learningMode) {
+        setLearningMode(true)
+        // Start repeating the spelling every 5 seconds until the user gets it right
+        setTimeout(() => {
+          spellAndSpeak(roundData.targetWord.word)
+          if (spellingLoopRef.current) clearInterval(spellingLoopRef.current)
+          spellingLoopRef.current = setInterval(() => {
+            spellAndSpeak(roundData.targetWord.word)
+          }, 6000)
+        }, 1500)
+      }
+
       setHearts(newHearts)
       if (newHearts <= 0) {
+        // Stop spelling loop on game over
+        if (spellingLoopRef.current) {
+          clearInterval(spellingLoopRef.current)
+          spellingLoopRef.current = null
+        }
         setTimeout(() => onGameOver(xpEarned), 800)
       } else {
         setTimeout(() => { setSelected(null); setFeedback(null) }, 1000)
       }
     }
-  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound, wrongAttempts, showHint])
+  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound, wrongAttempts, showHint, learningMode])
+
+  // Cleanup spelling loop on unmount
+  useEffect(() => {
+    return () => {
+      if (spellingLoopRef.current) {
+        clearInterval(spellingLoopRef.current)
+        spellingLoopRef.current = null
+      }
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
@@ -827,7 +880,13 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
             className={`w-24 h-24 rounded-full bg-duo-purple text-white flex items-center justify-center text-4xl shadow-lg transition-all ${isSpelling ? 'animate-pulse-grow' : 'clickable-image'}`}
           >🔊</button>
           <p className="text-sm text-gray-500 mt-2">{isSpelling ? 'Spelling the word...' : 'Tap to hear the word!'}</p>
-          {showHint && (
+          {learningMode && (
+            <div className="mt-2 bg-yellow-50 border-2 border-yellow-400 rounded-xl px-4 py-2 animate-slide-up">
+              <p className="text-sm font-bold text-yellow-700">📚 Learning mode! Listen carefully to the spelling...</p>
+              <p className="text-2xl font-black text-yellow-800 mt-1 tracking-widest">{roundData.targetWord.word.toUpperCase()}</p>
+            </div>
+          )}
+          {showHint && !learningMode && (
             <div className="mt-2 bg-purple-50 border-2 border-duo-purple/30 rounded-xl px-4 py-2 animate-slide-up">
               <p className="text-sm font-bold text-duo-purple">💡 Hint: {roundData.targetWord.word.toUpperCase().split('').join(' - ')}</p>
             </div>
@@ -841,6 +900,7 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
             if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white animate-pulse-grow'
             else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white animate-shake'
             else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
+            else if (learningMode && isCorrect && !feedback) btnClass += ' bg-duo-green/20 text-duo-green border-2 border-duo-green animate-pulse'
             else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 hover:border-duo-purple'
             return (
               <button key={option} className={btnClass} onClick={() => handleSelect(option)}>
@@ -878,10 +938,16 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
   const [animClass, setAnimClass] = useState('animate-slide-up')
   const [wrongAttempts, setWrongAttempts] = useState(0)
   const [showHint, setShowHint] = useState(false)
+  const [learningMode, setLearningMode] = useState(false)
+  const spellingLoopRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const totalRounds = 8
   const targetWord = roundData.targetWord.word
 
   const advanceRound = useCallback(() => {
+    if (spellingLoopRef.current) {
+      clearInterval(spellingLoopRef.current)
+      spellingLoopRef.current = null
+    }
     const newRoundData = createSpellingRound()
     setRoundData(newRoundData)
     setSelectedLetters(Array(newRoundData.targetWord.word.length).fill(null))
@@ -889,6 +955,7 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
     setFeedback(null)
     setWrongAttempts(0)
     setShowHint(false)
+    setLearningMode(false)
     setAnimClass('animate-slide-up')
     setTimeout(() => setAnimClass(''), 400)
   }, [])
@@ -942,8 +1009,24 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
           }, 1200)
         }
 
+        // After 3 wrong attempts, enter learning mode: spell REPEATEDLY
+        if (newWrongAttempts >= 3 && !learningMode) {
+          setLearningMode(true)
+          setTimeout(() => {
+            spellAndSpeak(targetWord)
+            if (spellingLoopRef.current) clearInterval(spellingLoopRef.current)
+            spellingLoopRef.current = setInterval(() => {
+              spellAndSpeak(targetWord)
+            }, 6000)
+          }, 1500)
+        }
+
         setHearts(newHearts)
         if (newHearts <= 0) {
+          if (spellingLoopRef.current) {
+            clearInterval(spellingLoopRef.current)
+            spellingLoopRef.current = null
+          }
           setTimeout(() => onGameOver(xpEarned), 800)
         } else {
           setTimeout(() => {
@@ -985,6 +1068,16 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
     speakWord(targetWord)
   }, [targetWord])
 
+  // Cleanup spelling loop on unmount
+  useEffect(() => {
+    return () => {
+      if (spellingLoopRef.current) {
+        clearInterval(spellingLoopRef.current)
+        spellingLoopRef.current = null
+      }
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       <div className="px-4 pt-4">
@@ -1004,7 +1097,14 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
             🔊 Hear the word
           </Button>
 
-          {showHint && (
+          {learningMode && (
+            <div className="mb-4 bg-yellow-50 border-2 border-yellow-400 rounded-xl px-4 py-2 text-center animate-slide-up">
+              <p className="text-sm font-bold text-yellow-700">📚 Learning mode! Listen and spell along...</p>
+              <p className="text-2xl font-black text-yellow-800 mt-1 tracking-widest">{targetWord.toUpperCase()}</p>
+            </div>
+          )}
+
+          {showHint && !learningMode && (
             <div className="mb-4 bg-blue-50 border-2 border-duo-blue/30 rounded-xl px-4 py-2 text-center animate-slide-up">
               <p className="text-sm font-bold text-duo-blue">💡 Hint: {targetWord.toUpperCase().split('').join(' - ')}</p>
             </div>
@@ -1082,14 +1182,21 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
   const [animClass, setAnimClass] = useState('animate-slide-up')
   const [wrongAttempts, setWrongAttempts] = useState(0)
   const [showHint, setShowHint] = useState(false)
+  const [learningMode, setLearningMode] = useState(false)
+  const spellingLoopRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const totalRounds = 8
 
   const advanceRound = useCallback(() => {
+    if (spellingLoopRef.current) {
+      clearInterval(spellingLoopRef.current)
+      spellingLoopRef.current = null
+    }
     setRoundData(createMissingRound())
     setSelected(null)
     setFeedback(null)
     setWrongAttempts(0)
     setShowHint(false)
+    setLearningMode(false)
     setAnimClass('animate-slide-up')
     setTimeout(() => setAnimClass(''), 400)
   }, [])
@@ -1131,14 +1238,30 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
         }, 1200)
       }
 
+      // After 3 wrong attempts, enter learning mode: spell REPEATEDLY
+      if (newWrongAttempts >= 3 && !learningMode) {
+        setLearningMode(true)
+        setTimeout(() => {
+          spellAndSpeak(roundData.targetWord.word)
+          if (spellingLoopRef.current) clearInterval(spellingLoopRef.current)
+          spellingLoopRef.current = setInterval(() => {
+            spellAndSpeak(roundData.targetWord.word)
+          }, 6000)
+        }, 1500)
+      }
+
       setHearts(newHearts)
       if (newHearts <= 0) {
+        if (spellingLoopRef.current) {
+          clearInterval(spellingLoopRef.current)
+          spellingLoopRef.current = null
+        }
         setTimeout(() => onGameOver(xpEarned), 800)
       } else {
         setTimeout(() => { setSelected(null); setFeedback(null) }, 1000)
       }
     }
-  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound, wrongAttempts, showHint])
+  }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound, wrongAttempts, showHint, learningMode])
 
   const renderDisplayWord = () => {
     return roundData.displayWord.split('').map((char, i) => (
@@ -1180,7 +1303,14 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
             {renderDisplayWord()}
           </div>
 
-          {showHint && (
+          {learningMode && (
+            <div className="mb-4 bg-yellow-50 border-2 border-yellow-400 rounded-xl px-4 py-2 text-center animate-slide-up">
+              <p className="text-sm font-bold text-yellow-700">📚 Learning mode! Listen carefully...</p>
+              <p className="text-2xl font-black text-yellow-800 mt-1 tracking-widest">{roundData.targetWord.word.toUpperCase()}</p>
+            </div>
+          )}
+
+          {showHint && !learningMode && (
             <div className="mb-4 bg-pink-50 border-2 border-duo-pink/30 rounded-xl px-4 py-2 text-center animate-slide-up">
               <p className="text-sm font-bold text-duo-pink">💡 Hint: {roundData.targetWord.word.toUpperCase().split('').join(' - ')}</p>
             </div>
@@ -1194,6 +1324,7 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
               if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white animate-pulse-grow shadow-lg'
               else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white animate-shake'
               else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
+              else if (learningMode && isCorrect && !feedback) btnClass += ' bg-duo-green/20 text-duo-green border-2 border-duo-green animate-pulse'
               else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 shadow-md hover:border-duo-pink'
               return (
                 <button key={letter} className={btnClass} onClick={() => handleSelect(letter)}>
@@ -1221,6 +1352,9 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
     </div>
   )
 }
+
+// Cleanup spelling loops when WhatsMissingView unmounts
+// (Handled inside the component via useRef)
 
 // ============ FINAL TEST - PICTURE MATCH SUB-COMPONENT ============
 function FinalPictureMatch({ targetWord, options, onAnswer }: {
@@ -1669,7 +1803,10 @@ export default function KitchenVocabApp() {
       const localProgress = loadProgressLocal()
       loadProgressFromDB(savedName).then((dbProgress) => {
         // Pick the one with MORE progress (more XP = more saved data)
-        const bestProgress = dbProgress.xp > localProgress.xp ? dbProgress : localProgress
+        // Also check completedLessons length as a secondary indicator
+        const dbIsBetter = dbProgress.xp > localProgress.xp ||
+          (dbProgress.xp === localProgress.xp && dbProgress.completedLessons.length > localProgress.completedLessons.length)
+        const bestProgress = dbIsBetter ? dbProgress : localProgress
 
         const today = getTodayString()
         const yesterday = getYesterdayString()
@@ -1685,12 +1822,12 @@ export default function KitchenVocabApp() {
         bestProgress.lastPlayedDate = today
         if (bestProgress.xp > 0) setWelcomeBack(true)
         setProgress(bestProgress)
-        // Save the best version to both storages
-        saveProgressLocal(bestProgress)
+        // Force save the best version to both storages (bypass defensive check for initial sync)
+        forceSaveProgressLocal(bestProgress)
         saveProgressToDB(savedName, bestProgress)
         setIsHydrated(true)
       }).catch(() => {
-        // API failed (Vercel ephemeral), use localStorage only
+        // API failed (e.g., DB not configured yet), use localStorage only
         const today = getTodayString()
         const yesterday = getYesterdayString()
         if (localProgress.lastPlayedDate === today) {
@@ -1705,13 +1842,36 @@ export default function KitchenVocabApp() {
         localProgress.lastPlayedDate = today
         if (localProgress.xp > 0) setWelcomeBack(true)
         setProgress(localProgress)
-        saveProgressLocal(localProgress)
+        forceSaveProgressLocal(localProgress)
         setIsHydrated(true)
       })
     } else {
       setIsHydrated(true) // Show name entry screen
     }
   }, [])
+
+  // Save progress when page is hidden or about to close (critical for mobile!)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && isHydrated && studentName) {
+        // Use the latest progress from localStorage (state might be stale in this handler)
+        const currentLocal = loadProgressLocal()
+        saveProgressToDB(studentName, currentLocal)
+      }
+    }
+    const handleBeforeUnload = () => {
+      if (isHydrated && studentName) {
+        const currentLocal = loadProgressLocal()
+        saveProgressToDB(studentName, currentLocal)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [isHydrated, studentName])
 
   // Save progress to DB + localStorage whenever it changes
   useEffect(() => {
@@ -1750,7 +1910,7 @@ export default function KitchenVocabApp() {
     bestProgress.lastPlayedDate = today
     if (bestProgress.xp > 0) setWelcomeBack(true)
     setProgress(bestProgress)
-    saveProgressLocal(bestProgress)
+    forceSaveProgressLocal(bestProgress)
     saveProgressToDB(trimmed, bestProgress)
     setIsLoading(false)
   }
