@@ -1,12 +1,50 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Leaderboard } from '@/components/Leaderboard'
+import { useI18n } from '@/components/I18nProvider'
+
+import { WordDef, RewardDef, LessonDef, TopicDef } from '@/types/vocab'
+import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
+
+// ============ GUEST BANNER ============
+function GuestBanner() {
+  const router = useRouter()
+  const [isGuest, setIsGuest] = useState(false)
+
+  useEffect(() => {
+    setIsGuest(typeof window !== 'undefined' && localStorage.getItem('guestMode') === 'true')
+  }, [])
+
+  if (!isGuest) return null
+
+  return (
+    <div className="mx-4 mt-3 mb-1 max-w-lg mx-auto">
+      <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl px-4 py-3 shadow-md">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xl shrink-0">🔒</span>
+          <p className="text-xs font-bold leading-tight">
+            Guest mode — progress won&apos;t be saved!
+          </p>
+        </div>
+        <button
+          onClick={() => { localStorage.removeItem('guestMode'); router.push('/auth') }}
+          className="shrink-0 bg-white text-indigo-700 font-black text-xs px-3 py-1.5 rounded-full hover:bg-indigo-50 transition-all whitespace-nowrap"
+        >
+          Register now →
+        </button>
+      </div>
+    </div>
+  )
+}
 
 // ============ TYPES ============
 type ViewType =
+  | 'topic-selection'
   | 'dashboard'
   | 'flashcards'
   | 'picture-match'
@@ -17,12 +55,7 @@ type ViewType =
   | 'lesson-complete'
   | 'game-over'
 
-type LessonViewType = Exclude<ViewType, 'dashboard' | 'lesson-complete' | 'game-over'>
-
-interface KitchenWord {
-  word: string
-  image: string
-}
+type LessonViewType = Exclude<ViewType, 'topic-selection' | 'dashboard' | 'lesson-complete' | 'game-over'>
 
 interface ProgressData {
   xp: number
@@ -32,56 +65,26 @@ interface ProgressData {
   lastPlayedDate: string
 }
 
-interface LessonDef {
-  id: LessonViewType
-  name: string
-  icon: string
-  color: string
-  bgColor: string
-  description: string
-  xpReward: number
+function normalizeProgress(progress: ProgressData): ProgressData {
+  const completedLessons = progress.completedLessons.map((id) => {
+    if (!id.includes(':')) {
+      return `kitchen:${id}`
+    }
+    return id
+  })
+  const unlockedRewards = progress.unlockedRewards.map((id) => {
+    if (!id.includes(':')) {
+      return `kitchen:${id}`
+    }
+    return id
+  })
+  return {
+    ...progress,
+    completedLessons,
+    unlockedRewards,
+  }
 }
 
-interface RewardDef {
-  id: string
-  name: string
-  image: string
-  lessonsRequired: number
-  description: string
-  is3D: boolean
-}
-
-// ============ CONSTANTS ============
-const KITCHEN_WORDS: KitchenWord[] = [
-  { word: 'spoon', image: '/images/kitchen/spoon.png' },
-  { word: 'fork', image: '/images/kitchen/fork.png' },
-  { word: 'cup', image: '/images/kitchen/cup.png' },
-  { word: 'pan', image: '/images/kitchen/pan.png' },
-  { word: 'knife', image: '/images/kitchen/knife.png' },
-  { word: 'glass', image: '/images/kitchen/glass.png' },
-  { word: 'blender', image: '/images/kitchen/blender.png' },
-  { word: 'plate', image: '/images/kitchen/plate.png' },
-  { word: 'pot', image: '/images/kitchen/pot.png' },
-  { word: 'kettle', image: '/images/kitchen/kettle.png' },
-]
-
-const REWARDS: RewardDef[] = [
-  { id: 'panelita', name: 'Panelita de leche', image: '/images/rewards/panelita.png', lessonsRequired: 2, description: 'Complete 2 lessons (33%)', is3D: false },
-  { id: 'trululu', name: 'Gomas Trululu', image: '/images/rewards/trululu.png', lessonsRequired: 4, description: 'Complete 4 lessons (66%)', is3D: true },
-  { id: 'hotwheels', name: 'Carro Hotwheels', image: '/images/rewards/hotwheels.png', lessonsRequired: 6, description: 'Complete ALL lessons (100%)', is3D: true },
-]
-
-const LESSONS: LessonDef[] = [
-  { id: 'flashcards', name: 'Learn the Words', icon: '📚', color: '#58CC02', bgColor: '#E5F9D0', description: 'Learn 10 kitchen words with pictures!', xpReward: 10 },
-  { id: 'picture-match', name: 'Match the Picture', icon: '🖼️', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Match words to pictures!', xpReward: 80 },
-  { id: 'listen-choose', name: 'Listen and Pick', icon: '👂', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Listen and pick the right word!', xpReward: 80 },
-  { id: 'spelling-challenge', name: 'Spell the Word', icon: '✏️', color: '#00CD9C', bgColor: '#CCF5EA', description: 'Spell the words you hear!', xpReward: 80 },
-  { id: 'whats-missing', name: 'Fill the Blank', icon: '❓', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Find the missing letter!', xpReward: 80 },
-  { id: 'final-test', name: 'Show What You Know!', icon: '🏆', color: '#FFB700', bgColor: '#FFF0CC', description: 'Final test - prove your skills!', xpReward: 120 },
-]
-
-const CONFETTI_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD93D', '#6BCB77', '#9B59B6', '#58CC02', '#CE82FF', '#FF9600', '#FFC800']
-const ENCOURAGEMENTS = ['Amazing! 🌟', 'Great job! 🎉', 'You rock! 🎸', 'Fantastic! ✨', 'Super! 🦸', 'Wow! 🎊', 'Brilliant! 💡', 'Awesome! 🚀', 'Nice one! 🎯', 'Perfect! 💯']
 
 // ============ UTILITY FUNCTIONS ============
 function speakWord(word: string) {
@@ -368,37 +371,58 @@ function LessonHeader({ title, hearts, current, total, onBack }: {
 }
 
 // ============ DASHBOARD ============
-function Dashboard({ progress, onSelectLesson, studentName, onSwitchStudent }: { progress: ProgressData; onSelectLesson: (id: LessonViewType) => void; studentName: string; onSwitchStudent: () => void }) {
-  const isCompleted = (id: string): boolean => progress.completedLessons.includes(id)
+function Dashboard({
+  progress,
+  activeTopic,
+  onSelectLesson,
+  studentName,
+  onSwitchStudent,
+  onBackToTopics
+}: {
+  progress: ProgressData
+  activeTopic: TopicDef
+  onSelectLesson: (id: LessonViewType) => void
+  studentName: string
+  onSwitchStudent: () => void
+  onBackToTopics: () => void
+}) {
+  const { lang } = useI18n()
+  const [activeTab, setActiveTab] = useState<'lessons' | 'leaderboard'>('lessons')
+  const isCompleted = (id: string): boolean => progress.completedLessons.includes(`${activeTopic.id}:${id}`)
   const totalLessons = LESSONS.length
-  const completedCount = progress.completedLessons.filter((id) => LESSONS.some((l) => l.id === id)).length
+  const completedCount = progress.completedLessons.filter((id) => id.startsWith(`${activeTopic.id}:`)).length
   const overallProgress = (completedCount / totalLessons) * 100
 
   return (
+
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       {/* Top Bar */}
       <div className="bg-white shadow-sm px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🦉</span>
+            <span className="text-2xl">{activeTopic.icon}</span>
             <div>
-              <span className="font-bold text-lg text-gray-800">Kitchen Vocab</span>
+              <span className="font-bold text-lg text-gray-800">{activeTopic.displayName}</span>
               <p className="text-xs text-gray-400 -mt-0.5">Hi, {studentName}! 👋</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button onClick={onBackToTopics} className="text-xs font-bold text-duo-blue hover:text-duo-blue/80 underline shrink-0">← Themes</button>
             <button onClick={onSwitchStudent} className="text-xs text-gray-400 hover:text-gray-600 underline" title="Switch student">Switch</button>
-            <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
             </div>
-            <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full">
+            <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">⭐</span>
               <span className="font-bold text-yellow-600">{progress.xp}</span>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Guest Banner */}
+      <GuestBanner />
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-6">
@@ -407,9 +431,9 @@ function Dashboard({ progress, onSelectLesson, studentName, onSwitchStudent }: {
           <div className="text-center mb-6">
             <Mascot size={56} />
             <h1 className="text-2xl font-bold text-gray-800 mt-2">
-              {overallProgress === 100 ? 'You did it! All done! 🎉' : "Let's learn Kitchen Words!"}
+              {overallProgress === 100 ? 'You did it! All done! 🎉' : `Let's learn ${activeTopic.displayName}!`}
             </h1>
-            <p className="text-gray-500 mt-1">Kitchen Vocabulary for Kids</p>
+            <p className="text-gray-500 mt-1">{activeTopic.name}</p>
           </div>
 
           {/* Overall Progress */}
@@ -425,101 +449,132 @@ function Dashboard({ progress, onSelectLesson, studentName, onSwitchStudent }: {
             </CardContent>
           </Card>
 
-          {/* Rewards Section */}
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
-              🎁 Rewards
-            </h2>
-            <div className="grid grid-cols-3 gap-3">
-              {REWARDS.map((reward) => {
-                const isUnlocked = progress.unlockedRewards.includes(reward.id)
-                const lessonsCompleted = progress.completedLessons.filter((id) => LESSONS.some((l) => l.id === id)).length
-                const rewardProgress = Math.min((lessonsCompleted / reward.lessonsRequired) * 100, 100)
-                return (
-                  <Card
-                    key={reward.id}
-                    className={`border-0 shadow-md overflow-hidden ${isUnlocked ? 'animate-reward-glow' : ''}`}
-                  >
-                    <CardContent className="p-3 flex flex-col items-center text-center">
-                      <div className={`relative w-20 h-20 mb-2 ${!isUnlocked ? 'reward-locked' : ''}`}>
-                        <img
-                          src={reward.image}
-                          alt={reward.name}
-                          className="w-full h-full object-contain"
-                        />
-                        {!isUnlocked && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-3xl">🔒</span>
-                          </div>
-                        )}
-                        {isUnlocked && (
-                          <div className="absolute -top-1 -right-1 text-lg animate-float-star">⭐</div>
-                        )}
-                      </div>
-                      <p className={`text-xs font-bold leading-tight ${isUnlocked ? 'text-duo-gold' : 'text-gray-400'}`}>
-                        {reward.name}
-                      </p>
-                      {!isUnlocked && (
-                        <div className="w-full mt-1.5">
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
-                            <div
-                              className="bg-duo-orange rounded-full h-1.5 transition-all"
-                              style={{ width: `${rewardProgress}%` }}
-                            />
-                          </div>
-                          <p className="text-[10px] text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
-                        </div>
-                      )}
-                      {isUnlocked && (
-                        <span className="text-[10px] font-bold text-duo-green mt-1">✅ Claimed!</span>
-                      )}
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
+          {/* Navigation Tabs */}
+          <div className="flex gap-2 p-1 bg-white border border-slate-200 rounded-2xl mb-6 shadow-sm">
+            <button
+              onClick={() => setActiveTab('lessons')}
+              className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 cursor-pointer ${
+                activeTab === 'lessons'
+                  ? 'bg-gradient-to-r from-duo-green to-emerald-500 text-white shadow-md'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {lang === 'es' ? '📚 LECCIONES' : '📚 LESSONS'}
+            </button>
+            <button
+              onClick={() => setActiveTab('leaderboard')}
+              className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 cursor-pointer ${
+                activeTab === 'leaderboard'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {lang === 'es' ? '🏆 LIGA DE COCINA' : '🏆 KITCHEN LEAGUE'}
+            </button>
           </div>
 
-          {/* Lesson Path */}
-          <div className="flex flex-col items-center">
-            {LESSONS.map((lesson, index) => {
-              const completed = isCompleted(lesson.id)
-              return (
-                <div key={lesson.id} className="flex flex-col items-center w-full">
-                  {index > 0 && (
-                    <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isCompleted(LESSONS[index - 1].id) ? lesson.color : '#E0E0E0' }} />
-                  )}
-                  <button
-                    onClick={() => onSelectLesson(lesson.id)}
-                    className="w-full max-w-xs mb-2 transition-all duration-200 lesson-card-hover cursor-pointer"
-                  >
-                    <Card
-                      className={`border-0 shadow-md overflow-hidden ${completed ? 'ring-2' : ''}`}
-                      style={{ backgroundColor: lesson.bgColor, ...(completed ? { ringColor: lesson.color } : {}) }}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0" style={{ backgroundColor: lesson.color }}>
-                            {lesson.icon}
+          {activeTab === 'lessons' ? (
+            <>
+              {/* Rewards Section */}
+              <div className="mb-6">
+                <h2 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
+                  🎁 Rewards
+                </h2>
+                <div className="grid grid-cols-3 gap-3">
+                  {activeTopic.rewards.map((reward) => {
+                    const isUnlocked = progress.unlockedRewards.includes(`${activeTopic.id}:${reward.id}`)
+                    const lessonsCompleted = completedCount
+                    const rewardProgress = Math.min((lessonsCompleted / reward.lessonsRequired) * 100, 100)
+                    return (
+                      <Card
+                        key={reward.id}
+                        className={`border-0 shadow-md overflow-hidden ${isUnlocked ? 'animate-reward-glow' : ''}`}
+                      >
+                        <CardContent className="p-3 flex flex-col items-center text-center">
+                          <div className={`relative w-20 h-20 mb-2 ${!isUnlocked ? 'reward-locked' : ''}`}>
+                            <img
+                              src={reward.image}
+                              alt={reward.name}
+                              className="w-full h-full object-contain"
+                            />
+                            {!isUnlocked && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-3xl">🔒</span>
+                              </div>
+                            )}
+                            {isUnlocked && (
+                              <div className="absolute -top-1 -right-1 text-lg animate-float-star">⭐</div>
+                            )}
                           </div>
-                          <div className="flex-1 text-left">
-                            <h3 className="font-bold text-sm text-gray-800">{lesson.name}</h3>
-                            <p className="text-xs mt-0.5 text-gray-600">{lesson.description}</p>
-                          </div>
-                          <div className="shrink-0 flex items-center gap-1">
-                            {completed && <span className="text-xl animate-pop-in">✅</span>}
-                            <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: `${lesson.color}20`, color: lesson.color }}>
-                              +{lesson.xpReward}XP
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </button>
+                          <p className={`text-xs font-bold leading-tight ${isUnlocked ? 'text-duo-gold' : 'text-gray-400'}`}>
+                            {reward.name}
+                          </p>
+                          {!isUnlocked && (
+                            <div className="w-full mt-1.5">
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div
+                                  className="bg-duo-orange rounded-full h-1.5 transition-all"
+                                  style={{ width: `${rewardProgress}%` }}
+                                />
+                              </div>
+                              <p className="text-[10px] text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
+                            </div>
+                          )}
+                          {isUnlocked && (
+                            <span className="text-[10px] font-bold text-duo-green mt-1">✅ Claimed!</span>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
-              )
-            })}
-          </div>
+              </div>
+
+              {/* Lesson Path */}
+              <div className="flex flex-col items-center">
+                {LESSONS.map((lesson, index) => {
+                  const completed = isCompleted(lesson.id)
+                  return (
+                    <div key={lesson.id} className="flex flex-col items-center w-full">
+                      {index > 0 && (
+                        <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isCompleted(LESSONS[index - 1].id) ? lesson.color : '#E0E0E0' }} />
+                      )}
+                      <button
+                        onClick={() => onSelectLesson(lesson.id as LessonViewType)}
+                        className="w-full max-w-xs mb-2 transition-all duration-200 lesson-card-hover cursor-pointer"
+                      >
+                        <Card
+                           className={`border-0 shadow-md overflow-hidden ${completed ? 'ring-2' : ''}`}
+                           style={{ backgroundColor: lesson.bgColor, ...(completed ? { ringColor: lesson.color } : {}) }}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0" style={{ backgroundColor: lesson.color }}>
+                                {lesson.icon}
+                              </div>
+                              <div className="flex-1 text-left">
+                                <h3 className="font-bold text-sm text-gray-800">{lesson.name}</h3>
+                                <p className="text-xs mt-0.5 text-gray-600">{lesson.description}</p>
+                              </div>
+                              <div className="shrink-0 flex items-center gap-1">
+                                {completed && <span className="text-xl animate-pop-in">✅</span>}
+                                <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: `${lesson.color}20`, color: lesson.color }}>
+                                  +{lesson.xpReward}XP
+                                </span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <Leaderboard studentName={studentName} userXp={progress.xp} />
+          )}
+
         </div>
       </div>
     </div>
@@ -574,11 +629,11 @@ function GameOverView({ xpEarned, lessonName, onRetry, onBack }: { xpEarned: num
 }
 
 // ============ FLASHCARD VIEW ============
-function FlashcardView({ onComplete, onBack }: { onComplete: (xp: number) => void; onBack: () => void }) {
+function FlashcardView({ words, onComplete, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onBack: () => void }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [animClass, setAnimClass] = useState('')
-  const total = KITCHEN_WORDS.length
-  const currentWord = KITCHEN_WORDS[currentIndex]
+  const total = words.length
+  const currentWord = words[currentIndex]
 
   const handleSpeak = useCallback(() => {
     speakWord(currentWord.word)
@@ -639,26 +694,26 @@ function FlashcardView({ onComplete, onBack }: { onComplete: (xp: number) => voi
 }
 
 // ============ PICTURE MATCH VIEW ============
-function createPictureMatchRound(): { targetWord: KitchenWord; options: KitchenWord[] } {
-  const shuffled = shuffleArray(KITCHEN_WORDS)
+function createPictureMatchRound(words: WordDef[]): { targetWord: WordDef; options: WordDef[] } {
+  const shuffled = shuffleArray(words)
   const target = shuffled[0]
-  const distractors = getRandomItems(KITCHEN_WORDS, 3, [target])
+  const distractors = getRandomItems(words, 3, [target])
   const options = shuffleArray([target, ...distractors])
   return { targetWord: target, options }
 }
 
-function PictureMatchView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+function PictureMatchView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [roundData, setRoundData] = useState(() => createPictureMatchRound())
+  const [roundData, setRoundData] = useState(() => createPictureMatchRound(words))
   const [animClass, setAnimClass] = useState('animate-slide-up')
   const totalRounds = 8
 
   const advanceRound = useCallback(() => {
-    setRoundData(createPictureMatchRound())
+    setRoundData(createPictureMatchRound(words))
     setSelected(null)
     setFeedback(null)
     setAnimClass('animate-slide-up')
@@ -737,21 +792,21 @@ function PictureMatchView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
 }
 
 // ============ LISTEN & CHOOSE VIEW ============
-function createListenRound(): { targetWord: KitchenWord; options: string[] } {
-  const shuffled = shuffleArray(KITCHEN_WORDS)
+function createListenRound(words: WordDef[]): { targetWord: WordDef; options: string[] } {
+  const shuffled = shuffleArray(words)
   const target = shuffled[0]
-  const distractors = getRandomItems(KITCHEN_WORDS.map((w) => w.word), 3, [target.word])
+  const distractors = getRandomItems(words.map((w) => w.word), 3, [target.word])
   const options = shuffleArray([target.word, ...distractors])
   return { targetWord: target, options }
 }
 
-function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+function ListenChooseView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [roundData, setRoundData] = useState(() => createListenRound())
+  const [roundData, setRoundData] = useState(() => createListenRound(words))
   const [animClass, setAnimClass] = useState('animate-slide-up')
   const [isSpelling, setIsSpelling] = useState(false)
   const [wrongAttempts, setWrongAttempts] = useState(0) // Track wrong attempts per word
@@ -767,7 +822,7 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
       clearInterval(spellingLoopRef.current)
       spellingLoopRef.current = null
     }
-    setRoundData(createListenRound())
+    setRoundData(createListenRound(words))
     setSelected(null)
     setFeedback(null)
     setIsSpelling(false)
@@ -920,18 +975,18 @@ function ListenChooseView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
 }
 
 // ============ SPELLING CHALLENGE VIEW ============
-function createSpellingRound(): { targetWord: KitchenWord; scrambledLetters: string[] } {
-  const shuffled = shuffleArray(KITCHEN_WORDS)
+function createSpellingRound(words: WordDef[]): { targetWord: WordDef; scrambledLetters: string[] } {
+  const shuffled = shuffleArray(words)
   const target = shuffled[0]
   const letters = shuffleArray(target.word.split(''))
   return { targetWord: target, scrambledLetters: letters }
 }
 
-function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
-  const [roundData, setRoundData] = useState(() => createSpellingRound())
+  const [roundData, setRoundData] = useState(() => createSpellingRound(words))
   const [selectedLetters, setSelectedLetters] = useState<(string | null)[]>(() => Array(roundData.targetWord.word.length).fill(null))
   const [usedIndices, setUsedIndices] = useState<Set<number>>(() => new Set())
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
@@ -948,7 +1003,7 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
       clearInterval(spellingLoopRef.current)
       spellingLoopRef.current = null
     }
-    const newRoundData = createSpellingRound()
+    const newRoundData = createSpellingRound(words)
     setRoundData(newRoundData)
     setSelectedLetters(Array(newRoundData.targetWord.word.length).fill(null))
     setUsedIndices(new Set())
@@ -958,7 +1013,7 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
     setLearningMode(false)
     setAnimClass('animate-slide-up')
     setTimeout(() => setAnimClass(''), 400)
-  }, [])
+  }, [words])
 
   useEffect(() => {
     const timer = setTimeout(() => speakWord(roundData.targetWord.word), 300)
@@ -1042,25 +1097,23 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
 
   const handleRemoveLetter = useCallback((slotIndex: number) => {
     if (feedback) return
-    if (selectedLetters[slotIndex] === null) return
+    const letterToRemove = selectedLetters[slotIndex]
+    if (letterToRemove === null) return
 
     const newSelected = [...selectedLetters]
     newSelected[slotIndex] = null
     setSelectedLetters(newSelected)
+    
     setUsedIndices((prev) => {
-      const newSet = new Set<number>()
-      const remaining = newSelected.filter((l) => l !== null)
-      const letterCounts: Record<string, number> = {}
-      remaining.forEach((l) => {
-        if (l) letterCounts[l] = (letterCounts[l] || 0) + 1
-      })
-      roundData.scrambledLetters.forEach((letter, idx) => {
-        if (letterCounts[letter] && letterCounts[letter] > 0) {
-          newSet.add(idx)
-          letterCounts[letter]--
+      const newUsedIndices = new Set(prev)
+      // Remover el índice más reciente que coincida con esta letra para mantener consistencia visual
+      for (const idx of Array.from(newUsedIndices).reverse()) {
+        if (roundData.scrambledLetters[idx] === letterToRemove) {
+          newUsedIndices.delete(idx)
+          break
         }
-      })
-      return newSet
+      }
+      return newUsedIndices
     })
   }, [feedback, selectedLetters, roundData.scrambledLetters])
 
@@ -1152,8 +1205,8 @@ function SpellingChallengeView({ onComplete, onGameOver, onBack }: { onComplete:
 }
 
 // ============ WHAT'S MISSING VIEW ============
-function createMissingRound(): { targetWord: KitchenWord; displayWord: string; missingIndex: number; missingLetter: string; options: string[] } {
-  const shuffled = shuffleArray(KITCHEN_WORDS)
+function createMissingRound(words: WordDef[]): { targetWord: WordDef; displayWord: string; missingIndex: number; missingLetter: string; options: string[] } {
+  const shuffled = shuffleArray(words)
   const target = shuffled[0]
   const word = target.word
 
@@ -1172,13 +1225,13 @@ function createMissingRound(): { targetWord: KitchenWord; displayWord: string; m
   return { targetWord: target, displayWord, missingIndex, missingLetter, options }
 }
 
-function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+function WhatsMissingView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [roundData, setRoundData] = useState(() => createMissingRound())
+  const [roundData, setRoundData] = useState(() => createMissingRound(words))
   const [animClass, setAnimClass] = useState('animate-slide-up')
   const [wrongAttempts, setWrongAttempts] = useState(0)
   const [showHint, setShowHint] = useState(false)
@@ -1191,7 +1244,7 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
       clearInterval(spellingLoopRef.current)
       spellingLoopRef.current = null
     }
-    setRoundData(createMissingRound())
+    setRoundData(createMissingRound(words))
     setSelected(null)
     setFeedback(null)
     setWrongAttempts(0)
@@ -1358,7 +1411,7 @@ function WhatsMissingView({ onComplete, onGameOver, onBack }: { onComplete: (xp:
 
 // ============ FINAL TEST - PICTURE MATCH SUB-COMPONENT ============
 function FinalPictureMatch({ targetWord, options, onAnswer }: {
-  targetWord: KitchenWord; options: KitchenWord[]
+  targetWord: WordDef; options: WordDef[]
   onAnswer: (correct: boolean) => void
 }) {
   const [selected, setSelected] = useState<string | null>(null)
@@ -1407,7 +1460,7 @@ function FinalPictureMatch({ targetWord, options, onAnswer }: {
 
 // ============ FINAL TEST - LISTEN CHOOSE SUB-COMPONENT ============
 function FinalListenChoose({ targetWord, options, onAnswer }: {
-  targetWord: KitchenWord; options: string[]
+  targetWord: WordDef; options: string[]
   onAnswer: (correct: boolean) => void
 }) {
   const [selected, setSelected] = useState<string | null>(null)
@@ -1464,7 +1517,7 @@ function FinalListenChoose({ targetWord, options, onAnswer }: {
 
 // ============ FINAL TEST - SPELLING SUB-COMPONENT ============
 function FinalSpelling({ targetWord, scrambledLetters, onAnswer }: {
-  targetWord: KitchenWord; scrambledLetters: string[]
+  targetWord: WordDef; scrambledLetters: string[]
   onAnswer: (correct: boolean) => void
 }) {
   const [selectedLetters, setSelectedLetters] = useState<(string | null)[]>(() => Array(targetWord.word.length).fill(null))
@@ -1570,7 +1623,7 @@ function FinalSpelling({ targetWord, scrambledLetters, onAnswer }: {
 
 // ============ FINAL TEST - WHATS MISSING SUB-COMPONENT ============
 function FinalWhatsMissing({ targetWord, displayWord, missingLetter, options, onAnswer }: {
-  targetWord: KitchenWord; displayWord: string; missingLetter: string; options: string[]
+  targetWord: WordDef; displayWord: string; missingLetter: string; options: string[]
   onAnswer: (correct: boolean) => void
 }) {
   const [selected, setSelected] = useState<string | null>(null)
@@ -1642,8 +1695,8 @@ type FinalTestQuestionType = 'picture-match' | 'listen-choose' | 'spelling' | 'w
 
 interface FinalTestQuestion {
   type: FinalTestQuestionType
-  targetWord: KitchenWord
-  pictureOptions?: KitchenWord[]
+  targetWord: WordDef
+  pictureOptions?: WordDef[]
   wordOptions?: string[]
   scrambledLetters?: string[]
   displayWord?: string
@@ -1651,34 +1704,34 @@ interface FinalTestQuestion {
   letterOptions?: string[]
 }
 
-function createFinalTestQuestions(): FinalTestQuestion[] {
+function createFinalTestQuestions(words: WordDef[]): FinalTestQuestion[] {
   const questions: FinalTestQuestion[] = []
 
   for (let i = 0; i < 3; i++) {
-    const pm = createPictureMatchRound()
+    const pm = createPictureMatchRound(words)
     questions.push({ type: 'picture-match', targetWord: pm.targetWord, pictureOptions: pm.options })
   }
 
   for (let i = 0; i < 3; i++) {
-    const lc = createListenRound()
+    const lc = createListenRound(words)
     questions.push({ type: 'listen-choose', targetWord: lc.targetWord, wordOptions: lc.options })
   }
 
   for (let i = 0; i < 3; i++) {
-    const sp = createSpellingRound()
+    const sp = createSpellingRound(words)
     questions.push({ type: 'spelling', targetWord: sp.targetWord, scrambledLetters: sp.scrambledLetters })
   }
 
   for (let i = 0; i < 3; i++) {
-    const wm = createMissingRound()
+    const wm = createMissingRound(words)
     questions.push({ type: 'whats-missing', targetWord: wm.targetWord, displayWord: wm.displayWord, missingLetter: wm.missingLetter, letterOptions: wm.options })
   }
 
   return shuffleArray(questions)
 }
 
-function FinalTestView({ onComplete, onGameOver, onBack }: { onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
-  const [questions] = useState(() => createFinalTestQuestions())
+function FinalTestView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+  const [questions] = useState(() => createFinalTestQuestions(words))
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
@@ -1778,11 +1831,102 @@ function FinalTestView({ onComplete, onGameOver, onBack }: { onComplete: (xp: nu
   )
 }
 
+// ============ TOPIC SELECTION VIEW ============
+function TopicSelectionView({
+  progress,
+  studentName,
+  onSelectTopic,
+  onSwitchStudent
+}: {
+  progress: ProgressData
+  studentName: string
+  onSelectTopic: (topicId: string) => void
+  onSwitchStudent: () => void
+}) {
+  return (
+    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+      {/* Top Bar */}
+      <div className="bg-white shadow-sm px-4 py-3">
+        <div className="max-w-lg mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">🦉</span>
+            <div>
+              <span className="font-bold text-lg text-gray-800">Study App</span>
+              <p className="text-xs text-gray-400 -mt-0.5">Hi, {studentName}! 👋</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={onSwitchStudent} className="text-xs text-gray-400 hover:text-gray-600 underline shrink-0">Switch</button>
+            <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
+              <span className="text-lg">🔥</span>
+              <span className="font-bold text-orange-600">{progress.streak}</span>
+            </div>
+            <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full shrink-0">
+              <span className="text-lg">⭐</span>
+              <span className="font-bold text-yellow-600">{progress.xp}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Guest Banner */}
+      <GuestBanner />
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="max-w-lg mx-auto">
+          <div className="text-center mb-8">
+            <span className="text-5xl animate-float block mb-2">📚</span>
+            <h1 className="text-2xl font-black text-gray-800">Elige un Tema para Practicar</h1>
+            <p className="text-gray-500 mt-1">¡Aprende y gana recompensas reales!</p>
+          </div>
+
+          <div className="space-y-4">
+            {TOPICS.map((topic) => {
+              const completedCount = progress.completedLessons.filter((id) => id.startsWith(`${topic.id}:`)).length
+              const overallProgress = (completedCount / LESSONS.length) * 100
+
+              return (
+                <button
+                  key={topic.id}
+                  onClick={() => onSelectTopic(topic.id)}
+                  className="w-full text-left transition-all duration-200 hover:scale-[1.02] cursor-pointer"
+                >
+                  <Card className="border-0 shadow-md overflow-hidden hover:shadow-lg transition-all" style={{ borderLeft: `8px solid ${topic.color}` }}>
+                    <CardContent className="p-5 flex items-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0" style={{ backgroundColor: topic.bgColor }}>
+                        {topic.icon}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-lg text-gray-800">{topic.displayName}</h3>
+                        <p className="text-xs text-gray-500">{topic.name}</p>
+                        
+                        <div className="flex items-center gap-3 mt-3">
+                          <div className="flex-1 bg-gray-100 rounded-full h-2">
+                            <div className="h-2 rounded-full transition-all duration-500" style={{ width: `${overallProgress}%`, backgroundColor: topic.color }} />
+                          </div>
+                          <span className="text-xs font-bold text-gray-600 shrink-0">{completedCount}/{LESSONS.length}</span>
+                        </div>
+                      </div>
+                      <div className="text-2xl text-gray-300">→</div>
+                    </CardContent>
+                  </Card>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ============ MAIN APP ============
 export default function KitchenVocabApp() {
   const [studentName, setStudentName] = useState<string>('')
   const [nameInput, setNameInput] = useState('')
-  const [view, setView] = useState<ViewType>('dashboard')
+  const [activeTopicId, setActiveTopicId] = useState<string>('kitchen')
+  const [view, setView] = useState<ViewType>('topic-selection')
   const [progress, setProgress] = useState<ProgressData>({
     xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: ''
   })
@@ -1792,6 +1936,10 @@ export default function KitchenVocabApp() {
   const [isHydrated, setIsHydrated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [welcomeBack, setWelcomeBack] = useState(false)
+
+  const activeTopic = useMemo(() => {
+    return TOPICS.find((t) => t.id === activeTopicId) || TOPICS[0]
+  }, [activeTopicId])
 
   // Check if student name is saved in localStorage on mount
   useEffect(() => {
@@ -1806,7 +1954,7 @@ export default function KitchenVocabApp() {
         // Also check completedLessons length as a secondary indicator
         const dbIsBetter = dbProgress.xp > localProgress.xp ||
           (dbProgress.xp === localProgress.xp && dbProgress.completedLessons.length > localProgress.completedLessons.length)
-        const bestProgress = dbIsBetter ? dbProgress : localProgress
+        const bestProgress = normalizeProgress(dbIsBetter ? dbProgress : localProgress)
 
         const today = getTodayString()
         const yesterday = getYesterdayString()
@@ -1830,19 +1978,20 @@ export default function KitchenVocabApp() {
         // API failed (e.g., DB not configured yet), use localStorage only
         const today = getTodayString()
         const yesterday = getYesterdayString()
-        if (localProgress.lastPlayedDate === today) {
+        const bestProgress = normalizeProgress(localProgress)
+        if (bestProgress.lastPlayedDate === today) {
           // Same day, keep streak
-        } else if (localProgress.lastPlayedDate === yesterday) {
-          localProgress.streak += 1
-        } else if (localProgress.lastPlayedDate) {
-          localProgress.streak = 1
+        } else if (bestProgress.lastPlayedDate === yesterday) {
+          bestProgress.streak += 1
+        } else if (bestProgress.lastPlayedDate) {
+          bestProgress.streak = 1
         } else {
-          localProgress.streak = 1
+          bestProgress.streak = 1
         }
-        localProgress.lastPlayedDate = today
-        if (localProgress.xp > 0) setWelcomeBack(true)
-        setProgress(localProgress)
-        forceSaveProgressLocal(localProgress)
+        bestProgress.lastPlayedDate = today
+        if (bestProgress.xp > 0) setWelcomeBack(true)
+        setProgress(bestProgress)
+        forceSaveProgressLocal(bestProgress)
         setIsHydrated(true)
       })
     } else {
@@ -1892,9 +2041,9 @@ export default function KitchenVocabApp() {
     let bestProgress: ProgressData
     try {
       const dbProgress = await loadProgressFromDB(trimmed)
-      bestProgress = dbProgress.xp > localProgress.xp ? dbProgress : localProgress
+      bestProgress = normalizeProgress(dbProgress.xp > localProgress.xp ? dbProgress : localProgress)
     } catch {
-      bestProgress = localProgress
+      bestProgress = normalizeProgress(localProgress)
     }
     const today = getTodayString()
     const yesterday = getYesterdayString()
@@ -1921,18 +2070,27 @@ export default function KitchenVocabApp() {
     setWelcomeBack(false)
     localStorage.removeItem('kitchen-vocab-student')
     setProgress({ xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' })
+    setView('topic-selection')
   }
 
   // Check for reward unlocks
   const checkRewards = useCallback((updatedProgress: ProgressData): RewardDef | null => {
-    const lessonsCompleted = updatedProgress.completedLessons.filter((id) => LESSONS.some((l) => l.id === id)).length
-    for (const reward of REWARDS) {
-      if (!updatedProgress.unlockedRewards.includes(reward.id) && lessonsCompleted >= reward.lessonsRequired) {
+    if (!activeTopicId) return null
+    const activeT = TOPICS.find((t) => t.id === activeTopicId)
+    if (!activeT) return null
+
+    const lessonsCompleted = updatedProgress.completedLessons.filter((id) => 
+      id.startsWith(`${activeTopicId}:`) && LESSONS.some((l) => `${activeTopicId}:${l.id}` === id)
+    ).length
+
+    for (const reward of activeT.rewards) {
+      const scopedRewardId = `${activeTopicId}:${reward.id}`
+      if (!updatedProgress.unlockedRewards.includes(scopedRewardId) && lessonsCompleted >= reward.lessonsRequired) {
         return reward
       }
     }
     return null
-  }, [])
+  }, [activeTopicId])
 
   const handleSelectLesson = useCallback((id: LessonViewType) => {
     setCurrentLessonId(id)
@@ -1942,9 +2100,10 @@ export default function KitchenVocabApp() {
   const handleLessonComplete = useCallback((xpEarned: number) => {
     setLastXpEarned(xpEarned)
     setProgress((prev) => {
-      const newCompleted = prev.completedLessons.includes(currentLessonId)
+      const scopedLessonId = `${activeTopicId}:${currentLessonId}`
+      const newCompleted = prev.completedLessons.includes(scopedLessonId)
         ? prev.completedLessons
-        : [...prev.completedLessons, currentLessonId]
+        : [...prev.completedLessons, scopedLessonId]
       const updated = {
         ...prev,
         xp: prev.xp + xpEarned,
@@ -1953,9 +2112,10 @@ export default function KitchenVocabApp() {
       }
       const reward = checkRewards(updated)
       if (reward) {
+        const scopedRewardId = `${activeTopicId}:${reward.id}`
         const withReward = {
           ...updated,
-          unlockedRewards: [...updated.unlockedRewards, reward.id],
+          unlockedRewards: [...updated.unlockedRewards, scopedRewardId],
         }
         setTimeout(() => setPendingReward(reward), 500)
         return withReward
@@ -1963,7 +2123,7 @@ export default function KitchenVocabApp() {
       return updated
     })
     setView('lesson-complete')
-  }, [currentLessonId, checkRewards])
+  }, [currentLessonId, activeTopicId, checkRewards])
 
   const handleGameOver = useCallback((xpEarned: number) => {
     setLastXpEarned(xpEarned)
@@ -1998,13 +2158,18 @@ export default function KitchenVocabApp() {
     return lesson ? lesson.name : ''
   }
 
+  const handleSelectTopic = useCallback((topicId: string) => {
+    setActiveTopicId(topicId)
+    setView('dashboard')
+  }, [])
+
   // Name entry screen
   if (isHydrated && !studentName) {
     return (
       <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center px-4">
         <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
           <div className="text-6xl mb-4 animate-float">🦉</div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Kitchen Vocabulary</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Study App</h1>
           <p className="text-gray-500 mb-6">What&apos;s your name?</p>
           <input
             type="text"
@@ -2042,26 +2207,36 @@ export default function KitchenVocabApp() {
 
   return (
     <div className="min-h-screen">
+      {view === 'topic-selection' && (
+        <TopicSelectionView progress={progress} studentName={studentName} onSelectTopic={handleSelectTopic} onSwitchStudent={handleSwitchStudent} />
+      )}
       {view === 'dashboard' && (
-        <Dashboard progress={progress} onSelectLesson={handleSelectLesson} studentName={studentName} onSwitchStudent={handleSwitchStudent} />
+        <Dashboard
+          progress={progress}
+          activeTopic={activeTopic}
+          onSelectLesson={handleSelectLesson}
+          studentName={studentName}
+          onSwitchStudent={handleSwitchStudent}
+          onBackToTopics={() => setView('topic-selection')}
+        />
       )}
       {view === 'flashcards' && (
-        <FlashcardView onComplete={handleLessonComplete} onBack={handleBackToDashboard} />
+        <FlashcardView words={activeTopic.words} onComplete={handleLessonComplete} onBack={handleBackToDashboard} />
       )}
       {view === 'picture-match' && (
-        <PictureMatchView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+        <PictureMatchView words={activeTopic.words} onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
       )}
       {view === 'listen-choose' && (
-        <ListenChooseView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+        <ListenChooseView words={activeTopic.words} onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
       )}
       {view === 'spelling-challenge' && (
-        <SpellingChallengeView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+        <SpellingChallengeView words={activeTopic.words} onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
       )}
       {view === 'whats-missing' && (
-        <WhatsMissingView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+        <WhatsMissingView words={activeTopic.words} onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
       )}
       {view === 'final-test' && (
-        <FinalTestView onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+        <FinalTestView words={activeTopic.words} onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
       )}
       {view === 'lesson-complete' && (
         <LessonCompleteView
