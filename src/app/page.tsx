@@ -85,6 +85,25 @@ function normalizeProgress(progress: ProgressData): ProgressData {
   }
 }
 
+// ============ VIRTUAL REWARD BADGES PER TOPIC ============
+const VIRTUAL_REWARD_INFO: Record<string, { emoji: string; name: string; nameEs: string }[]> = {
+  kitchen: [
+    { emoji: '🥉', name: 'Kitchen Apprentice', nameEs: 'Aprendiz de Cocina' },
+    { emoji: '🥈', name: 'Sous Chef', nameEs: 'Cocinero Asistente' },
+    { emoji: '🏆', name: 'Master Chef', nameEs: 'Maestro de Cocina' },
+  ],
+  vacation: [
+    { emoji: '🥉', name: 'Beach Traveler', nameEs: 'Viajero de Playa' },
+    { emoji: '🥈', name: 'Beach Explorer', nameEs: 'Explorador de Playa' },
+    { emoji: '🏆', name: 'Summer Legend', nameEs: 'Leyenda del Verano' },
+  ],
+}
+
+function getStoredRewardType(topicId: string): 'virtual' | 'real' {
+  if (typeof window === 'undefined') return 'real'
+  const saved = localStorage.getItem(`rewardsType_${topicId}`)
+  return saved === 'virtual' ? 'virtual' : 'real'
+}
 
 // ============ UTILITY FUNCTIONS ============
 function speakWord(word: string) {
@@ -377,7 +396,8 @@ function Dashboard({
   onSelectLesson,
   studentName,
   onSwitchStudent,
-  onBackToTopics
+  onBackToTopics,
+  rewardType = 'real',
 }: {
   progress: ProgressData
   activeTopic: TopicDef
@@ -385,6 +405,7 @@ function Dashboard({
   studentName: string
   onSwitchStudent: () => void
   onBackToTopics: () => void
+  rewardType?: 'virtual' | 'real'
 }) {
   const { lang } = useI18n()
   const [activeTab, setActiveTab] = useState<'lessons' | 'leaderboard'>('lessons')
@@ -477,56 +498,104 @@ function Dashboard({
             <>
               {/* Rewards Section */}
               <div className="mb-6">
-                <h2 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  🎁 Rewards
-                </h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
+                    {rewardType === 'virtual' ? '🌟 Virtual Badges' : '🎁 Rewards'}
+                  </h2>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                    rewardType === 'virtual'
+                      ? 'bg-indigo-100 text-indigo-600'
+                      : 'bg-emerald-100 text-emerald-600'
+                  }`}>
+                    {rewardType === 'virtual' ? (lang === 'es' ? 'Virtual' : 'Virtual') : (lang === 'es' ? 'Reales' : 'Real')}
+                  </span>
+                </div>
                 <div className="grid grid-cols-3 gap-3">
-                  {activeTopic.rewards.map((reward) => {
-                    const isUnlocked = progress.unlockedRewards.includes(`${activeTopic.id}:${reward.id}`)
-                    const lessonsCompleted = completedCount
-                    const rewardProgress = Math.min((lessonsCompleted / reward.lessonsRequired) * 100, 100)
-                    return (
-                      <Card
-                        key={reward.id}
-                        className={`border-0 shadow-md overflow-hidden ${isUnlocked ? 'animate-reward-glow' : ''}`}
-                      >
-                        <CardContent className="p-3 flex flex-col items-center text-center">
-                          <div className={`relative w-20 h-20 mb-2 ${!isUnlocked ? 'reward-locked' : ''}`}>
-                            <img
-                              src={reward.image}
-                              alt={reward.name}
-                              className="w-full h-full object-contain"
-                            />
-                            {!isUnlocked && (
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-3xl">🔒</span>
+                  {rewardType === 'virtual'
+                    ? activeTopic.rewards.map((reward, idx) => {
+                        const virtualInfo = VIRTUAL_REWARD_INFO[activeTopic.id]?.[idx]
+                        const isUnlocked = progress.unlockedRewards.includes(`${activeTopic.id}:${reward.id}`)
+                        const lessonsCompleted = completedCount
+                        const rewardProgress = Math.min((lessonsCompleted / reward.lessonsRequired) * 100, 100)
+                        return (
+                          <Card
+                            key={reward.id}
+                            className={`border-0 shadow-md overflow-hidden ${isUnlocked ? 'animate-reward-glow' : ''}`}
+                          >
+                            <CardContent className="p-3 flex flex-col items-center text-center">
+                              <div className={`relative w-20 h-20 mb-2 flex items-center justify-center rounded-2xl ${
+                                isUnlocked ? 'bg-gradient-to-br from-yellow-50 to-amber-100' : 'bg-gray-100'
+                              }`}>
+                                <span className={`text-4xl transition-all ${!isUnlocked ? 'grayscale opacity-30' : ''}`}>
+                                  {virtualInfo?.emoji || '🏅'}
+                                </span>
+                                {!isUnlocked && (
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-2xl">🔒</span>
+                                  </div>
+                                )}
+                                {isUnlocked && (
+                                  <div className="absolute -top-1 -right-1 text-lg animate-float-star">⭐</div>
+                                )}
                               </div>
-                            )}
-                            {isUnlocked && (
-                              <div className="absolute -top-1 -right-1 text-lg animate-float-star">⭐</div>
-                            )}
-                          </div>
-                          <p className={`text-xs font-bold leading-tight ${isUnlocked ? 'text-duo-gold' : 'text-gray-400'}`}>
-                            {reward.name}
-                          </p>
-                          {!isUnlocked && (
-                            <div className="w-full mt-1.5">
-                              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                <div
-                                  className="bg-duo-orange rounded-full h-1.5 transition-all"
-                                  style={{ width: `${rewardProgress}%` }}
-                                />
+                              <p className={`text-xs font-bold leading-tight ${isUnlocked ? 'text-duo-gold' : 'text-gray-400'}`}>
+                                {lang === 'es' ? virtualInfo?.nameEs : virtualInfo?.name}
+                              </p>
+                              {!isUnlocked && (
+                                <div className="w-full mt-1.5">
+                                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div className="bg-duo-orange rounded-full h-1.5 transition-all" style={{ width: `${rewardProgress}%` }} />
+                                  </div>
+                                  <p className="text-[10px] text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
+                                </div>
+                              )}
+                              {isUnlocked && (
+                                <span className="text-[10px] font-bold text-duo-green mt-1">✅ Earned!</span>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )
+                      })
+                    : activeTopic.rewards.map((reward) => {
+                        const isUnlocked = progress.unlockedRewards.includes(`${activeTopic.id}:${reward.id}`)
+                        const lessonsCompleted = completedCount
+                        const rewardProgress = Math.min((lessonsCompleted / reward.lessonsRequired) * 100, 100)
+                        return (
+                          <Card
+                            key={reward.id}
+                            className={`border-0 shadow-md overflow-hidden ${isUnlocked ? 'animate-reward-glow' : ''}`}
+                          >
+                            <CardContent className="p-3 flex flex-col items-center text-center">
+                              <div className={`relative w-20 h-20 mb-2 ${!isUnlocked ? 'reward-locked' : ''}`}>
+                                <img src={reward.image} alt={reward.name} className="w-full h-full object-contain" />
+                                {!isUnlocked && (
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-3xl">🔒</span>
+                                  </div>
+                                )}
+                                {isUnlocked && (
+                                  <div className="absolute -top-1 -right-1 text-lg animate-float-star">⭐</div>
+                                )}
                               </div>
-                              <p className="text-[10px] text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
-                            </div>
-                          )}
-                          {isUnlocked && (
-                            <span className="text-[10px] font-bold text-duo-green mt-1">✅ Claimed!</span>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
+                              <p className={`text-xs font-bold leading-tight ${isUnlocked ? 'text-duo-gold' : 'text-gray-400'}`}>
+                                {reward.name}
+                              </p>
+                              {!isUnlocked && (
+                                <div className="w-full mt-1.5">
+                                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                    <div className="bg-duo-orange rounded-full h-1.5 transition-all" style={{ width: `${rewardProgress}%` }} />
+                                  </div>
+                                  <p className="text-[10px] text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
+                                </div>
+                              )}
+                              {isUnlocked && (
+                                <span className="text-[10px] font-bold text-duo-green mt-1">✅ Claimed!</span>
+                              )}
+                            </CardContent>
+                          </Card>
+                        )
+                      })
+                  }
                 </div>
               </div>
 
@@ -1831,6 +1900,99 @@ function FinalTestView({ words, onComplete, onGameOver, onBack }: { words: WordD
   )
 }
 
+// ============ REWARD STYLE MODAL ============
+function RewardStyleModal({
+  topicId,
+  onSelect,
+  onCancel,
+}: {
+  topicId: string
+  onSelect: (type: 'virtual' | 'real') => void
+  onCancel: () => void
+}) {
+  const { t, lang } = useI18n()
+  const topic = TOPICS.find((tp) => tp.id === topicId)
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={onCancel}
+    >
+      <div
+        className="relative bg-white rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full animate-reward-bounce"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="text-center mb-7">
+          <div className="text-5xl mb-3">{topic?.icon || '📚'}</div>
+          <h2 className="text-2xl font-black text-gray-800 leading-tight">
+            {lang === 'es' ? '¿Cómo quieres tus premios?' : 'How do you want your prizes?'}
+          </h2>
+          <p className="text-gray-400 text-sm mt-2">
+            {lang === 'es'
+              ? 'Elige el tipo de recompensas para este tema'
+              : 'Choose the reward style for this topic'}
+          </p>
+        </div>
+
+        {/* Virtual Option */}
+        <button onClick={() => onSelect('virtual')} className="w-full mb-3 group">
+          <div className="relative overflow-hidden border-2 border-indigo-200 hover:border-indigo-500 rounded-2xl p-5 flex items-center gap-4 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg cursor-pointer">
+            <div className="flex flex-col items-center shrink-0 w-14">
+              <span className="text-4xl">🌟</span>
+              <div className="flex gap-0.5 mt-1">
+                <span className="text-base">🥉</span>
+                <span className="text-base">🥈</span>
+                <span className="text-base">🏆</span>
+              </div>
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-black text-lg text-indigo-700 leading-tight">
+                {lang === 'es' ? t.virtualRewardsTitle : 'Virtual Badges'}
+              </h3>
+              <p className="text-sm text-indigo-400 mt-0.5">
+                {lang === 'es'
+                  ? 'Medallas digitales que ganas dentro de la app'
+                  : 'Digital medals you earn inside the app'}
+              </p>
+            </div>
+            <span className="text-indigo-300 group-hover:text-indigo-600 text-2xl transition-colors">→</span>
+          </div>
+        </button>
+
+        {/* Real Option */}
+        <button onClick={() => onSelect('real')} className="w-full group">
+          <div className="relative overflow-hidden border-2 border-emerald-200 hover:border-emerald-500 rounded-2xl p-5 flex items-center gap-4 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg cursor-pointer">
+            <div className="flex flex-col items-center shrink-0 w-14">
+              <span className="text-4xl">🎁</span>
+              <span className="text-xs font-bold text-emerald-600 mt-1">{lang === 'es' ? 'REALES' : 'REAL'}</span>
+            </div>
+            <div className="text-left flex-1">
+              <h3 className="font-black text-lg text-emerald-700 leading-tight">
+                {lang === 'es' ? t.realRewardsTitle : 'Real Prizes'}
+              </h3>
+              <p className="text-sm text-emerald-400 mt-0.5">
+                {lang === 'es'
+                  ? 'Premios físicos que papá y mamá dan en casa'
+                  : 'Physical prizes from Mom & Dad at home'}
+              </p>
+            </div>
+            <span className="text-emerald-300 group-hover:text-emerald-600 text-2xl transition-colors">→</span>
+          </div>
+        </button>
+
+        {/* Cancel */}
+        <button
+          onClick={onCancel}
+          className="mt-5 w-full text-center text-sm text-gray-400 hover:text-gray-600 font-semibold transition-colors py-1"
+        >
+          {lang === 'es' ? 'Cancelar' : 'Cancel'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ============ TOPIC SELECTION VIEW ============
 function TopicSelectionView({
   progress,
@@ -1936,6 +2098,7 @@ export default function KitchenVocabApp() {
   const [isHydrated, setIsHydrated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [welcomeBack, setWelcomeBack] = useState(false)
+  const [rewardModalTopicId, setRewardModalTopicId] = useState<string | null>(null)
 
   const activeTopic = useMemo(() => {
     return TOPICS.find((t) => t.id === activeTopicId) || TOPICS[0]
@@ -2160,8 +2323,20 @@ export default function KitchenVocabApp() {
 
   const handleSelectTopic = useCallback((topicId: string) => {
     setActiveTopicId(topicId)
-    setView('dashboard')
+    const existing = typeof window !== 'undefined' ? localStorage.getItem(`rewardsType_${topicId}`) : null
+    if (existing === 'virtual' || existing === 'real') {
+      setView('dashboard')
+    } else {
+      setRewardModalTopicId(topicId)
+    }
   }, [])
+
+  const handleRewardTypeChosen = useCallback((type: 'virtual' | 'real') => {
+    if (!rewardModalTopicId) return
+    localStorage.setItem(`rewardsType_${rewardModalTopicId}`, type)
+    setRewardModalTopicId(null)
+    setView('dashboard')
+  }, [rewardModalTopicId])
 
   // Name entry screen
   if (isHydrated && !studentName) {
@@ -2218,6 +2393,7 @@ export default function KitchenVocabApp() {
           studentName={studentName}
           onSwitchStudent={handleSwitchStudent}
           onBackToTopics={() => setView('topic-selection')}
+          rewardType={getStoredRewardType(activeTopicId)}
         />
       )}
       {view === 'flashcards' && (
@@ -2259,6 +2435,15 @@ export default function KitchenVocabApp() {
         <RewardCelebration
           reward={pendingReward}
           onDismiss={() => setPendingReward(null)}
+        />
+      )}
+
+      {/* Reward Style Selection Modal */}
+      {rewardModalTopicId && (
+        <RewardStyleModal
+          topicId={rewardModalTopicId}
+          onSelect={handleRewardTypeChosen}
+          onCancel={() => setRewardModalTopicId(null)}
         />
       )}
     </div>
