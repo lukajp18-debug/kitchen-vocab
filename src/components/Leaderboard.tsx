@@ -6,6 +6,9 @@ import { useI18n } from './I18nProvider'
 interface LeaderboardProps {
   studentName: string
   userXp: number
+  topicId?: string
+  topicName?: string
+  topicIcon?: string
 }
 
 interface Competitor {
@@ -28,13 +31,13 @@ const COMPETITORS_POOL = [
   { es: '🧇 Rey del Waffle', en: '🧇 Waffle King', avatar: '🧇' },
 ]
 
-export function Leaderboard({ studentName, userXp }: LeaderboardProps) {
+export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon }: LeaderboardProps) {
   const { lang, t } = useI18n()
   const [competitors, setCompetitors] = useState<Competitor[]>([])
 
   useEffect(() => {
-    // Unique key per student for persistent leaderboard bots
-    const cacheKey = `kitchen-leaderboard-${studentName}`
+    // Unique key per student + topic for persistent leaderboard bots
+    const cacheKey = `leaderboard-${studentName}-${topicId || 'kitchen'}`
     const cached = localStorage.getItem(cacheKey)
 
     let list: Competitor[] = []
@@ -87,8 +90,7 @@ export function Leaderboard({ studentName, userXp }: LeaderboardProps) {
     setCompetitors(processedList)
 
     // Trigger dynamic simulation: update bots slightly if user xp changes
-    // This creates the Duolingo dynamic simulation feel!
-    const cacheKeyRaw = `kitchen-leaderboard-${studentName}`
+    const cacheKeyRaw = `leaderboard-${studentName}-${topicId || 'kitchen'}`
     const rawCached = localStorage.getItem(cacheKeyRaw)
     if (rawCached) {
       const rawList = JSON.parse(rawCached)
@@ -116,14 +118,16 @@ export function Leaderboard({ studentName, userXp }: LeaderboardProps) {
     <div className="w-full space-y-4">
       {/* Header Info */}
       <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-center gap-3">
-        <span className="text-3xl animate-bounce-subtle">🏆</span>
+        <span className="text-3xl animate-bounce-subtle">{topicIcon || '🏆'}</span>
         <div>
           <h4 className="font-extrabold text-sm text-indigo-900">
-            {lang === 'es' ? '¡Liga de Cocina Activa!' : 'Active Kitchen League!'}
+            {lang === 'es'
+              ? `¡Liga de ${topicName || 'Estudio'} Activa!`
+              : `Active ${topicName || 'Study'} League!`}
           </h4>
           <p className="text-[11px] text-indigo-700 mt-0.5 leading-tight">
-            {lang === 'es' 
-              ? 'Completa lecciones para ganar estrellas y subir de puesto. ¡Sana competencia!' 
+            {lang === 'es'
+              ? 'Completa lecciones para ganar estrellas y subir de puesto. ¡Sana competencia!'
               : 'Complete lessons to earn stars and climb the board. Healthy competition!'}
           </p>
         </div>
@@ -183,9 +187,9 @@ export function Leaderboard({ studentName, userXp }: LeaderboardProps) {
       {/* User Rank Indicator Summary */}
       {userRank && (
         <div className="text-center text-[11px] font-black text-slate-500 bg-slate-50 border border-slate-100 rounded-full py-1.5 max-w-xs mx-auto animate-pulse-subtle">
-          {lang === 'es' 
-            ? `🎉 ¡Estás en el Puesto #${userRank} de la Liga!` 
-            : `🎉 You are currently Rank #${userRank} in the League!`}
+          {lang === 'es'
+            ? `🎉 ¡Estás en el Puesto #${userRank} de la Liga de ${topicName || 'Estudio'}!`
+            : `🎉 You are currently Rank #${userRank} in the ${topicName || 'Study'} League!`}
         </div>
       )}
     </div>

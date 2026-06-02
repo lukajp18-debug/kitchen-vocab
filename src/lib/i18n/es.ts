@@ -14,6 +14,10 @@ export const es = {
   loginCall: 'Ingresa a tu cuenta',
   or: 'O',
   guestModeBtn: '👀 Probar sin registrarse (Modo Invitado)',
+  appTagline: '¡Aprende vocabulario y gana premios!',
+  studentNameRequired: 'Por favor ingresa el nombre del estudiante',
+  guestBannerText: '¡Modo Invitado — el progreso no se guardará!',
+  guestBannerBtn: 'Regístrate ahora →',
 
   // Onboarding
   welcomeTitle: '¡Bienvenido a Kitchen Vocab!',

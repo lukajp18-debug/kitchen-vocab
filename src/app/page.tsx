@@ -14,6 +14,7 @@ import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
 // ============ GUEST BANNER ============
 function GuestBanner() {
   const router = useRouter()
+  const { t } = useI18n()
   const [isGuest, setIsGuest] = useState(false)
 
   useEffect(() => {
@@ -27,15 +28,13 @@ function GuestBanner() {
       <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl px-4 py-3 shadow-md">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-xl shrink-0">🔒</span>
-          <p className="text-xs font-bold leading-tight">
-            Guest mode — progress won&apos;t be saved!
-          </p>
+          <p className="text-xs font-bold leading-tight">{t.guestBannerText}</p>
         </div>
         <button
           onClick={() => { localStorage.removeItem('guestMode'); router.push('/auth') }}
           className="shrink-0 bg-white text-indigo-700 font-black text-xs px-3 py-1.5 rounded-full hover:bg-indigo-50 transition-all whitespace-nowrap"
         >
-          Register now →
+          {t.guestBannerBtn}
         </button>
       </div>
     </div>
@@ -641,7 +640,13 @@ function Dashboard({
               </div>
             </>
           ) : (
-            <Leaderboard studentName={studentName} userXp={progress.xp} />
+            <Leaderboard
+              studentName={studentName}
+              userXp={progress.xp}
+              topicId={activeTopic.id}
+              topicName={activeTopic.name}
+              topicIcon={activeTopic.icon}
+            />
           )}
 
         </div>
@@ -2353,7 +2358,7 @@ export default function KitchenVocabApp() {
             onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
             placeholder="Type your name..."
             autoFocus
-            className="w-full text-center text-2xl font-bold py-4 px-6 rounded-2xl border-2 border-gray-200 focus:border-duo-green focus:outline-none transition-colors mb-4"
+            className="w-full text-center text-2xl font-bold text-gray-900 placeholder:text-gray-400 py-4 px-6 rounded-2xl border-2 border-gray-200 focus:border-duo-green focus:outline-none transition-colors mb-4"
             disabled={isLoading}
           />
           <button

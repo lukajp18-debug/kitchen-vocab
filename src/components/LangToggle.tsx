@@ -7,8 +7,8 @@ export function LangToggle() {
   const { lang, toggleLang } = useI18n()
   const pathname = usePathname()
 
-  // Hide on landing and auth pages — they have their own lang toggles
-  if (pathname === '/landing' || pathname?.startsWith('/auth')) return null
+  // Hide only on landing — it has its own inline toggle
+  if (pathname === '/landing') return null
 
   return (
     <div

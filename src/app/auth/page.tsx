@@ -1,23 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification } from 'firebase/auth'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { doc, getDoc } from 'firebase/firestore'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useI18n } from '@/components/I18nProvider'
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true)
+  const searchParams = useSearchParams()
+  const [isLogin, setIsLogin] = useState(searchParams.get('mode') !== 'register')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [studentName, setStudentName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [showLangHint, setShowLangHint] = useState(true)
   const router = useRouter()
   const { t } = useI18n()
 
@@ -30,43 +30,50 @@ export default function AuthPage() {
       if (isLogin) {
         const userCredential = await signInWithEmailAndPassword(auth, email, password)
         const user = userCredential.user
-        
-        if (!user.emailVerified) {
-          router.push('/auth/verify')
+
+        const userDoc = await getDoc(doc(db, 'users', user.uid))
+        const data = userDoc.data()
+
+        if (data?.pendingApproval) {
+          router.push('/auth/pending')
           return
         }
-        
-        const userDoc = await getDoc(doc(db, 'users', user.uid))
-        if (!userDoc.exists() || !userDoc.data().onboardingComplete) {
-           router.push('/onboarding')
+
+        if (!userDoc.exists() || !data?.onboardingComplete) {
+          router.push('/onboarding')
         } else {
-           router.push('/')
+          router.push('/')
         }
-        
+
       } else {
         if (!studentName.trim()) {
-          throw new Error("Please enter the student's name")
+          throw new Error(t.studentNameRequired)
         }
         const userCredential = await createUserWithEmailAndPassword(auth, email, password)
         const user = userCredential.user
-        
-        await setDoc(doc(db, 'users', user.uid), {
-          studentName,
-          email,
-          createdAt: new Date().toISOString(),
-          onboardingComplete: false
+
+        const approvalToken = crypto.randomUUID()
+
+        // Write via server-side API to bypass Firestore client rules
+        const regRes = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: user.uid, studentName, email, approvalToken }),
         })
+        if (!regRes.ok) {
+          const err = await regRes.json()
+          throw new Error(err.error || 'Error creating account')
+        }
 
-        await sendEmailVerification(user)
-
-        // Enviar notificación a Telegram en segundo plano (no bloqueante)
+        // Notificar al admin (Telegram + email) con enlace de aprobación
+        const appUrl = window.location.origin
         fetch('/api/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ studentName, parentEmail: email })
-        }).catch(err => console.error('Telegram API error:', err))
-        
-        router.push('/auth/verify')
+          body: JSON.stringify({ studentName, parentEmail: email, approvalToken, appUrl }),
+        }).catch(err => console.error('Notify error:', err))
+
+        router.push(`/auth/pending?token=${approvalToken}`)
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred')
@@ -77,25 +84,10 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col items-center justify-center p-4 relative">
-      {/* Eye-catching language toggle hint callout */}
-      {showLangHint && (
-        <div className="fixed top-20 right-4 z-40 max-w-[260px] p-4 bg-gradient-to-br from-amber-400 to-yellow-300 border-2 border-amber-500 rounded-2xl shadow-xl animate-bounce-subtle text-amber-950">
-          <div className="absolute -top-3.5 right-12 text-amber-500 font-bold text-sm">▲</div>
-          <button 
-            onClick={() => setShowLangHint(false)}
-            className="absolute top-1.5 right-1.5 font-bold text-amber-900 hover:text-amber-950 text-[10px] w-4.5 h-4.5 flex items-center justify-center rounded-full bg-white/50"
-          >
-            ✕
-          </button>
-          <p className="font-extrabold text-xs pr-3">✨ {t.langHintTitle}</p>
-          <p className="text-[10px] font-semibold mt-1 opacity-95 leading-tight">{t.langHintDesc}</p>
-        </div>
-      )}
-
-      <div className="text-center mb-8">
+<div className="text-center mb-8">
         <div className="text-6xl mb-4 animate-bounce-custom">🦉</div>
         <h1 className="text-3xl font-bold text-gray-800">Kitchen Vocab</h1>
-        <p className="text-gray-500 mt-2">Learn kitchen words and earn rewards!</p>
+        <p className="text-gray-500 mt-2">{t.appTagline}</p>
       </div>
 
       <Card className="w-full max-w-md border-0 shadow-lg">
@@ -112,7 +104,7 @@ export default function AuthPage() {
                   type="text"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  className="w-full p-3 bg-gray-100 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
+                  className="w-full p-3 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
                   placeholder="e.g. Luka"
                   required={!isLogin}
                 />
@@ -125,7 +117,7 @@ export default function AuthPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 bg-gray-100 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
+                className="w-full p-3 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
                 placeholder="parent@example.com"
                 required
               />
@@ -138,7 +130,7 @@ export default function AuthPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3 pr-12 bg-gray-100 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
+                  className="w-full p-3 pr-12 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
                   placeholder="••••••••"
                   required
                   minLength={6}

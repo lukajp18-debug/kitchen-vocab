@@ -14,6 +14,10 @@ export const en = {
   loginCall: 'Login to existing account',
   or: 'OR',
   guestModeBtn: '👀 Test without Registering (Guest Mode)',
+  appTagline: 'Learn vocabulary and earn rewards!',
+  studentNameRequired: "Please enter the student's name",
+  guestBannerText: "Guest mode — progress won't be saved!",
+  guestBannerBtn: 'Register now →',
 
   // Onboarding
   welcomeTitle: 'Welcome to Kitchen Vocab!',

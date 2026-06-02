@@ -27,11 +27,19 @@ export async function uploadRewardImage(uid: string, file: File, index: number):
 }
 
 /**
- * Saves the user's reward configuration and marks onboarding as complete.
+ * Marks onboarding as complete (no reward type needed — chosen per topic).
+ */
+export async function markOnboardingComplete(uid: string) {
+  const userRef = doc(db, 'users', uid)
+  await updateDoc(userRef, { onboardingComplete: true })
+}
+
+/**
+ * Saves the user's reward configuration for a specific topic.
  */
 export async function saveUserRewardsConfig(uid: string, rewardsType: 'virtual' | 'real', rewards?: RewardConfig[]) {
   const userRef = doc(db, 'users', uid)
-  
+
   await updateDoc(userRef, {
     rewardsType,
     customRewards: rewards || [],

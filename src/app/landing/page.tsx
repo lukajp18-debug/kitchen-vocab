@@ -122,7 +122,7 @@ export default function LandingPage() {
             id="landing-register-btn"
             onMouseEnter={() => setHovered('register')}
             onMouseLeave={() => setHovered(null)}
-            onClick={() => { localStorage.removeItem('guestMode'); router.push('/auth') }}
+            onClick={() => { localStorage.removeItem('guestMode'); router.push('/auth?mode=register') }}
             className={`w-full py-5 rounded-2xl font-black text-lg transition-all duration-200 shadow-2xl
               ${hovered === 'register'
                 ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-gray-900 scale-105 shadow-yellow-400/30'
