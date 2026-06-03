@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
-import { auth, db } from '@/lib/firebase'
-import { doc, getDoc } from 'firebase/firestore'
+import { auth } from '@/lib/firebase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useI18n } from '@/components/I18nProvider'
@@ -36,15 +35,21 @@ export default function AuthPage() {
         const userCredential = await signInWithEmailAndPassword(auth, email, password)
         const user = userCredential.user
 
-        const userDoc = await getDoc(doc(db, 'users', user.uid))
-        const data = userDoc.data()
+        // Read user status via server API (bypasses Firestore client rules)
+        const res = await fetch(`/api/user-status?uid=${user.uid}`)
+        const status = await res.json()
 
-        if (data?.pendingApproval) {
+        if (!status.exists) {
+          router.push('/onboarding')
+          return
+        }
+
+        if (status.pendingApproval) {
           router.push('/auth/pending')
           return
         }
 
-        if (!userDoc.exists() || !data?.onboardingComplete) {
+        if (!status.onboardingComplete) {
           router.push('/onboarding')
         } else {
           router.push('/')
@@ -91,7 +96,7 @@ export default function AuthPage() {
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col items-center justify-center p-4 relative">
 <div className="text-center mb-8">
         <div className="text-6xl mb-4 animate-bounce-custom">🦉</div>
-        <h1 className="text-3xl font-bold text-gray-800">Kitchen Vocab</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Study App</h1>
         <p className="text-gray-500 mt-2">{t.appTagline}</p>
       </div>
 

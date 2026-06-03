@@ -60,9 +60,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         return
       }
 
-      // Approved user
-      if (isPublic) {
-        // Send approved users away from auth/landing pages to the app
+      // Approved user — only redirect away from landing, not from /auth
+      // (auth page handles its own redirects after login)
+      if (pathname === '/landing') {
         router.replace('/')
         return
       }

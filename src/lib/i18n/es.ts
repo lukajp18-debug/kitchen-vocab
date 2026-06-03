@@ -20,7 +20,7 @@ export const es = {
   guestBannerBtn: 'Regístrate ahora →',
 
   // Onboarding
-  welcomeTitle: '¡Bienvenido a Kitchen Vocab!',
+  welcomeTitle: '¡Bienvenido a Study App!',
   welcomeDesc: 'Antes de empezar a aprender, configuremos el Sistema de Premios. Cuando los estudiantes completan lecciones, ¡ganan premios para mantenerse motivados!',
   welcomeStartBtn: '¡Vamos a configurarlo! →',
   chooseRewardStyle: 'Elige el estilo de premios',
@@ -53,7 +53,7 @@ export const es = {
 
   // Help Modal / Instructions
   helpBtn: 'Ayuda e Instrucciones 💡',
-  instructionsTitle: 'Cómo usar Kitchen Vocab 🍳',
+  instructionsTitle: 'Cómo usar Study App 🍳',
   instructionsDesc: '¡Bienvenido a la cocina de aprendizaje definitiva! Así es como funciona:',
   step1Title: '1. Aprende y Habla 🗣️',
   step1Desc: 'Te mostraremos utensilios de cocina (cucharas, platos, batidoras). Toca el altavoz para escuchar la pronunciación correcta, ¡luego toca el micrófono para repetirla en inglés!',
@@ -71,7 +71,7 @@ export const es = {
   langHintDesc: '¡Haz clic en este botón para cambiar entre inglés y español en cualquier momento!',
 
   // PWA Install Prompt
-  pwaTitle: '¡Instala Kitchen Vocab! 📲',
+  pwaTitle: '¡Instala Study App! 📲',
   pwaDesc: 'Te recomendamos instalar esta aplicación en tu celular para una mejor comodidad, velocidad y aprendizaje a pantalla completa.',
   pwaQuestion: '¿Qué tipo de celular tienes?',
   androidBtn: '🤖 Android (Chrome)',

@@ -20,7 +20,7 @@ export const en = {
   guestBannerBtn: 'Register now →',
 
   // Onboarding
-  welcomeTitle: 'Welcome to Kitchen Vocab!',
+  welcomeTitle: 'Welcome to Study App!',
   welcomeDesc: "Before we start learning, let's set up the Rewards System. When students complete lessons, they earn rewards to keep them motivated!",
   welcomeStartBtn: "Let's set it up! →",
   chooseRewardStyle: 'Choose your reward style',
@@ -53,7 +53,7 @@ export const en = {
 
   // Help Modal / Instructions
   helpBtn: 'Help & Instructions 💡',
-  instructionsTitle: 'How to use Kitchen Vocab 🍳',
+  instructionsTitle: 'How to use Study App 🍳',
   instructionsDesc: 'Welcome to the ultimate learning kitchen! Here is how it works:',
   step1Title: '1. Learn & Speak 🗣️',
   step1Desc: 'We will show you kitchen items (like spoons, plates, mixers). Tap the speaker to hear the correct pronunciation, then tap the microphone to repeat it in English!',
@@ -71,7 +71,7 @@ export const en = {
   langHintDesc: 'Click this button to switch between English and Spanish anytime!',
 
   // PWA Install Prompt
-  pwaTitle: 'Install Kitchen Vocab! 📲',
+  pwaTitle: 'Install Study App! 📲',
   pwaDesc: 'We highly recommend installing this app on your phone for greater comfort, offline speed, and full screen learning experience.',
   pwaQuestion: 'Which phone do you have?',
   androidBtn: '🤖 Android (Chrome)',
