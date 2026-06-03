@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Leaderboard } from '@/components/Leaderboard'
 import { useI18n } from '@/components/I18nProvider'
+import { useAuth } from '@/components/AuthProvider'
 
 import { WordDef, RewardDef, LessonDef, TopicDef } from '@/types/vocab'
 import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
@@ -489,7 +490,9 @@ function Dashboard({
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
               }`}
             >
-              {lang === 'es' ? '🏆 LIGA DE COCINA' : '🏆 KITCHEN LEAGUE'}
+              {lang === 'es'
+                ? `🏆 LIGA DE ${activeTopic.id === 'kitchen' ? 'COCINA' : 'VACACIONES'}`
+                : `🏆 ${activeTopic.id === 'kitchen' ? 'KITCHEN' : 'VACATION'} LEAGUE`}
             </button>
           </div>
 
@@ -2090,6 +2093,7 @@ function TopicSelectionView({
 
 // ============ MAIN APP ============
 export default function KitchenVocabApp() {
+  const { user, loading: authLoading } = useAuth()
   const [studentName, setStudentName] = useState<string>('')
   const [nameInput, setNameInput] = useState('')
   const [activeTopicId, setActiveTopicId] = useState<string>('kitchen')
@@ -2109,63 +2113,93 @@ export default function KitchenVocabApp() {
     return TOPICS.find((t) => t.id === activeTopicId) || TOPICS[0]
   }, [activeTopicId])
 
-  // Check if student name is saved in localStorage on mount
-  useEffect(() => {
-    const savedName = typeof window !== 'undefined' ? localStorage.getItem('kitchen-vocab-student') : ''
-    if (savedName) {
-      setStudentName(savedName)
-      setNameInput(savedName)
-      // Load progress: localStorage is primary (reliable), API is secondary
-      const localProgress = loadProgressLocal()
-      loadProgressFromDB(savedName).then((dbProgress) => {
-        // Pick the one with MORE progress (more XP = more saved data)
-        // Also check completedLessons length as a secondary indicator
-        const dbIsBetter = dbProgress.xp > localProgress.xp ||
-          (dbProgress.xp === localProgress.xp && dbProgress.completedLessons.length > localProgress.completedLessons.length)
-        const bestProgress = normalizeProgress(dbIsBetter ? dbProgress : localProgress)
+  // Helper to initialize progress once studentName is determined
+  const initializeProgress = useCallback((name: string) => {
+    const localProgress = loadProgressLocal()
+    loadProgressFromDB(name).then((dbProgress) => {
+      const dbIsBetter = dbProgress.xp > localProgress.xp ||
+        (dbProgress.xp === localProgress.xp && dbProgress.completedLessons.length > localProgress.completedLessons.length)
+      const bestProgress = normalizeProgress(dbIsBetter ? dbProgress : localProgress)
 
-        const today = getTodayString()
-        const yesterday = getYesterdayString()
-        if (bestProgress.lastPlayedDate === today) {
-          // Same day, keep streak
-        } else if (bestProgress.lastPlayedDate === yesterday) {
-          bestProgress.streak += 1
-        } else if (bestProgress.lastPlayedDate) {
-          bestProgress.streak = 1
-        } else {
-          bestProgress.streak = 1
-        }
-        bestProgress.lastPlayedDate = today
-        if (bestProgress.xp > 0) setWelcomeBack(true)
-        setProgress(bestProgress)
-        // Force save the best version to both storages (bypass defensive check for initial sync)
-        forceSaveProgressLocal(bestProgress)
-        saveProgressToDB(savedName, bestProgress)
-        setIsHydrated(true)
-      }).catch(() => {
-        // API failed (e.g., DB not configured yet), use localStorage only
-        const today = getTodayString()
-        const yesterday = getYesterdayString()
-        const bestProgress = normalizeProgress(localProgress)
-        if (bestProgress.lastPlayedDate === today) {
-          // Same day, keep streak
-        } else if (bestProgress.lastPlayedDate === yesterday) {
-          bestProgress.streak += 1
-        } else if (bestProgress.lastPlayedDate) {
-          bestProgress.streak = 1
-        } else {
-          bestProgress.streak = 1
-        }
-        bestProgress.lastPlayedDate = today
-        if (bestProgress.xp > 0) setWelcomeBack(true)
-        setProgress(bestProgress)
-        forceSaveProgressLocal(bestProgress)
-        setIsHydrated(true)
-      })
-    } else {
-      setIsHydrated(true) // Show name entry screen
-    }
+      const today = getTodayString()
+      const yesterday = getYesterdayString()
+      if (bestProgress.lastPlayedDate === today) {
+        // Same day, keep streak
+      } else if (bestProgress.lastPlayedDate === yesterday) {
+        bestProgress.streak += 1
+      } else if (bestProgress.lastPlayedDate) {
+        bestProgress.streak = 1
+      } else {
+        bestProgress.streak = 1
+      }
+      bestProgress.lastPlayedDate = today
+      if (bestProgress.xp > 0) setWelcomeBack(true)
+      setProgress(bestProgress)
+      forceSaveProgressLocal(bestProgress)
+      saveProgressToDB(name, bestProgress)
+      setIsHydrated(true)
+    }).catch(() => {
+      const today = getTodayString()
+      const yesterday = getYesterdayString()
+      const bestProgress = normalizeProgress(localProgress)
+      if (bestProgress.lastPlayedDate === today) {
+        // Same day, keep streak
+      } else if (bestProgress.lastPlayedDate === yesterday) {
+        bestProgress.streak += 1
+      } else if (bestProgress.lastPlayedDate) {
+        bestProgress.streak = 1
+      } else {
+        bestProgress.streak = 1
+      }
+      bestProgress.lastPlayedDate = today
+      if (bestProgress.xp > 0) setWelcomeBack(true)
+      setProgress(bestProgress)
+      forceSaveProgressLocal(bestProgress)
+      setIsHydrated(true)
+    })
   }, [])
+
+  // Check if student name is saved in localStorage or loaded from DB on mount
+  useEffect(() => {
+    if (authLoading) return
+
+    const isGuest = typeof window !== 'undefined' && localStorage.getItem('guestMode') === 'true'
+
+    if (isGuest) {
+      const savedName = typeof window !== 'undefined' ? localStorage.getItem('kitchen-vocab-student') : ''
+      if (savedName) {
+        setStudentName(savedName)
+        setNameInput(savedName)
+        initializeProgress(savedName)
+      } else {
+        setIsHydrated(true)
+      }
+    } else if (user) {
+      setIsLoading(true)
+      fetch(`/api/user-status?uid=${user.uid}`)
+        .then((res) => res.json())
+        .then((status) => {
+          if (status.exists && status.studentName) {
+            const fetchedName = status.studentName
+            localStorage.setItem('kitchen-vocab-student', fetchedName)
+            setStudentName(fetchedName)
+            setNameInput(fetchedName)
+            initializeProgress(fetchedName)
+          } else {
+            setIsHydrated(true)
+          }
+        })
+        .catch((err) => {
+          console.error("Error loading user status:", err)
+          setIsHydrated(true)
+        })
+        .finally(() => {
+          setIsLoading(false)
+        })
+    } else {
+      setIsHydrated(true)
+    }
+  }, [user, authLoading, initializeProgress])
 
   // Save progress when page is hidden or about to close (critical for mobile!)
   useEffect(() => {
@@ -2204,13 +2238,26 @@ export default function KitchenVocabApp() {
     setIsLoading(true)
     localStorage.setItem('kitchen-vocab-student', trimmed)
     setStudentName(trimmed)
+
+    if (user && typeof window !== 'undefined' && localStorage.getItem('guestMode') !== 'true') {
+      try {
+        await fetch('/api/user-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: user.uid, studentName: trimmed }),
+        })
+      } catch (err) {
+        console.error("Error saving studentName to firestore:", err)
+      }
+    }
+
     // Load progress: localStorage is primary, API is secondary
     const localProgress = loadProgressLocal()
     let bestProgress: ProgressData
     try {
       const dbProgress = await loadProgressFromDB(trimmed)
       bestProgress = normalizeProgress(dbProgress.xp > localProgress.xp ? dbProgress : localProgress)
-    } catch {
+    } catch (err) {
       bestProgress = normalizeProgress(localProgress)
     }
     const today = getTodayString()

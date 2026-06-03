@@ -21,3 +21,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const { uid, onboardingComplete, studentName } = await req.json()
+    if (!uid) {
+      return NextResponse.json({ error: 'Missing uid' }, { status: 400 })
+    }
+
+    const updates: any = {}
+    if (onboardingComplete !== undefined) updates.onboardingComplete = onboardingComplete
+    if (studentName !== undefined) updates.studentName = studentName
+
+    // Fallback if neither was provided, to preserve compatibility
+    if (onboardingComplete === undefined && studentName === undefined) {
+      updates.onboardingComplete = true
+    }
+
+    await adminDb.collection('users').doc(uid).update(updates)
+
+    return NextResponse.json({ success: true })
+  } catch (err: any) {
+    console.error('Update user status error:', err)
+    return NextResponse.json({ error: err.message }, { status: 500 })
+  }
+}

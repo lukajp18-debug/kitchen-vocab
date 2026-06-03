@@ -18,26 +18,41 @@ interface Competitor {
   avatar: string
 }
 
-// Pre-defined list of fun kitchen competitor names in Spanish and English
-const COMPETITORS_POOL = [
-  { es: '🧁 Súper Pastelero', en: '🧁 Super Baker', avatar: '🧁' },
-  { es: '🍳 Mini Chef Veloz', en: '🍳 Speedy Mini Chef', avatar: '🍳' },
-  { es: '🍪 Galletita Alegre', en: '🍪 Happy Cookie', avatar: '🍪' },
-  { es: '🥗 Maestro de la Ensalada', en: '🥗 Salad Master', avatar: '🥗' },
-  { es: '🍞 Amasador Experto', en: '🍞 Bread Maker', avatar: '🍞' },
-  { es: '🍩 Donita Glaseada', en: '🍩 Glazed Donut', avatar: '🍩' },
-  { es: '🍕 Maestro Pizzero', en: '🍕 Pizza Master', avatar: '🍕' },
-  { es: '🥑 Aguacatito Súper', en: '🥑 Super Avocado', avatar: '🥑' },
-  { es: '🧇 Rey del Waffle', en: '🧇 Waffle King', avatar: '🧇' },
-]
+const COMPETITORS_POOLS: Record<string, Array<{ es: string; en: string; avatar: string }>> = {
+  kitchen: [
+    { es: '🧁 Súper Pastelero', en: '🧁 Super Baker', avatar: '🧁' },
+    { es: '🍳 Mini Chef Veloz', en: '🍳 Speedy Mini Chef', avatar: '🍳' },
+    { es: '🍪 Galletita Alegre', en: '🍪 Happy Cookie', avatar: '🍪' },
+    { es: '🥗 Maestro de la Ensalada', en: '🥗 Salad Master', avatar: '🥗' },
+    { es: '🍞 Amasador Experto', en: '🍞 Bread Maker', avatar: '🍞' },
+    { es: '🍩 Donita Glaseada', en: '🍩 Glazed Donut', avatar: '🍩' },
+    { es: '🍕 Maestro Pizzero', en: '🍕 Pizza Master', avatar: '🍕' },
+    { es: '🥑 Aguacatito Súper', en: '🥑 Super Avocado', avatar: '🥑' },
+    { es: '🧇 Rey del Waffle', en: '🧇 Waffle King', avatar: '🧇' },
+  ],
+  vacation: [
+    { es: '🏄‍♂️ Surfista Veloz', en: '🏄‍♂️ Speedy Surfer', avatar: '🏄‍♂️' },
+    { es: '🏖️ Cangrejito Playero', en: '🏖️ Beach Crab', avatar: '🏖️' },
+    { es: '🕶️ Lentes de Sol Cool', en: '🕶️ Cool Sunglasses', avatar: '🕶️' },
+    { es: '🍦 Heladito Feliz', en: '🍦 Happy Ice Cream', avatar: '🍦' },
+    { es: '🏊‍♂️ Nadador Veloz', en: '🏊‍♂️ Fast Swimmer', avatar: '🏊‍♂️' },
+    { es: '🌴 Palmera Alegre', en: '🌴 Cheerful Palm', avatar: '🌴' },
+    { es: '🐬 Delfín Saltador', en: '🐬 Jumping Dolphin', avatar: '🐬' },
+    { es: '🏰 Castillo de Arena', en: '🏰 Sand Castle', avatar: '🏰' },
+    { es: '🦩 Flamenco Rosa', en: '🦩 Pink Flamingo', avatar: '🦩' },
+  ]
+}
 
 export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon }: LeaderboardProps) {
   const { lang, t } = useI18n()
   const [competitors, setCompetitors] = useState<Competitor[]>([])
 
   useEffect(() => {
+    const currentTopicId = topicId || 'kitchen'
+    const pool = COMPETITORS_POOLS[currentTopicId] || COMPETITORS_POOLS.kitchen
+
     // Unique key per student + topic for persistent leaderboard bots
-    const cacheKey = `leaderboard-${studentName}-${topicId || 'kitchen'}`
+    const cacheKey = `leaderboard-${studentName}-${currentTopicId}`
     const cached = localStorage.getItem(cacheKey)
 
     let list: Competitor[] = []
@@ -47,7 +62,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
     } else {
       // Initialize scores relative to the user's starting score (or 0)
       const baseUserXp = userXp || 0
-      const initialBots = COMPETITORS_POOL.map((item, idx) => {
+      const initialBots = pool.map((item, idx) => {
         // Distribute scores naturally around the user's score to make it competitive
         const multiplier = 9 - idx // 9, 8, 7...
         const botXp = baseUserXp + multiplier * 15 + Math.floor(Math.random() * 8)
@@ -58,7 +73,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
           avatar: item.avatar
         }
       })
-      
+
       // Store raw structure in cache
       localStorage.setItem(cacheKey, JSON.stringify(initialBots))
       list = initialBots as any
@@ -67,7 +82,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
     // Adapt to Competitor list with translated names
     const processedList: Competitor[] = (list as any).map((bot: any) => {
       if (bot.isUser) return bot
-      const poolItem = COMPETITORS_POOL[bot.nameKey] || COMPETITORS_POOL[0]
+      const poolItem = pool[bot.nameKey] || pool[0]
       return {
         name: lang === 'es' ? poolItem.es : poolItem.en,
         xp: bot.xp,
@@ -90,7 +105,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
     setCompetitors(processedList)
 
     // Trigger dynamic simulation: update bots slightly if user xp changes
-    const cacheKeyRaw = `leaderboard-${studentName}-${topicId || 'kitchen'}`
+    const cacheKeyRaw = `leaderboard-${studentName}-${currentTopicId}`
     const rawCached = localStorage.getItem(cacheKeyRaw)
     if (rawCached) {
       const rawList = JSON.parse(rawCached)
@@ -108,7 +123,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
       }
     }
 
-  }, [studentName, userXp, lang])
+  }, [studentName, userXp, lang, topicId])
 
   // Get user rank index
   const userRankIndex = competitors.findIndex(c => c.isUser)

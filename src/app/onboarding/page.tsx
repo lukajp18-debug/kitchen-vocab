@@ -26,11 +26,17 @@ export default function OnboardingPage() {
 
   const handleStart = async () => {
     setSaving(true)
-    if (isGuest) {
-      localStorage.setItem('guestOnboardingComplete', 'true')
-      router.replace('/')
-    } else if (user) {
-      await markOnboardingComplete(user.uid)
+    try {
+      if (isGuest) {
+        localStorage.setItem('guestOnboardingComplete', 'true')
+        router.replace('/')
+      } else if (user) {
+        await markOnboardingComplete(user.uid)
+        router.replace('/')
+      }
+    } catch (error) {
+      console.error('Error completing onboarding:', error)
+      // Fallback: Proceed to home page so user is not stuck on the loading page
       router.replace('/')
     }
   }

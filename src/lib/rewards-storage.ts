@@ -26,12 +26,16 @@ export async function uploadRewardImage(uid: string, file: File, index: number):
   return downloadUrl
 }
 
-/**
- * Marks onboarding as complete (no reward type needed — chosen per topic).
- */
 export async function markOnboardingComplete(uid: string) {
-  const userRef = doc(db, 'users', uid)
-  await updateDoc(userRef, { onboardingComplete: true })
+  const res = await fetch('/api/user-status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uid, onboardingComplete: true }),
+  })
+  if (!res.ok) {
+    const err = await res.json()
+    throw new Error(err.error || 'Failed to mark onboarding complete')
+  }
 }
 
 /**
