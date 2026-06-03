@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
@@ -10,8 +10,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useI18n } from '@/components/I18nProvider'
 
 export default function AuthPage() {
-  const searchParams = useSearchParams()
-  const [isLogin, setIsLogin] = useState(searchParams.get('mode') !== 'register')
+  const [isLogin, setIsLogin] = useState(true)
+
+  // Read ?mode=register from URL client-side (avoids Next.js static rendering issues)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('mode') === 'register') setIsLogin(false)
+  }, [])
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)

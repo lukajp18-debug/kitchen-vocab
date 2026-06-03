@@ -46,9 +46,9 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         }
       } else {
         setUserStatus('approved')
-        // Redirect away from auth routes once approved
-        if (pathname.startsWith('/auth') && pathname !== '/auth/pending') {
-          // Let the auth page handle its own redirects
+        // Approved user visiting auth pages → send to app
+        if (pathname.startsWith('/auth')) {
+          router.replace('/')
         }
       }
     }).catch(() => {
