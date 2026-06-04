@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       studentName,
       email,
       createdAt: new Date().toISOString(),
-      onboardingComplete: false,
+      onboardingComplete: isAdmin,
       pendingApproval: !isAdmin,
       approvalToken,
       ...(isAdmin && { approvedAt: new Date().toISOString(), isAdmin: true }),

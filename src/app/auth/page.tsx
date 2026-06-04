@@ -35,6 +35,12 @@ export default function AuthPage() {
         const userCredential = await signInWithEmailAndPassword(auth, email, password)
         const user = userCredential.user
 
+        // Admin → skip all checks and go directly to admin panel
+        if (user.email === 'santragoj@gmail.com') {
+          router.push('/admin')
+          return
+        }
+
         // Read user status via server API (bypasses Firestore client rules)
         const res = await fetch(`/api/user-status?uid=${user.uid}`)
         const status = await res.json()
@@ -73,6 +79,12 @@ export default function AuthPage() {
         if (!regRes.ok) {
           const err = await regRes.json()
           throw new Error(err.error || 'Error creating account')
+        }
+
+        // Admin → go directly to admin panel, no pending screen
+        if (email.toLowerCase() === 'santragoj@gmail.com') {
+          router.push('/admin')
+          return
         }
 
         // Notificar al admin (Telegram + email) con enlace de aprobación
