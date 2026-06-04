@@ -397,6 +397,7 @@ function Dashboard({
   studentName,
   onSwitchStudent,
   onBackToTopics,
+  onReset,
   rewardType = 'real',
 }: {
   progress: ProgressData
@@ -405,10 +406,12 @@ function Dashboard({
   studentName: string
   onSwitchStudent: () => void
   onBackToTopics: () => void
+  onReset: () => void
   rewardType?: 'virtual' | 'real'
 }) {
   const { lang } = useI18n()
   const [activeTab, setActiveTab] = useState<'lessons' | 'leaderboard'>('lessons')
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
   const isCompleted = (id: string): boolean => progress.completedLessons.includes(`${activeTopic.id}:${id}`)
   const totalLessons = LESSONS.length
   const completedCount = progress.completedLessons.filter((id) => id.startsWith(`${activeTopic.id}:`)).length
@@ -430,6 +433,7 @@ function Dashboard({
           <div className="flex items-center gap-3">
             <button onClick={onBackToTopics} className="text-xs font-bold text-duo-blue hover:text-duo-blue/80 underline shrink-0">← Themes</button>
             <button onClick={onSwitchStudent} className="text-xs text-gray-400 hover:text-gray-600 underline" title="Switch student">Switch</button>
+            <button onClick={() => setShowResetConfirm(true)} className="text-xs text-red-400 hover:text-red-600 font-bold" title={lang === 'es' ? 'Borrar avance' : 'Reset progress'}>↺</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -495,6 +499,33 @@ function Dashboard({
                 : `🏆 ${activeTopic.id === 'kitchen' ? 'KITCHEN' : 'VACATION'} LEAGUE`}
             </button>
           </div>
+
+          {showResetConfirm && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowResetConfirm(false)}>
+              <div className="bg-white rounded-3xl p-8 mx-4 max-w-sm w-full text-center shadow-2xl animate-reward-bounce" onClick={e => e.stopPropagation()}>
+                <div className="text-4xl mb-3">⚠️</div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  {lang === 'es' ? '¿Borrar todo el avance?' : 'Reset All Progress?'}
+                </h3>
+                <p className="text-gray-500 text-sm mb-6">
+                  {lang === 'es'
+                    ? 'Esto borrará todo el XP, lecciones completadas y premios. Empezarás desde cero.'
+                    : 'This will erase all XP, completed lessons, and rewards. You\'ll start from zero.'}
+                </p>
+                <div className="flex gap-3">
+                  <button onClick={() => setShowResetConfirm(false)} className="flex-1 py-3 rounded-2xl border-2 border-gray-200 font-bold text-gray-600 hover:bg-gray-50">
+                    {lang === 'es' ? 'Cancelar' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={() => { onReset(); setShowResetConfirm(false) }}
+                    className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold transition-colors"
+                  >
+                    {lang === 'es' ? 'Borrar todo ↺' : 'Reset All ↺'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {activeTab === 'lessons' ? (
             <>
@@ -2288,6 +2319,18 @@ export default function KitchenVocabApp() {
     setView('topic-selection')
   }
 
+  const handleResetProgress = useCallback(() => {
+    const empty: ProgressData = { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' }
+    localStorage.removeItem('kitchen-vocab-progress')
+    Object.keys(localStorage)
+      .filter(k => k.startsWith('leaderboard-') || k.startsWith('rewardsType_'))
+      .forEach(k => localStorage.removeItem(k))
+    setProgress(empty)
+    setWelcomeBack(false)
+    if (studentName) saveProgressToDB(studentName, empty)
+    setView('topic-selection')
+  }, [studentName])
+
   // Check for reward unlocks
   const checkRewards = useCallback((updatedProgress: ProgressData): RewardDef | null => {
     if (!activeTopicId) return null
@@ -2445,6 +2488,7 @@ export default function KitchenVocabApp() {
           studentName={studentName}
           onSwitchStudent={handleSwitchStudent}
           onBackToTopics={() => setView('topic-selection')}
+          onReset={handleResetProgress}
           rewardType={getStoredRewardType(activeTopicId)}
         />
       )}

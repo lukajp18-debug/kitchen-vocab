@@ -9,6 +9,7 @@ import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 
 const PUBLIC_PATHS = ['/landing', '/auth', '/auth/pending', '/auth/verify']
+const ADMIN_EMAIL  = 'santragoj@gmail.com'
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -60,8 +61,13 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
         return
       }
 
+      // Admin → always send to /admin
+      if (user.email === ADMIN_EMAIL && !pathname.startsWith('/admin')) {
+        router.replace('/admin')
+        return
+      }
+
       // Approved user — only redirect away from landing, not from /auth
-      // (auth page handles its own redirects after login)
       if (pathname === '/landing') {
         router.replace('/')
         return
