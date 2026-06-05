@@ -188,10 +188,11 @@ function getRandomItems<T>(array: T[], count: number, exclude?: T[]): T[] {
   return shuffleArray(filtered).slice(0, count)
 }
 
-// API-based progress functions (SQLite via Prisma)
-async function loadProgressFromDB(studentName: string): Promise<ProgressData & { isNew?: boolean }> {
+// Firestore-backed progress functions (keyed by Firebase UID)
+async function loadProgressFromDB(uid: string): Promise<ProgressData & { isNew?: boolean }> {
+  if (!uid) return { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '', isNew: true }
   try {
-    const res = await fetch(`/api/progress?name=${encodeURIComponent(studentName)}`)
+    const res = await fetch(`/api/progress?uid=${encodeURIComponent(uid)}`)
     if (!res.ok) throw new Error('Failed to load')
     return await res.json()
   } catch {
@@ -199,12 +200,13 @@ async function loadProgressFromDB(studentName: string): Promise<ProgressData & {
   }
 }
 
-async function saveProgressToDB(studentName: string, progress: ProgressData) {
+async function saveProgressToDB(uid: string, progress: ProgressData) {
+  if (!uid) return
   try {
     await fetch('/api/progress', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: studentName, ...progress }),
+      body: JSON.stringify({ uid, ...progress }),
     })
   } catch { /* ignore */ }
 }
@@ -2149,8 +2151,9 @@ export default function KitchenVocabApp() {
 
   // Helper to initialize progress once studentName is determined
   const initializeProgress = useCallback((name: string) => {
+    const uid = user?.uid || ''
     const localProgress = loadProgressLocal()
-    loadProgressFromDB(name).then((dbProgress) => {
+    loadProgressFromDB(uid).then((dbProgress) => {
       const dbIsBetter = dbProgress.xp > localProgress.xp ||
         (dbProgress.xp === localProgress.xp && dbProgress.completedLessons.length > localProgress.completedLessons.length)
       const bestProgress = normalizeProgress(dbIsBetter ? dbProgress : localProgress)
@@ -2170,7 +2173,7 @@ export default function KitchenVocabApp() {
       if (bestProgress.xp > 0) setWelcomeBack(true)
       setProgress(bestProgress)
       forceSaveProgressLocal(bestProgress)
-      saveProgressToDB(name, bestProgress)
+      saveProgressToDB(uid, bestProgress)
       setIsHydrated(true)
     }).catch(() => {
       const today = getTodayString()
@@ -2191,7 +2194,7 @@ export default function KitchenVocabApp() {
       forceSaveProgressLocal(bestProgress)
       setIsHydrated(true)
     })
-  }, [])
+  }, [user])
 
   // Check if student name is saved in localStorage or loaded from DB on mount
   useEffect(() => {
@@ -2237,17 +2240,18 @@ export default function KitchenVocabApp() {
 
   // Save progress when page is hidden or about to close (critical for mobile!)
   useEffect(() => {
+    const uid = user?.uid || ''
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden' && isHydrated && studentName) {
         // Use the latest progress from localStorage (state might be stale in this handler)
         const currentLocal = loadProgressLocal()
-        saveProgressToDB(studentName, currentLocal)
+        saveProgressToDB(uid, currentLocal)
       }
     }
     const handleBeforeUnload = () => {
       if (isHydrated && studentName) {
         const currentLocal = loadProgressLocal()
-        saveProgressToDB(studentName, currentLocal)
+        saveProgressToDB(uid, currentLocal)
       }
     }
     document.addEventListener('visibilitychange', handleVisibilityChange)
@@ -2261,10 +2265,10 @@ export default function KitchenVocabApp() {
   // Save progress to DB + localStorage whenever it changes
   useEffect(() => {
     if (isHydrated && studentName) {
-      saveProgressToDB(studentName, progress)
+      saveProgressToDB(user?.uid || '', progress)
       saveProgressLocal(progress)
     }
-  }, [progress, isHydrated, studentName])
+  }, [progress, isHydrated, studentName, user])
 
   const handleNameSubmit = async () => {
     const trimmed = nameInput.trim()
@@ -2285,11 +2289,12 @@ export default function KitchenVocabApp() {
       }
     }
 
-    // Load progress: localStorage is primary, API is secondary
+    // Load progress: Firestore (by UID) is primary, localStorage is fallback
+    const uid = user?.uid || ''
     const localProgress = loadProgressLocal()
     let bestProgress: ProgressData
     try {
-      const dbProgress = await loadProgressFromDB(trimmed)
+      const dbProgress = await loadProgressFromDB(uid)
       bestProgress = normalizeProgress(dbProgress.xp > localProgress.xp ? dbProgress : localProgress)
     } catch (err) {
       bestProgress = normalizeProgress(localProgress)
@@ -2309,7 +2314,7 @@ export default function KitchenVocabApp() {
     if (bestProgress.xp > 0) setWelcomeBack(true)
     setProgress(bestProgress)
     forceSaveProgressLocal(bestProgress)
-    saveProgressToDB(trimmed, bestProgress)
+    saveProgressToDB(uid, bestProgress)
     setIsLoading(false)
   }
 
@@ -2321,13 +2326,13 @@ export default function KitchenVocabApp() {
         unlockedRewards:  prev.unlockedRewards.filter(id  => !id.startsWith(`${activeTopicId}:`)),
       }
       forceSaveProgressLocal(updated)
-      if (studentName) saveProgressToDB(studentName, updated)
+      if (user?.uid) saveProgressToDB(user.uid, updated)
       return updated
     })
     localStorage.removeItem(`leaderboard-${studentName}-${activeTopicId}`)
     localStorage.removeItem(`rewardsType_${activeTopicId}`)
     setView('topic-selection')
-  }, [studentName, activeTopicId])
+  }, [user, studentName, activeTopicId])
 
   const handleLogout = useCallback(async () => {
     setStudentName('')
