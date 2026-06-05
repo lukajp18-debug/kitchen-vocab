@@ -8,6 +8,8 @@ import { Progress } from '@/components/ui/progress'
 import { Leaderboard } from '@/components/Leaderboard'
 import { useI18n } from '@/components/I18nProvider'
 import { useAuth } from '@/components/AuthProvider'
+import { signOut } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
 
 import { WordDef, RewardDef, LessonDef, TopicDef } from '@/types/vocab'
 import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
@@ -395,18 +397,18 @@ function Dashboard({
   activeTopic,
   onSelectLesson,
   studentName,
-  onSwitchStudent,
   onBackToTopics,
-  onReset,
+  onResetTopic,
+  onLogout,
   rewardType = 'real',
 }: {
   progress: ProgressData
   activeTopic: TopicDef
   onSelectLesson: (id: LessonViewType) => void
   studentName: string
-  onSwitchStudent: () => void
   onBackToTopics: () => void
-  onReset: () => void
+  onResetTopic: () => void
+  onLogout: () => void
   rewardType?: 'virtual' | 'real'
 }) {
   const { lang } = useI18n()
@@ -432,8 +434,8 @@ function Dashboard({
           </div>
           <div className="flex items-center gap-3">
             <button onClick={onBackToTopics} className="text-xs font-bold text-duo-blue hover:text-duo-blue/80 underline shrink-0">← Themes</button>
-            <button onClick={onSwitchStudent} className="text-xs text-gray-400 hover:text-gray-600 underline" title="Switch student">Switch</button>
-            <button onClick={() => setShowResetConfirm(true)} className="text-xs text-red-400 hover:text-red-600 font-bold" title={lang === 'es' ? 'Borrar avance' : 'Reset progress'}>↺</button>
+            <button onClick={() => setShowResetConfirm(true)} className="text-xs text-red-400 hover:text-red-600 font-bold" title={lang === 'es' ? `Reiniciar ${activeTopic.name}` : `Reset ${activeTopic.name}`}>↺</button>
+            <button onClick={onLogout} className="text-xs text-gray-500 hover:text-gray-700 font-semibold border border-gray-200 px-2 py-1 rounded-lg" title={lang === 'es' ? 'Cerrar sesión' : 'Log out'}>{lang === 'es' ? 'Salir' : 'Exit'}</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -505,22 +507,22 @@ function Dashboard({
               <div className="bg-white rounded-3xl p-8 mx-4 max-w-sm w-full text-center shadow-2xl animate-reward-bounce" onClick={e => e.stopPropagation()}>
                 <div className="text-4xl mb-3">⚠️</div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  {lang === 'es' ? '¿Borrar todo el avance?' : 'Reset All Progress?'}
+                  {lang === 'es' ? `¿Reiniciar ${activeTopic.name}?` : `Reset ${activeTopic.name}?`}
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">
                   {lang === 'es'
-                    ? 'Esto borrará todo el XP, lecciones completadas y premios. Empezarás desde cero.'
-                    : 'This will erase all XP, completed lessons, and rewards. You\'ll start from zero.'}
+                    ? 'Se borrarán las lecciones y premios de este tema. Tu XP total no cambia.'
+                    : 'Lessons and rewards for this topic will be cleared. Your total XP stays.'}
                 </p>
                 <div className="flex gap-3">
                   <button onClick={() => setShowResetConfirm(false)} className="flex-1 py-3 rounded-2xl border-2 border-gray-200 font-bold text-gray-600 hover:bg-gray-50">
                     {lang === 'es' ? 'Cancelar' : 'Cancel'}
                   </button>
                   <button
-                    onClick={() => { onReset(); setShowResetConfirm(false) }}
+                    onClick={() => { onResetTopic(); setShowResetConfirm(false) }}
                     className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold transition-colors"
                   >
-                    {lang === 'es' ? 'Borrar todo ↺' : 'Reset All ↺'}
+                    {lang === 'es' ? 'Reiniciar ↺' : 'Reset ↺'}
                   </button>
                 </div>
               </div>
@@ -2037,12 +2039,12 @@ function TopicSelectionView({
   progress,
   studentName,
   onSelectTopic,
-  onSwitchStudent
+  onLogout,
 }: {
   progress: ProgressData
   studentName: string
   onSelectTopic: (topicId: string) => void
-  onSwitchStudent: () => void
+  onLogout: () => void
 }) {
   return (
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
@@ -2057,7 +2059,7 @@ function TopicSelectionView({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={onSwitchStudent} className="text-xs text-gray-400 hover:text-gray-600 underline shrink-0">Switch</button>
+            <button onClick={onLogout} className="text-xs text-gray-500 hover:text-gray-700 font-semibold border border-gray-200 px-2 py-1 rounded-lg shrink-0">Salir</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -2125,6 +2127,7 @@ function TopicSelectionView({
 // ============ MAIN APP ============
 export default function KitchenVocabApp() {
   const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
   const [studentName, setStudentName] = useState<string>('')
   const [nameInput, setNameInput] = useState('')
   const [activeTopicId, setActiveTopicId] = useState<string>('kitchen')
@@ -2310,26 +2313,32 @@ export default function KitchenVocabApp() {
     setIsLoading(false)
   }
 
-  const handleSwitchStudent = () => {
+  const handleResetTopic = useCallback(() => {
+    setProgress(prev => {
+      const updated = {
+        ...prev,
+        completedLessons: prev.completedLessons.filter(id => !id.startsWith(`${activeTopicId}:`)),
+        unlockedRewards:  prev.unlockedRewards.filter(id  => !id.startsWith(`${activeTopicId}:`)),
+      }
+      forceSaveProgressLocal(updated)
+      if (studentName) saveProgressToDB(studentName, updated)
+      return updated
+    })
+    localStorage.removeItem(`leaderboard-${studentName}-${activeTopicId}`)
+    localStorage.removeItem(`rewardsType_${activeTopicId}`)
+    setView('topic-selection')
+  }, [studentName, activeTopicId])
+
+  const handleLogout = useCallback(async () => {
     setStudentName('')
     setNameInput('')
     setWelcomeBack(false)
-    localStorage.removeItem('kitchen-vocab-student')
     setProgress({ xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' })
-    setView('topic-selection')
-  }
-
-  const handleResetProgress = useCallback(() => {
-    const empty: ProgressData = { xp: 0, streak: 0, completedLessons: [], unlockedRewards: [], lastPlayedDate: '' }
-    localStorage.removeItem('kitchen-vocab-progress')
-    Object.keys(localStorage)
-      .filter(k => k.startsWith('leaderboard-') || k.startsWith('rewardsType_'))
-      .forEach(k => localStorage.removeItem(k))
-    setProgress(empty)
-    setWelcomeBack(false)
-    if (studentName) saveProgressToDB(studentName, empty)
-    setView('topic-selection')
-  }, [studentName])
+    localStorage.removeItem('kitchen-vocab-student')
+    localStorage.removeItem('guestMode')
+    try { await signOut(auth) } catch {}
+    router.replace('/auth')
+  }, [router])
 
   // Check for reward unlocks
   const checkRewards = useCallback((updatedProgress: ProgressData): RewardDef | null => {
@@ -2478,7 +2487,7 @@ export default function KitchenVocabApp() {
   return (
     <div className="min-h-screen">
       {view === 'topic-selection' && (
-        <TopicSelectionView progress={progress} studentName={studentName} onSelectTopic={handleSelectTopic} onSwitchStudent={handleSwitchStudent} />
+        <TopicSelectionView progress={progress} studentName={studentName} onSelectTopic={handleSelectTopic} onLogout={handleLogout} />
       )}
       {view === 'dashboard' && (
         <Dashboard
@@ -2486,9 +2495,9 @@ export default function KitchenVocabApp() {
           activeTopic={activeTopic}
           onSelectLesson={handleSelectLesson}
           studentName={studentName}
-          onSwitchStudent={handleSwitchStudent}
           onBackToTopics={() => setView('topic-selection')}
-          onReset={handleResetProgress}
+          onResetTopic={handleResetTopic}
+          onLogout={handleLogout}
           rewardType={getStoredRewardType(activeTopicId)}
         />
       )}
