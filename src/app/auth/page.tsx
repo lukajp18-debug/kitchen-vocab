@@ -2,11 +2,26 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useI18n } from '@/components/I18nProvider'
+
+function firebaseError(code: string): string {
+  const map: Record<string, string> = {
+    'auth/invalid-credential':      'Correo o contraseña incorrectos.',
+    'auth/wrong-password':          'Contraseña incorrecta. Intenta de nuevo.',
+    'auth/user-not-found':          'No encontramos una cuenta con ese correo.',
+    'auth/email-already-in-use':    'Ya existe una cuenta con ese correo.',
+    'auth/weak-password':           'La contraseña debe tener al menos 6 caracteres.',
+    'auth/invalid-email':           'El correo electrónico no es válido.',
+    'auth/too-many-requests':       'Demasiados intentos. Espera unos minutos e intenta de nuevo.',
+    'auth/network-request-failed':  'Error de conexión. Revisa tu internet.',
+    'auth/user-disabled':           'Esta cuenta ha sido deshabilitada.',
+  }
+  return map[code] || 'Ocurrió un error. Intenta de nuevo.'
+}
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -22,8 +37,26 @@ export default function AuthPage() {
   const [studentName, setStudentName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
   const router = useRouter()
   const { t } = useI18n()
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      setError('Ingresa tu correo arriba para recuperar tu contraseña.')
+      return
+    }
+    setLoading(true)
+    setError('')
+    try {
+      await sendPasswordResetEmail(auth, email.trim())
+      setResetSent(true)
+    } catch (err: any) {
+      setError(firebaseError(err.code))
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -98,7 +131,7 @@ export default function AuthPage() {
         router.push(`/auth/pending?token=${approvalToken}`)
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred')
+      setError(firebaseError(err.code) )
     } finally {
       setLoading(false)
     }
@@ -166,6 +199,25 @@ export default function AuthPage() {
                 </button>
               </div>
             </div>
+
+            {isLogin && (
+              <div className="text-right -mt-1">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="text-xs text-duo-blue hover:underline font-semibold"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+            )}
+
+            {resetSent && (
+              <div className="p-3 bg-green-50 text-green-700 border border-green-200 rounded-xl text-sm font-medium">
+                ✅ Te enviamos un correo a <strong>{email}</strong> para restablecer tu contraseña. Revisa también el spam.
+              </div>
+            )}
 
             {error && (
               <div className="p-3 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-medium animate-shake">
