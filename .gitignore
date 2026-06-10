@@ -52,3 +52,24 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# Firebase admin service account key (contains private key — NEVER commit)
+luka-admin-key.json
+*-admin-key.json
+
+# Temp scripts
+delete-user.mjs
+update-env.mjs
+check-firestore.mjs
+reset-rewards.mjs
+scratch_delete_user.js
+
+# Knowledge graph output
+graphify-out/
+
+# Misc dev files
+yes
+.agents/
+.claude-ref/
+.claudeignore
+skills-lock.json

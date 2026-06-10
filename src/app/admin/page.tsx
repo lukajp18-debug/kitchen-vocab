@@ -23,6 +23,49 @@ export default function AdminPage() {
   const router = useRouter()
   const [users, setUsers] = useState<UserRecord[]>([])
   const [fetching, setFetching] = useState(true)
+  const [approving, setApproving] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
+
+  const handleDelete = async (uid: string, name: string) => {
+    if (!confirm(`¿Eliminar a ${name}? Se borrará su cuenta y todos sus datos. Esto no se puede deshacer.`)) {
+      return
+    }
+    setDeleting(uid)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid }),
+      })
+      if (res.ok) {
+        setUsers(prev => prev.filter(u => u.uid !== uid))
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err)
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const handleApprove = async (uid: string) => {
+    setApproving(uid)
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, approve: true }),
+      })
+      if (res.ok) {
+        setUsers(prev => prev.map(u =>
+          u.uid === uid ? { ...u, pendingApproval: false, approvedAt: new Date().toISOString() } : u
+        ))
+      }
+    } catch (err) {
+      console.error('Error approving user:', err)
+    } finally {
+      setApproving(null)
+    }
+  }
 
   useEffect(() => {
     if (loading) return
@@ -115,16 +158,30 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                      u.pendingApproval
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-green-100 text-green-700'
-                    }`}>
-                      {u.pendingApproval ? '⏳ Pendiente' : '✅ Aprobado'}
-                    </span>
+                    {u.pendingApproval ? (
+                      <button
+                        onClick={() => handleApprove(u.uid)}
+                        disabled={approving === u.uid}
+                        className="text-xs font-bold px-3 py-1.5 rounded-full bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 transition-colors"
+                      >
+                        {approving === u.uid ? 'Aprobando…' : '✅ Aprobar'}
+                      </button>
+                    ) : (
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-green-100 text-green-700">
+                        ✅ Aprobado
+                      </span>
+                    )}
                     <span className="text-xs text-gray-400 hidden sm:block">
                       {u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-CO') : '—'}
                     </span>
+                    <button
+                      onClick={() => handleDelete(u.uid, u.studentName || u.email)}
+                      disabled={deleting === u.uid}
+                      title="Eliminar usuario"
+                      className="text-gray-300 hover:text-red-500 disabled:opacity-50 transition-colors p-1"
+                    >
+                      {deleting === u.uid ? '…' : '🗑️'}
+                    </button>
                   </div>
                 </div>
               ))}

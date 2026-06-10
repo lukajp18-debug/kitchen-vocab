@@ -1,4 +1,6 @@
 import { TopicDef, LessonDef } from '../types/vocab'
+import { MATH_TOPIC } from './mathTopic'
+import { LANGUAGE_TOPIC } from './languageTopic'
 
 export const CONFETTI_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD93D', '#6BCB77', '#9B59B6', '#58CC02', '#CE82FF', '#FF9600', '#FFC800'
@@ -67,5 +69,7 @@ export const TOPICS: TopicDef[] = [
       { id: 'floatie', name: 'Flotador', image: '/images/rewards/floatie.svg', lessonsRequired: 4, description: 'Complete 4 lessons (66%)', is3D: false },
       { id: 'watergun', name: 'Pistola de Agua', image: '/images/rewards/watergun.svg', lessonsRequired: 6, description: 'Complete ALL lessons (100%)', is3D: false },
     ]
-  }
+  },
+  MATH_TOPIC,
+  LANGUAGE_TOPIC,
 ]

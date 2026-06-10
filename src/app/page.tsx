@@ -9,10 +9,21 @@ import { Leaderboard } from '@/components/Leaderboard'
 import { useI18n } from '@/components/I18nProvider'
 import { useAuth } from '@/components/AuthProvider'
 import { signOut } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
+import { auth, db } from '@/lib/firebase'
+import { onSnapshot, doc } from 'firebase/firestore'
 
 import { WordDef, RewardDef, LessonDef, TopicDef } from '@/types/vocab'
+import { fileToCompressedDataUrl, buildRewardConfigs, saveUserRewardsConfig } from '@/lib/rewards-storage'
 import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
+import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
+import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
+
+// Resolve the lesson set for a topic: math topics carry their own lessons.
+function getLessonsForTopic(topic: TopicDef): LessonDef[] {
+  if (topic.kind === 'math' && topic.mathLessons) return topic.mathLessons
+  if (topic.kind === 'language' && topic.languageLessons) return topic.languageLessons
+  return LESSONS
+}
 
 // ============ GUEST BANNER ============
 function GuestBanner() {
@@ -54,6 +65,16 @@ type ViewType =
   | 'spelling-challenge'
   | 'whats-missing'
   | 'final-test'
+  | 'math-addition'
+  | 'math-subtraction'
+  | 'math-word-problems'
+  | 'math-money'
+  | 'math-time'
+  | 'la-articles-a-an'
+  | 'la-articles-the'
+  | 'la-there-is-are'
+  | 'la-action-words'
+  | 'la-present-tense'
   | 'lesson-complete'
   | 'game-over'
 
@@ -98,6 +119,16 @@ const VIRTUAL_REWARD_INFO: Record<string, { emoji: string; name: string; nameEs:
     { emoji: '🥉', name: 'Beach Traveler', nameEs: 'Viajero de Playa' },
     { emoji: '🥈', name: 'Beach Explorer', nameEs: 'Explorador de Playa' },
     { emoji: '🏆', name: 'Summer Legend', nameEs: 'Leyenda del Verano' },
+  ],
+  math: [
+    { emoji: '🥉', name: 'Math Explorer', nameEs: 'Explorador Matemático' },
+    { emoji: '🥈', name: 'Number Master', nameEs: 'Maestro de Números' },
+    { emoji: '🏆', name: 'Math Champion', nameEs: 'Campeón Matemático' },
+  ],
+  language: [
+    { emoji: '🥉', name: 'Word Explorer',    nameEs: 'Explorador de Palabras' },
+    { emoji: '🥈', name: 'Grammar Master',   nameEs: 'Maestro de Gramática' },
+    { emoji: '🏆', name: 'Language Champion', nameEs: 'Campeón del Lenguaje' },
   ],
 }
 
@@ -403,6 +434,7 @@ function Dashboard({
   onResetTopic,
   onLogout,
   rewardType = 'real',
+  customRewards = [],
 }: {
   progress: ProgressData
   activeTopic: TopicDef
@@ -412,12 +444,14 @@ function Dashboard({
   onResetTopic: () => void
   onLogout: () => void
   rewardType?: 'virtual' | 'real'
+  customRewards?: import('@/lib/reward-utils').RewardConfig[]
 }) {
   const { lang } = useI18n()
   const [activeTab, setActiveTab] = useState<'lessons' | 'leaderboard'>('lessons')
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const isCompleted = (id: string): boolean => progress.completedLessons.includes(`${activeTopic.id}:${id}`)
-  const totalLessons = LESSONS.length
+  const topicLessons = getLessonsForTopic(activeTopic)
+  const totalLessons = topicLessons.length
   const completedCount = progress.completedLessons.filter((id) => id.startsWith(`${activeTopic.id}:`)).length
   const overallProgress = (completedCount / totalLessons) * 100
 
@@ -499,8 +533,8 @@ function Dashboard({
               }`}
             >
               {lang === 'es'
-                ? `🏆 LIGA DE ${activeTopic.id === 'kitchen' ? 'COCINA' : 'VACACIONES'}`
-                : `🏆 ${activeTopic.id === 'kitchen' ? 'KITCHEN' : 'VACATION'} LEAGUE`}
+                ? `🏆 LIGA DE ${activeTopic.id === 'kitchen' ? 'COCINA' : activeTopic.id === 'math' ? 'MATEMÁTICAS' : activeTopic.id === 'language' ? 'LENGUAJE' : 'VACACIONES'}`
+                : `🏆 ${activeTopic.id === 'kitchen' ? 'KITCHEN' : activeTopic.id === 'math' ? 'MATH' : activeTopic.id === 'language' ? 'LANGUAGE' : 'VACATION'} LEAGUE`}
             </button>
           </div>
 
@@ -593,18 +627,23 @@ function Dashboard({
                           </Card>
                         )
                       })
-                    : activeTopic.rewards.map((reward) => {
-                        const isUnlocked = progress.unlockedRewards.includes(`${activeTopic.id}:${reward.id}`)
+                    : (customRewards.length > 0 ? customRewards : activeTopic.rewards).map((reward, idx) => {
+                        // customRewards use index-based ids; activeTopic.rewards use named ids
+                        const rewardId = reward.id ?? `real_${idx}`
+                        const isUnlocked = progress.unlockedRewards.includes(`${activeTopic.id}:${rewardId}`) ||
+                          progress.unlockedRewards.includes(`${activeTopic.id}:${activeTopic.rewards[idx]?.id ?? rewardId}`)
                         const lessonsCompleted = completedCount
                         const rewardProgress = Math.min((lessonsCompleted / reward.lessonsRequired) * 100, 100)
+                        // imageUrl is a base64 data URL for custom rewards, or a path for default rewards
+                        const imgSrc = (reward as any).imageUrl ?? (reward as any).image
                         return (
                           <Card
-                            key={reward.id}
+                            key={rewardId}
                             className={`border-0 shadow-md overflow-hidden ${isUnlocked ? 'animate-reward-glow' : ''}`}
                           >
                             <CardContent className="p-3 flex flex-col items-center text-center">
                               <div className={`relative w-20 h-20 mb-2 ${!isUnlocked ? 'reward-locked' : ''}`}>
-                                <img src={reward.image} alt={reward.name} className="w-full h-full object-contain" />
+                                <img src={imgSrc} alt={reward.name} className="w-full h-full object-cover rounded-xl" />
                                 {!isUnlocked && (
                                   <div className="absolute inset-0 flex items-center justify-center">
                                     <span className="text-3xl">🔒</span>
@@ -638,12 +677,12 @@ function Dashboard({
 
               {/* Lesson Path */}
               <div className="flex flex-col items-center">
-                {LESSONS.map((lesson, index) => {
+                {topicLessons.map((lesson, index) => {
                   const completed = isCompleted(lesson.id)
                   return (
                     <div key={lesson.id} className="flex flex-col items-center w-full">
                       {index > 0 && (
-                        <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isCompleted(LESSONS[index - 1].id) ? lesson.color : '#E0E0E0' }} />
+                        <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isCompleted(topicLessons[index - 1].id) ? lesson.color : '#E0E0E0' }} />
                       )}
                       <button
                         onClick={() => onSelectLesson(lesson.id as LessonViewType)}
@@ -2036,6 +2075,172 @@ function RewardStyleModal({
   )
 }
 
+// ============ REAL REWARD CONFIG MODAL ============
+function RealRewardConfigModal({
+  topicId,
+  uid,
+  onSave,
+  onCancel,
+}: {
+  topicId: string
+  uid: string
+  onSave: (configs: import('@/lib/reward-utils').RewardConfig[]) => void
+  onCancel: () => void
+}) {
+  const { lang } = useI18n()
+  const [count, setCount] = useState(3)
+  const [prizes, setPrizes] = useState<Array<{ name: string; file: File | null; preview: string | null }>>(
+    Array.from({ length: 3 }, () => ({ name: '', file: null, preview: null }))
+  )
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function updateCount(n: number) {
+    setCount(n)
+    setPrizes((prev) => {
+      const next = [...prev]
+      while (next.length < n) next.push({ name: '', file: null, preview: null })
+      return next.slice(0, n)
+    })
+  }
+
+  function updateName(i: number, name: string) {
+    setPrizes((prev) => prev.map((p, idx) => (idx === i ? { ...p, name } : p)))
+  }
+
+  function updateFile(i: number, file: File) {
+    const preview = URL.createObjectURL(file)
+    setPrizes((prev) => prev.map((p, idx) => (idx === i ? { ...p, file, preview } : p)))
+  }
+
+  const canSave = prizes.every((p) => p.name.trim() && p.file)
+
+  async function handleSave() {
+    if (!canSave || saving) return
+    setSaving(true)
+    setError(null)
+    // Hard timeout so the button can never spin forever.
+    const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> =>
+      Promise.race([
+        promise,
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out`)), ms)),
+      ])
+    try {
+      // Compress each image to base64 (Firestore-based, no Storage needed)
+      const compressed = await Promise.all(
+        prizes.map((p) => withTimeout(fileToCompressedDataUrl(p.file!), 15000, 'Image processing'))
+      )
+      const configs = buildRewardConfigs(
+        prizes.map((p, i) => ({ name: p.name, imageUrl: compressed[i] })),
+      )
+      await withTimeout(saveUserRewardsConfig(uid, 'real', configs), 15000, 'Saving')
+      onSave(configs)
+    } catch (e) {
+      console.error('Reward save failed:', e)
+      setError(lang === 'es' ? 'Error al guardar. Intenta de nuevo.' : 'Error saving. Please try again.')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-6">
+      <div
+        className="relative bg-white rounded-3xl shadow-2xl p-6 mx-4 max-w-sm w-full"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="text-center mb-5">
+          <div className="text-4xl mb-2">🎁</div>
+          <h2 className="text-xl font-black text-gray-800">
+            {lang === 'es' ? 'Configura los premios reales' : 'Set up real prizes'}
+          </h2>
+          <p className="text-gray-400 text-sm mt-1">
+            {lang === 'es' ? 'Pon foto y nombre a cada premio' : 'Add a photo and name for each prize'}
+          </p>
+        </div>
+
+        {/* Count selector */}
+        <div className="mb-5">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+            {lang === 'es' ? '¿Cuántos premios?' : 'How many prizes?'}
+          </p>
+          <div className="flex gap-2 justify-center">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                onClick={() => updateCount(n)}
+                className={`w-10 h-10 rounded-full font-black text-lg transition-all ${
+                  count === n
+                    ? 'bg-emerald-500 text-white scale-110 shadow-md'
+                    : 'bg-gray-100 text-gray-500 hover:bg-emerald-100'
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Prize slots */}
+        <div className="space-y-3 mb-5">
+          {prizes.map((p, i) => (
+            <div key={i} className="border border-gray-100 rounded-2xl p-3 flex items-center gap-3 bg-gray-50">
+              {/* Image upload */}
+              <label className="cursor-pointer shrink-0">
+                <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-200 flex items-center justify-center hover:bg-emerald-100 transition-colors">
+                  {p.preview ? (
+                    <img src={p.preview} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl">📷</span>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && updateFile(i, e.target.files[0])}
+                />
+              </label>
+              {/* Name */}
+              <div className="flex-1">
+                <p className="text-xs text-gray-400 mb-1">
+                  {lang === 'es' ? `Premio ${i + 1}` : `Prize ${i + 1}`}
+                </p>
+                <input
+                  type="text"
+                  value={p.name}
+                  onChange={(e) => updateName(i, e.target.value)}
+                  placeholder={lang === 'es' ? 'Nombre del premio…' : 'Prize name…'}
+                  className="w-full text-sm font-semibold bg-white border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {error && <p className="text-red-500 text-xs text-center mb-3">{error}</p>}
+
+        {/* Actions */}
+        <button
+          onClick={handleSave}
+          disabled={!canSave || saving}
+          className="w-full py-3 rounded-2xl font-black text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all mb-2"
+        >
+          {saving
+            ? (lang === 'es' ? 'Guardando…' : 'Saving…')
+            : (lang === 'es' ? '¡Guardar premios!' : 'Save prizes!')}
+        </button>
+        <button
+          onClick={onCancel}
+          className="w-full text-center text-sm text-gray-400 hover:text-gray-600 font-semibold transition-colors py-1"
+        >
+          {lang === 'es' ? 'Cancelar' : 'Cancel'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ============ TOPIC SELECTION VIEW ============
 function TopicSelectionView({
   progress,
@@ -2088,8 +2293,9 @@ function TopicSelectionView({
 
           <div className="space-y-4">
             {TOPICS.map((topic) => {
+              const topicLessonCount = getLessonsForTopic(topic).length
               const completedCount = progress.completedLessons.filter((id) => id.startsWith(`${topic.id}:`)).length
-              const overallProgress = (completedCount / LESSONS.length) * 100
+              const overallProgress = (completedCount / topicLessonCount) * 100
 
               return (
                 <button
@@ -2110,7 +2316,7 @@ function TopicSelectionView({
                           <div className="flex-1 bg-gray-100 rounded-full h-2">
                             <div className="h-2 rounded-full transition-all duration-500" style={{ width: `${overallProgress}%`, backgroundColor: topic.color }} />
                           </div>
-                          <span className="text-xs font-bold text-gray-600 shrink-0">{completedCount}/{LESSONS.length}</span>
+                          <span className="text-xs font-bold text-gray-600 shrink-0">{completedCount}/{topicLessonCount}</span>
                         </div>
                       </div>
                       <div className="text-2xl text-gray-300">→</div>
@@ -2144,6 +2350,9 @@ export default function KitchenVocabApp() {
   const [isLoading, setIsLoading] = useState(false)
   const [welcomeBack, setWelcomeBack] = useState(false)
   const [rewardModalTopicId, setRewardModalTopicId] = useState<string | null>(null)
+  const [realConfigTopicId, setRealConfigTopicId] = useState<string | null>(null)
+  // customRewards loaded from Firestore — keyed by topicId (for now one set per user)
+  const [userCustomRewards, setUserCustomRewards] = useState<import('@/lib/reward-utils').RewardConfig[]>([])
 
   const activeTopic = useMemo(() => {
     return TOPICS.find((t) => t.id === activeTopicId) || TOPICS[0]
@@ -2221,6 +2430,13 @@ export default function KitchenVocabApp() {
             localStorage.setItem('kitchen-vocab-student', fetchedName)
             setStudentName(fetchedName)
             setNameInput(fetchedName)
+            // Sync reward type + custom rewards from Firestore into local state
+            if (status.rewardsType) {
+              localStorage.setItem(`rewardsType_${activeTopicId}`, status.rewardsType)
+            }
+            if (Array.isArray(status.customRewards) && status.customRewards.length > 0) {
+              setUserCustomRewards(status.customRewards)
+            }
             initializeProgress(fetchedName)
           } else {
             setIsHydrated(true)
@@ -2237,6 +2453,28 @@ export default function KitchenVocabApp() {
       setIsHydrated(true)
     }
   }, [user, authLoading, initializeProgress])
+
+  // Load custom rewards when user logs in or when rewards are saved
+  useEffect(() => {
+    if (!user?.uid) return
+
+    const loadRewards = async () => {
+      try {
+        const res = await fetch(`/api/user-status?uid=${user.uid}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data.customRewards)) {
+            setUserCustomRewards(data.customRewards)
+            console.log('Loaded custom rewards:', data.customRewards.length)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load rewards:', err)
+      }
+    }
+
+    loadRewards()
+  }, [user?.uid])
 
   // Save progress when page is hidden or about to close (critical for mobile!)
   useEffect(() => {
@@ -2351,8 +2589,9 @@ export default function KitchenVocabApp() {
     const activeT = TOPICS.find((t) => t.id === activeTopicId)
     if (!activeT) return null
 
-    const lessonsCompleted = updatedProgress.completedLessons.filter((id) => 
-      id.startsWith(`${activeTopicId}:`) && LESSONS.some((l) => `${activeTopicId}:${l.id}` === id)
+    const activeLessons = getLessonsForTopic(activeT)
+    const lessonsCompleted = updatedProgress.completedLessons.filter((id) =>
+      id.startsWith(`${activeTopicId}:`) && activeLessons.some((l) => `${activeTopicId}:${l.id}` === id)
     ).length
 
     for (const reward of activeT.rewards) {
@@ -2426,7 +2665,7 @@ export default function KitchenVocabApp() {
   }, [])
 
   const getLessonName = (id: LessonViewType): string => {
-    const lesson = LESSONS.find((l) => l.id === id)
+    const lesson = getLessonsForTopic(activeTopic).find((l) => l.id === id)
     return lesson ? lesson.name : ''
   }
 
@@ -2442,10 +2681,24 @@ export default function KitchenVocabApp() {
 
   const handleRewardTypeChosen = useCallback((type: 'virtual' | 'real') => {
     if (!rewardModalTopicId) return
-    localStorage.setItem(`rewardsType_${rewardModalTopicId}`, type)
-    setRewardModalTopicId(null)
-    setView('dashboard')
+    if (type === 'virtual') {
+      localStorage.setItem(`rewardsType_${rewardModalTopicId}`, 'virtual')
+      setRewardModalTopicId(null)
+      setView('dashboard')
+    } else {
+      // Show real-prize config before going to dashboard
+      setRealConfigTopicId(rewardModalTopicId)
+      setRewardModalTopicId(null)
+    }
   }, [rewardModalTopicId])
+
+  const handleRealRewardSaved = useCallback((configs: import('@/lib/reward-utils').RewardConfig[]) => {
+    if (!realConfigTopicId) return
+    localStorage.setItem(`rewardsType_${realConfigTopicId}`, 'real')
+    setUserCustomRewards(configs)
+    setRealConfigTopicId(null)
+    setView('dashboard')
+  }, [realConfigTopicId])
 
   // Name entry screen
   if (isHydrated && !studentName) {
@@ -2504,6 +2757,7 @@ export default function KitchenVocabApp() {
           onResetTopic={handleResetTopic}
           onLogout={handleLogout}
           rewardType={getStoredRewardType(activeTopicId)}
+          customRewards={userCustomRewards}
         />
       )}
       {view === 'flashcards' && (
@@ -2523,6 +2777,81 @@ export default function KitchenVocabApp() {
       )}
       {view === 'final-test' && (
         <FinalTestView words={activeTopic.words} onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard} />
+      )}
+      {view === 'math-addition' && activeTopic.mathContent && (
+        <ColumnSolveView
+          title="3-Digit Addition"
+          columns={activeTopic.mathContent.addition.columns}
+          breakApart={activeTopic.mathContent.addition.breakApart}
+          op="add"
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'math-addition')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'math-subtraction' && activeTopic.mathContent && (
+        <ColumnSolveView
+          title="3-Digit Subtraction"
+          columns={activeTopic.mathContent.subtraction.columns}
+          op="sub"
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'math-subtraction')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'math-word-problems' && activeTopic.mathContent && (
+        <WordProblemsView
+          problems={activeTopic.mathContent.wordProblems}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'math-word-problems')?.xpReward ?? 100}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'math-money' && activeTopic.mathContent && (
+        <MoneyView
+          rounds={activeTopic.mathContent.money.countRounds}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'math-money')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'math-time' && activeTopic.mathContent && (
+        <TimeView
+          times={activeTopic.mathContent.time.times}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'math-time')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'la-articles-a-an' && activeTopic.languageContent && (
+        <ArticlesAAnView
+          words={activeTopic.languageContent.articlesAorAn}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'la-articles-a-an')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'la-articles-the' && activeTopic.languageContent && (
+        <ArticlesTheView
+          words={activeTopic.languageContent.articlesAAnThe}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'la-articles-the')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'la-there-is-are' && activeTopic.languageContent && (
+        <ThereIsAreView
+          items={activeTopic.languageContent.thereIsAre}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'la-there-is-are')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'la-action-words' && activeTopic.languageContent && (
+        <ActionWordsView
+          actions={activeTopic.languageContent.actionWords}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'la-action-words')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'la-present-tense' && activeTopic.languageContent && (
+        <PresentTenseView
+          sentences={activeTopic.languageContent.presentTense}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'la-present-tense')?.xpReward ?? 100}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
       )}
       {view === 'lesson-complete' && (
         <LessonCompleteView
@@ -2554,6 +2883,16 @@ export default function KitchenVocabApp() {
           topicId={rewardModalTopicId}
           onSelect={handleRewardTypeChosen}
           onCancel={() => setRewardModalTopicId(null)}
+        />
+      )}
+
+      {/* Real Prize Configuration Modal */}
+      {realConfigTopicId && user?.uid && (
+        <RealRewardConfigModal
+          topicId={realConfigTopicId}
+          uid={user.uid}
+          onSave={handleRealRewardSaved}
+          onCancel={() => setRealConfigTopicId(null)}
         />
       )}
     </div>

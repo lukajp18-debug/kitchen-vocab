@@ -22,6 +22,9 @@ export interface LessonDef {
   xpReward: number
 }
 
+import type { MathContent } from './math'
+import type { LanguageContent } from './language'
+
 export interface TopicDef {
   id: string
   name: string
@@ -31,4 +34,10 @@ export interface TopicDef {
   bgColor: string
   words: WordDef[]
   rewards: RewardDef[]
+  // Optional Math Workshop fields. Vocab topics omit these (default kind: 'vocab').
+  kind?: 'vocab' | 'math' | 'language'
+  mathLessons?: LessonDef[]
+  mathContent?: MathContent
+  languageLessons?: LessonDef[]
+  languageContent?: LanguageContent
 }

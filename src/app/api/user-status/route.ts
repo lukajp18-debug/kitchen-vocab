@@ -16,6 +16,8 @@ export async function GET(req: NextRequest) {
       pendingApproval: data.pendingApproval ?? false,
       onboardingComplete: data.onboardingComplete ?? false,
       studentName: data.studentName ?? '',
+      rewardsType: data.rewardsType ?? null,
+      customRewards: data.customRewards ?? [],
     })
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })
@@ -24,7 +26,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { uid, onboardingComplete, studentName } = await req.json()
+    const { uid, onboardingComplete, studentName, rewardsType, customRewards } = await req.json()
     if (!uid) {
       return NextResponse.json({ error: 'Missing uid' }, { status: 400 })
     }
@@ -32,13 +34,17 @@ export async function POST(req: NextRequest) {
     const updates: any = {}
     if (onboardingComplete !== undefined) updates.onboardingComplete = onboardingComplete
     if (studentName !== undefined) updates.studentName = studentName
+    if (rewardsType !== undefined) updates.rewardsType = rewardsType
+    if (customRewards !== undefined) updates.customRewards = customRewards
 
-    // Fallback if neither was provided, to preserve compatibility
-    if (onboardingComplete === undefined && studentName === undefined) {
+    // Fallback if nothing was provided, to preserve compatibility
+    if (Object.keys(updates).length === 0) {
       updates.onboardingComplete = true
     }
 
-    await adminDb.collection('users').doc(uid).update(updates)
+    // set(merge) so it works even if the user document does not exist yet
+    // (update() rejects on a missing document).
+    await adminDb.collection('users').doc(uid).set(updates, { merge: true })
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

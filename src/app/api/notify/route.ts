@@ -13,15 +13,15 @@ export async function POST(request: Request) {
       const approveLink = approvalToken ? `${appUrl}/api/approve?token=${approvalToken}` : null
       const isHttps = appUrl?.startsWith('https://')
 
-      // Link always in text (works on http and https)
+      // Plain-text link (Markdown links to localhost don't render in Telegram;
+      // plain text is always visible and copyable)
       const tgText = approveLink
-        ? `🎉 *¡Nuevo Registro en Study App!*\n\n👦 *Niño/a:* ${studentName}\n✉️ *Padre:* ${parentEmail}\n\n👉 [APROBAR ACCESO](${approveLink})`
-        : `🎉 *¡Nuevo Registro en Study App!*\n\n👦 *Niño/a:* ${studentName}\n✉️ *Padre:* ${parentEmail}`
+        ? `🎉 ¡Nuevo Registro en Study App!\n\n👦 Niño/a: ${studentName}\n✉️ Padre: ${parentEmail}\n\n👉 Aprobar acceso:\n${approveLink}\n\nO entra al panel de admin:\n${appUrl}/admin`
+        : `🎉 ¡Nuevo Registro en Study App!\n\n👦 Niño/a: ${studentName}\n✉️ Padre: ${parentEmail}`
 
       const body: any = {
         chat_id: chatId,
         text: tgText,
-        parse_mode: 'Markdown',
       }
 
       // Inline button only works with https (production)
