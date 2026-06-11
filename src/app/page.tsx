@@ -2441,8 +2441,7 @@ export default function KitchenVocabApp() {
             setNameInput(fetchedName)
             // Sync reward type for ALL topics so the "virtual or real?" dialog never re-appears
             if (status.rewardsType) {
-              const { TOPICS: allTopics } = await import('@/data/topics')
-              allTopics.forEach((t: { id: string }) => {
+              TOPICS.forEach((t) => {
                 if (!localStorage.getItem(`rewardsType_${t.id}`)) {
                   localStorage.setItem(`rewardsType_${t.id}`, status.rewardsType)
                 }
