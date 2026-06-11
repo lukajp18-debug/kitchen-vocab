@@ -2081,16 +2081,20 @@ function RealRewardConfigModal({
   uid,
   onSave,
   onCancel,
+  currentRewards = [],
 }: {
   topicId: string
   uid: string
   onSave: (configs: import('@/lib/reward-utils').RewardConfig[]) => void
   onCancel: () => void
+  currentRewards?: import('@/lib/reward-utils').RewardConfig[]
 }) {
   const { lang } = useI18n()
-  const [count, setCount] = useState(3)
+  const [count, setCount] = useState(currentRewards.length > 0 ? currentRewards.length : 3)
   const [prizes, setPrizes] = useState<Array<{ name: string; file: File | null; preview: string | null }>>(
-    Array.from({ length: 3 }, () => ({ name: '', file: null, preview: null }))
+    currentRewards.length > 0
+      ? currentRewards.map(r => ({ name: r.name, file: null, preview: (r as any).imageUrl ?? null }))
+      : Array.from({ length: 3 }, () => ({ name: '', file: null, preview: null }))
   )
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -2113,22 +2117,27 @@ function RealRewardConfigModal({
     setPrizes((prev) => prev.map((p, idx) => (idx === i ? { ...p, file, preview } : p)))
   }
 
-  const canSave = prizes.every((p) => p.name.trim() && p.file)
+  // Valid if name + either a new file OR an existing preview (pre-loaded image)
+  const canSave = prizes.every((p) => p.name.trim() && (p.file || p.preview))
 
   async function handleSave() {
     if (!canSave || saving) return
     setSaving(true)
     setError(null)
-    // Hard timeout so the button can never spin forever.
     const withTimeout = <T,>(promise: Promise<T>, ms: number, label: string): Promise<T> =>
       Promise.race([
         promise,
         new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`${label} timed out`)), ms)),
       ])
     try {
-      // Compress each image to base64 (Firestore-based, no Storage needed)
+      // Compress new files; keep existing base64 for unchanged prizes
       const compressed = await Promise.all(
-        prizes.map((p) => withTimeout(fileToCompressedDataUrl(p.file!), 15000, 'Image processing'))
+        prizes.map((p, i) => {
+          if (p.file) return withTimeout(fileToCompressedDataUrl(p.file), 15000, 'Image processing')
+          // Reuse existing imageUrl from currentRewards
+          const existing = currentRewards[i]
+          return Promise.resolve((existing as any)?.imageUrl ?? p.preview ?? '')
+        })
       )
       const configs = buildRewardConfigs(
         prizes.map((p, i) => ({ name: p.name, imageUrl: compressed[i] })),
@@ -2430,9 +2439,14 @@ export default function KitchenVocabApp() {
             localStorage.setItem('kitchen-vocab-student', fetchedName)
             setStudentName(fetchedName)
             setNameInput(fetchedName)
-            // Sync reward type + custom rewards from Firestore into local state
+            // Sync reward type for ALL topics so the "virtual or real?" dialog never re-appears
             if (status.rewardsType) {
-              localStorage.setItem(`rewardsType_${activeTopicId}`, status.rewardsType)
+              const { TOPICS: allTopics } = await import('@/data/topics')
+              allTopics.forEach((t: { id: string }) => {
+                if (!localStorage.getItem(`rewardsType_${t.id}`)) {
+                  localStorage.setItem(`rewardsType_${t.id}`, status.rewardsType)
+                }
+              })
             }
             if (Array.isArray(status.customRewards) && status.customRewards.length > 0) {
               setUserCustomRewards(status.customRewards)
@@ -2893,6 +2907,7 @@ export default function KitchenVocabApp() {
           uid={user.uid}
           onSave={handleRealRewardSaved}
           onCancel={() => setRealConfigTopicId(null)}
+          currentRewards={userCustomRewards}
         />
       )}
     </div>
