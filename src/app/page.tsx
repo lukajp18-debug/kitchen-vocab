@@ -130,6 +130,11 @@ const VIRTUAL_REWARD_INFO: Record<string, { emoji: string; name: string; nameEs:
     { emoji: '🥈', name: 'Grammar Master',   nameEs: 'Maestro de Gramática' },
     { emoji: '🏆', name: 'Language Champion', nameEs: 'Campeón del Lenguaje' },
   ],
+  'vocab-week-2': [
+    { emoji: '🥉', name: 'Class Learner',   nameEs: 'Aprendiz de Clase' },
+    { emoji: '🥈', name: 'Vocab Builder',   nameEs: 'Constructor de Vocabulario' },
+    { emoji: '🏆', name: 'Vocab Champion',  nameEs: 'Campeón del Vocabulario' },
+  ],
 }
 
 function getStoredRewardType(topicId: string): 'virtual' | 'real' {
@@ -533,8 +538,8 @@ function Dashboard({
               }`}
             >
               {lang === 'es'
-                ? `🏆 LIGA DE ${activeTopic.id === 'kitchen' ? 'COCINA' : activeTopic.id === 'math' ? 'MATEMÁTICAS' : activeTopic.id === 'language' ? 'LENGUAJE' : 'VACACIONES'}`
-                : `🏆 ${activeTopic.id === 'kitchen' ? 'KITCHEN' : activeTopic.id === 'math' ? 'MATH' : activeTopic.id === 'language' ? 'LANGUAGE' : 'VACATION'} LEAGUE`}
+                ? `🏆 LIGA DE ${activeTopic.name.toUpperCase()}`
+                : `🏆 ${activeTopic.displayName.toUpperCase()} LEAGUE`}
             </button>
           </div>
 
@@ -2262,6 +2267,7 @@ function TopicSelectionView({
   onSelectTopic: (topicId: string) => void
   onLogout: () => void
 }) {
+  const [category, setCategory] = useState<'vocab' | 'subjects'>('vocab')
   return (
     <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
       {/* Top Bar */}
@@ -2300,8 +2306,35 @@ function TopicSelectionView({
             <p className="text-gray-500 mt-1">¡Aprende y gana recompensas reales!</p>
           </div>
 
+          {/* Category Tabs */}
+          <div className="flex gap-2 p-1 bg-white border border-slate-200 rounded-2xl mb-6 shadow-sm">
+            <button
+              onClick={() => setCategory('vocab')}
+              className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 cursor-pointer ${
+                category === 'vocab'
+                  ? 'bg-gradient-to-r from-duo-green to-emerald-500 text-white shadow-md'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              📖 VOCABULARIO
+            </button>
+            <button
+              onClick={() => setCategory('subjects')}
+              className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 cursor-pointer ${
+                category === 'subjects'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md'
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              📘 ESTUDIO DE MATERIAS
+            </button>
+          </div>
+
           <div className="space-y-4">
-            {TOPICS.map((topic) => {
+            {TOPICS.filter((topic) => {
+              const isSubject = topic.kind === 'math' || topic.kind === 'language'
+              return category === 'subjects' ? isSubject : !isSubject
+            }).map((topic) => {
               const topicLessonCount = getLessonsForTopic(topic).length
               const completedCount = progress.completedLessons.filter((id) => id.startsWith(`${topic.id}:`)).length
               const overallProgress = (completedCount / topicLessonCount) * 100

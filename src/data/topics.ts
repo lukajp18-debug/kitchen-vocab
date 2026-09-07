@@ -70,6 +70,36 @@ export const TOPICS: TopicDef[] = [
       { id: 'watergun', name: 'Pistola de Agua', image: '/images/rewards/watergun.svg', lessonsRequired: 6, description: 'Complete ALL lessons (100%)', is3D: false },
     ]
   },
+  {
+    id: 'vocab-week-2',
+    name: 'Vocabulario del Colegio - Semana 2',
+    displayName: 'School Vocab - Week 2',
+    icon: '🏫',
+    color: '#4C6FFF',
+    bgColor: '#E3E8FF',
+    words: [
+      { word: 'time', image: '/images/vocab-weekly/week2/time.png' },
+      { word: 'minute', image: '/images/vocab-weekly/week2/minute.png' },
+      { word: 'poster', image: '/images/vocab-weekly/week2/poster.png' },
+      { word: 'animal', image: '/images/vocab-weekly/week2/animal.png' },
+      { word: 'question', image: '/images/vocab-weekly/week2/question.png' },
+      { word: 'first', image: '/images/vocab-weekly/week2/first.png' },
+      { word: 'next', image: '/images/vocab-weekly/week2/next.png' },
+      { word: 'scientist', image: '/images/vocab-weekly/week2/scientist.png' },
+      { word: 'observe', image: '/images/vocab-weekly/week2/observe.png' },
+      { word: 'see', image: '/images/vocab-weekly/week2/see.png' },
+      { word: 'hear', image: '/images/vocab-weekly/week2/hear.png' },
+      { word: 'community', image: '/images/vocab-weekly/week2/community.png' },
+      { word: 'clock', image: '/images/vocab-weekly/week2/clock.png' },
+      { word: 'group', image: '/images/vocab-weekly/week2/group.png' },
+      { word: 'answer', image: '/images/vocab-weekly/week2/answer.png' },
+    ],
+    rewards: [
+      { id: 'sticker-pack', name: 'Sticker Pack', image: '/images/rewards/panelita.png', lessonsRequired: 2, description: 'Complete 2 lessons (33%)', is3D: false },
+      { id: 'extra-playtime', name: 'Tiempo Extra de Juego', image: '/images/rewards/trululu.png', lessonsRequired: 4, description: 'Complete 4 lessons (66%)', is3D: false },
+      { id: 'surprise-prize', name: 'Premio Sorpresa', image: '/images/rewards/hotwheels.png', lessonsRequired: 6, description: 'Complete ALL lessons (100%)', is3D: false },
+    ]
+  },
   MATH_TOPIC,
   LANGUAGE_TOPIC,
 ]
