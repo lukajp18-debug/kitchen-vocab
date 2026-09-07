@@ -13,7 +13,7 @@ import { auth, db } from '@/lib/firebase'
 import { onSnapshot, doc } from 'firebase/firestore'
 
 import { WordDef, RewardDef, LessonDef, TopicDef } from '@/types/vocab'
-import { fileToCompressedDataUrl, buildRewardConfigs, saveUserRewardsConfig } from '@/lib/rewards-storage'
+import { fileToCompressedDataUrl, buildRewardConfigs, saveUserRewardsConfig, saveGuestRewardsConfig, loadGuestRewardsConfig } from '@/lib/rewards-storage'
 import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
@@ -502,6 +502,20 @@ function Dashboard({
               {overallProgress === 100 ? 'You did it! All done! 🎉' : `Let's learn ${activeTopic.displayName}!`}
             </h1>
             <p className="text-gray-500 mt-1">{activeTopic.name}</p>
+            {(activeTopic.weekLabel || activeTopic.quizDate) && (
+              <div className="flex flex-wrap justify-center gap-2 mt-3">
+                {activeTopic.weekLabel && (
+                  <span className="text-xs font-black px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">
+                    📅 {activeTopic.weekLabel}
+                  </span>
+                )}
+                {activeTopic.quizDate && (
+                  <span className="text-xs font-black px-3 py-1 rounded-full bg-red-100 text-red-600">
+                    📝 {activeTopic.quizDate}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Overall Progress */}
@@ -2089,7 +2103,7 @@ function RealRewardConfigModal({
   currentRewards = [],
 }: {
   topicId: string
-  uid: string
+  uid?: string
   onSave: (configs: import('@/lib/reward-utils').RewardConfig[]) => void
   onCancel: () => void
   currentRewards?: import('@/lib/reward-utils').RewardConfig[]
@@ -2147,7 +2161,11 @@ function RealRewardConfigModal({
       const configs = buildRewardConfigs(
         prizes.map((p, i) => ({ name: p.name, imageUrl: compressed[i] })),
       )
-      await withTimeout(saveUserRewardsConfig(uid, 'real', configs), 15000, 'Saving')
+      if (uid) {
+        await withTimeout(saveUserRewardsConfig(uid, 'real', configs), 15000, 'Saving')
+      } else {
+        saveGuestRewardsConfig('real', configs)
+      }
       onSave(configs)
     } catch (e) {
       console.error('Reward save failed:', e)
@@ -2353,7 +2371,21 @@ function TopicSelectionView({
                       <div className="flex-1">
                         <h3 className="font-bold text-lg text-gray-800">{topic.displayName}</h3>
                         <p className="text-xs text-gray-500">{topic.name}</p>
-                        
+                        {(topic.weekLabel || topic.quizDate) && (
+                          <div className="flex flex-wrap gap-1.5 mt-2">
+                            {topic.weekLabel && (
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                                📅 {topic.weekLabel}
+                              </span>
+                            )}
+                            {topic.quizDate && (
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                                📝 {topic.quizDate}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         <div className="flex items-center gap-3 mt-3">
                           <div className="flex-1 bg-gray-100 rounded-full h-2">
                             <div className="h-2 rounded-full transition-all duration-500" style={{ width: `${overallProgress}%`, backgroundColor: topic.color }} />
@@ -2454,6 +2486,10 @@ export default function KitchenVocabApp() {
     const isGuest = typeof window !== 'undefined' && localStorage.getItem('guestMode') === 'true'
 
     if (isGuest) {
+      const guestRewards = loadGuestRewardsConfig()
+      if (guestRewards.customRewards.length > 0) {
+        setUserCustomRewards(guestRewards.customRewards)
+      }
       const savedName = typeof window !== 'undefined' ? localStorage.getItem('kitchen-vocab-student') : ''
       if (savedName) {
         setStudentName(savedName)
@@ -2933,10 +2969,10 @@ export default function KitchenVocabApp() {
       )}
 
       {/* Real Prize Configuration Modal */}
-      {realConfigTopicId && user?.uid && (
+      {realConfigTopicId && (
         <RealRewardConfigModal
           topicId={realConfigTopicId}
-          uid={user.uid}
+          uid={user?.uid}
           onSave={handleRealRewardSaved}
           onCancel={() => setRealConfigTopicId(null)}
           currentRewards={userCustomRewards}

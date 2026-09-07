@@ -60,6 +60,26 @@ export async function markOnboardingComplete(uid: string) {
  * (the same reason progress is saved via /api/progress), which surfaced as
  * "Missing or insufficient permissions".
  */
+const GUEST_REWARDS_KEY = 'guestCustomRewards'
+
+/** Guest-mode fallback: no Firebase uid, so store the reward config locally. */
+export function saveGuestRewardsConfig(rewardsType: 'virtual' | 'real', rewards?: RewardConfig[]) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(GUEST_REWARDS_KEY, JSON.stringify({ rewardsType, customRewards: rewards || [] }))
+}
+
+export function loadGuestRewardsConfig(): { rewardsType?: 'virtual' | 'real'; customRewards: RewardConfig[] } {
+  if (typeof window === 'undefined') return { customRewards: [] }
+  try {
+    const raw = localStorage.getItem(GUEST_REWARDS_KEY)
+    if (!raw) return { customRewards: [] }
+    const parsed = JSON.parse(raw)
+    return { rewardsType: parsed.rewardsType, customRewards: Array.isArray(parsed.customRewards) ? parsed.customRewards : [] }
+  } catch {
+    return { customRewards: [] }
+  }
+}
+
 export async function saveUserRewardsConfig(
   uid: string,
   rewardsType: 'virtual' | 'real',

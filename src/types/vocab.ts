@@ -34,6 +34,9 @@ export interface TopicDef {
   bgColor: string
   words: WordDef[]
   rewards: RewardDef[]
+  // Optional: for a school-assigned weekly vocab list, shown as a prominent badge.
+  weekLabel?: string
+  quizDate?: string
   // Optional Math Workshop fields. Vocab topics omit these (default kind: 'vocab').
   kind?: 'vocab' | 'math' | 'language'
   mathLessons?: LessonDef[]
