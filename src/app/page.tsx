@@ -475,7 +475,13 @@ function Dashboard({
           </div>
           <div className="flex items-center gap-3">
             <button onClick={onBackToTopics} className="text-xs font-bold text-duo-blue hover:text-duo-blue/80 underline shrink-0">← Themes</button>
-            <button onClick={() => setShowResetConfirm(true)} className="text-xs text-red-400 hover:text-red-600 font-bold" title={lang === 'es' ? `Reiniciar ${activeTopic.name}` : `Reset ${activeTopic.name}`}>↺</button>
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="flex items-center justify-center gap-1 w-9 h-9 rounded-full bg-red-50 border-2 border-red-300 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors shrink-0 shadow-sm"
+              title={lang === 'es' ? `Reiniciar ${activeTopic.name}` : `Reset ${activeTopic.name}`}
+            >
+              <span className="text-lg leading-none">↺</span>
+            </button>
             <button onClick={onLogout} className="text-xs text-gray-500 hover:text-gray-700 font-semibold border border-gray-200 px-2 py-1 rounded-lg" title={lang === 'es' ? 'Cerrar sesión' : 'Log out'}>{lang === 'es' ? 'Salir' : 'Exit'}</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
@@ -2325,26 +2331,28 @@ function TopicSelectionView({
           </div>
 
           {/* Category Tabs */}
-          <div className="flex gap-2 p-1 bg-white border border-slate-200 rounded-2xl mb-6 shadow-sm">
+          <div className="grid grid-cols-2 gap-3 mb-6">
             <button
               onClick={() => setCategory('vocab')}
-              className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 cursor-pointer ${
+              className={`flex flex-col items-center justify-center gap-1.5 py-5 rounded-3xl border-[3px] transition-all duration-200 cursor-pointer ${
                 category === 'vocab'
-                  ? 'bg-gradient-to-r from-duo-green to-emerald-500 text-white shadow-md'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  ? 'bg-gradient-to-br from-duo-green to-emerald-500 border-emerald-500 text-white shadow-lg scale-[1.03]'
+                  : 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:border-emerald-400 hover:bg-emerald-100'
               }`}
             >
-              📖 VOCABULARIO
+              <span className="text-4xl">📖</span>
+              <span className="text-sm font-black tracking-wide text-center leading-tight">VOCABULARIO</span>
             </button>
             <button
               onClick={() => setCategory('subjects')}
-              className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 cursor-pointer ${
+              className={`flex flex-col items-center justify-center gap-1.5 py-5 rounded-3xl border-[3px] transition-all duration-200 cursor-pointer ${
                 category === 'subjects'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                  ? 'bg-gradient-to-br from-indigo-600 to-purple-600 border-indigo-600 text-white shadow-lg scale-[1.03]'
+                  : 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:border-indigo-400 hover:bg-indigo-100'
               }`}
             >
-              📘 ESTUDIO DE MATERIAS
+              <span className="text-4xl">📘</span>
+              <span className="text-sm font-black tracking-wide text-center leading-tight">ESTUDIO DE MATERIAS</span>
             </button>
           </div>
 
