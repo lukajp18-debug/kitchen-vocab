@@ -50,7 +50,7 @@ function GuestBanner() {
   if (!isGuest) return null
 
   return (
-    <div className="mx-4 mt-3 mb-1 max-w-lg mx-auto">
+    <div className="mx-4 mt-3 mb-1 max-w-lg md:max-w-3xl mx-auto">
       <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl px-4 py-3 shadow-md">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-xl shrink-0">🔒</span>
@@ -427,7 +427,7 @@ function Mascot({ size = 48, mood = 'idle' }: { size?: number; mood?: DinoMood }
 // ============ HEARTS DISPLAY ============
 function HeartsDisplay({ hearts, max = 3 }: { hearts: number; max?: number }) {
   return (
-    <div className="flex gap-1 items-center">
+    <div className="flex gap-1 items-center" role="img" aria-label={`${hearts}/${max} ❤️`}>
       {Array.from({ length: max }, (_, i) => (
         <span key={`${i}-${i < hearts}`} className={`text-xl transition-all duration-300 ${i < hearts ? 'opacity-100 scale-100' : 'opacity-30 scale-75 animate-heart-break'}`}>
           ❤️
@@ -494,7 +494,7 @@ function Dashboard({
       <FloatingShapes />
       {/* Top Bar */}
       <div className="bg-surface/85 backdrop-blur-sm shadow-sm px-4 py-3">
-        <div className="max-w-lg mx-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="max-w-lg md:max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto">
             <button
               onClick={onBackToTopics}
@@ -526,7 +526,7 @@ function Dashboard({
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-6">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg md:max-w-3xl mx-auto">
           {/* Welcome */}
           <div className="text-center mb-6">
             <Mascot size={110} mood={overallProgress === 100 ? 'celebrate' : 'idle'} />
@@ -827,7 +827,7 @@ function FlashcardView({ words, onComplete, onBack }: { words: WordDef[]; onComp
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className={`w-full max-w-sm ${animClass}`}>
-          <Card className="border-0 shadow-lg cursor-pointer clickable-image overflow-hidden mb-4" onClick={handleSpeak}>
+          <Card className="border-0 shadow-lg cursor-pointer clickable-image overflow-hidden mb-4" onClick={handleSpeak} role="button" tabIndex={0} aria-label={tx.hearQuoted(currentWord.word)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSpeak() }}>
             <CardContent className="p-6 flex flex-col items-center">
               <img src={currentWord.image} alt={currentWord.word} className="w-48 h-48 object-contain mb-4" />
               <div className="text-3xl font-bold text-gray-800 animate-slide-up">{currentWord.word.toUpperCase()}</div>
@@ -928,7 +928,7 @@ function PictureMatchView({ words, onComplete, onGameOver, onBack }: { words: Wo
             if (feedback === 'correct' && isCorrect) cardClass += ' ring-4 ring-duo-green bg-green-50 animate-pulse-grow'
             else if (feedback === 'wrong' && isSelected && !isCorrect) cardClass += ' ring-4 ring-duo-red bg-red-50 animate-shake'
             return (
-              <Card key={option.word} className={cardClass} onClick={() => handleSelect(option.word)}>
+              <Card key={option.word} className={cardClass} onClick={() => handleSelect(option.word)} role="button" tabIndex={0} aria-label={option.word} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelect(option.word) }}>
                 <CardContent className="p-3 flex flex-col items-center">
                   <img src={option.image} alt={option.word} className="w-28 h-28 object-contain" />
                   {feedback && (isCorrect || isSelected) && (
@@ -1597,7 +1597,7 @@ function FinalPictureMatch({ targetWord, options, onAnswer }: {
           if (feedback === 'correct' && isCorrect) cardClass += ' ring-4 ring-duo-green bg-green-50'
           else if (feedback === 'wrong' && isSelectedOpt && !isCorrect) cardClass += ' ring-4 ring-duo-red bg-red-50'
           return (
-            <Card key={option.word} className={cardClass} onClick={() => handleSelect(option.word)}>
+            <Card key={option.word} className={cardClass} onClick={() => handleSelect(option.word)} role="button" tabIndex={0} aria-label={option.word} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelect(option.word) }}>
               <CardContent className="p-3 flex flex-col items-center">
                 <img src={option.image} alt={option.word} className="w-24 h-24 object-contain" />
               </CardContent>
@@ -2285,7 +2285,7 @@ function TopicSelectionView({
       <FloatingShapes />
       {/* Top Bar */}
       <div className="bg-surface/85 backdrop-blur-sm shadow-sm px-4 py-3">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-lg md:max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Dino size={44} mood="idle" />
             <div>
@@ -2305,7 +2305,7 @@ function TopicSelectionView({
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="max-w-lg mx-auto">
+        <div className="max-w-lg md:max-w-3xl mx-auto">
           <div className="text-center mb-8">
             <Dino size={110} mood="happy" className="mx-auto mb-1" />
             <h1 className="text-2xl font-black text-gray-800">{tx.chooseTopic}</h1>
@@ -2338,7 +2338,7 @@ function TopicSelectionView({
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
             {TOPICS.filter((topic) => {
               const isSubject = topic.kind === 'math' || topic.kind === 'language'
               return category === 'subjects' ? isSubject : !isSubject
