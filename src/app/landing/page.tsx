@@ -1,4 +1,5 @@
 'use client'
+import { Dino } from '@/components/kid/Dino'
 
 import { useRouter } from 'next/navigation'
 import { useI18n } from '@/components/I18nProvider'
@@ -57,7 +58,7 @@ export default function LandingPage() {
       {/* Top Bar */}
       <div className="flex justify-between items-center px-6 py-4">
         <div className="flex items-center gap-2">
-          <span className="text-3xl">🦉</span>
+          <Dino size={40} mood="idle" />
           <span className="text-xl font-black tracking-tight text-white">{c.appName}</span>
         </div>
         <div className="flex items-center gap-3">
@@ -79,7 +80,7 @@ export default function LandingPage() {
       {/* Hero */}
       <div className="flex flex-col items-center text-center px-6 py-10 flex-1">
         <div className="relative mb-6">
-          <div className="text-8xl animate-bounce-custom">🦉</div>
+          <Dino size={170} mood="happy" className="mx-auto" />
           <div className="absolute -top-2 -right-4 text-3xl animate-float-star">⭐</div>
           <div className="absolute -bottom-2 -left-4 text-2xl animate-float-star" style={{ animationDelay: '0.5s' }}>✨</div>
         </div>

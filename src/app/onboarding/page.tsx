@@ -1,4 +1,5 @@
 'use client'
+import { Dino } from '@/components/kid/Dino'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -58,7 +59,7 @@ export default function OnboardingPage() {
       <Card className="w-full max-w-lg border-0 shadow-lg overflow-hidden">
         <CardContent className="p-8">
           <div className="text-center animate-slide-up">
-            <div className="text-6xl mb-6">🦉</div>
+            <Dino size={120} mood="happy" className="mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-gray-800 mb-4">{t.welcomeTitle}</h1>
             <p className="text-gray-600 mb-6 text-lg">{t.welcomeDesc}</p>
             <Button

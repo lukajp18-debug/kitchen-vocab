@@ -16,6 +16,7 @@ import { WordDef, RewardDef, LessonDef, TopicDef } from '@/types/vocab'
 import { fileToCompressedDataUrl, buildRewardConfigs, saveUserRewardsConfig, saveGuestRewardsConfig, loadGuestRewardsConfig } from '@/lib/rewards-storage'
 import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
 import { lessonName, lessonDescription, lessonTitle, topicTitle, topicSubtitle } from '@/lib/lessonText'
+import { Dino, type DinoMood } from '@/components/kid/Dino'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
 import { DictationView, ImageWordsView, WhQuestionsView, CompleteSentencesView, SortCircleView, LongAnswersView } from '@/components/workshop/WorkshopViews'
@@ -410,12 +411,8 @@ function RewardCelebration({ reward, onDismiss }: { reward: RewardDef; onDismiss
 }
 
 // ============ MASCOT COMPONENT ============
-function Mascot({ size = 48 }: { size?: number }) {
-  return (
-    <div className="select-none animate-float" style={{ fontSize: `${size}px`, lineHeight: 1 }}>
-      🦉
-    </div>
-  )
+function Mascot({ size = 48, mood = 'idle' }: { size?: number; mood?: DinoMood }) {
+  return <Dino size={size} mood={mood} className="mx-auto" />
 }
 
 // ============ HEARTS DISPLAY ============
@@ -529,7 +526,7 @@ function Dashboard({
         <div className="max-w-lg mx-auto">
           {/* Welcome */}
           <div className="text-center mb-6">
-            <Mascot size={56} />
+            <Mascot size={110} mood={overallProgress === 100 ? 'celebrate' : 'idle'} />
             <h1 className="text-2xl font-bold text-gray-800 mt-2">
               {overallProgress === 100 ? tx.allDone : tx.letsLearn(topicTitle(activeTopic, lang))}
             </h1>
@@ -792,7 +789,7 @@ function LessonCompleteView({ xpEarned, lessonName, onContinue }: { xpEarned: nu
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 flex flex-col items-center justify-center p-6">
       {showConfetti && <ConfettiEffect />}
-      <div className="text-center animate-bounce-custom"><Mascot size={64} /></div>
+      <div className="text-center"><Mascot size={150} mood="celebrate" /></div>
       <h1 className="text-3xl font-bold text-gray-800 mt-4 animate-slide-up">{tx.lessonComplete}</h1>
       <p className="text-lg text-gray-600 mt-2 animate-slide-up">{lessonName}</p>
       <div className="mt-6 animate-star-burst">
@@ -814,7 +811,7 @@ function GameOverView({ xpEarned, lessonName, onRetry, onBack }: { xpEarned: num
   const tx = t.study
   return (
     <div className="min-h-screen bg-gradient-to-b from-red-50 to-orange-50 flex flex-col items-center justify-center p-6">
-      <div className="text-center"><Mascot size={64} /></div>
+      <div className="text-center"><Mascot size={140} mood="cheer" /></div>
       <h1 className="text-2xl font-bold text-gray-800 mt-4">{tx.almostThere}</h1>
       <p className="text-lg text-gray-600 mt-2">{tx.outOfHearts}</p>
       <p className="text-lg font-bold text-gray-700">{lessonName}</p>
@@ -2346,7 +2343,7 @@ function TopicSelectionView({
       <div className="bg-surface shadow-sm px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🦉</span>
+            <Dino size={44} mood="idle" />
             <div>
               <span className="font-black text-lg text-gray-800 whitespace-nowrap">Study App</span>
               <p className="text-xs text-gray-400 -mt-0.5">{tx.hi(studentName)}</p>
@@ -2373,7 +2370,7 @@ function TopicSelectionView({
       <div className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-lg mx-auto">
           <div className="text-center mb-8">
-            <span className="text-5xl animate-float block mb-2">📚</span>
+            <Dino size={110} mood="happy" className="mx-auto mb-1" />
             <h1 className="text-2xl font-black text-gray-800">{tx.chooseTopic}</h1>
             <p className="text-gray-500 mt-1">{tx.chooseTopicSub}</p>
           </div>
@@ -2845,7 +2842,7 @@ export default function KitchenVocabApp() {
     return (
       <div className="min-h-screen bg-app flex items-center justify-center px-4">
         <div className="bg-surface rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
-          <div className="text-6xl mb-4 animate-float">🦉</div>
+          <Dino size={120} mood="happy" className="mx-auto mb-2" />
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Study App</h1>
           <p className="text-gray-500 mb-6">{tx.whatsYourName}</p>
           <input
@@ -2875,7 +2872,7 @@ export default function KitchenVocabApp() {
     return (
       <div className="min-h-screen bg-app flex items-center justify-center">
         <div className="text-center">
-          <div className="text-5xl animate-float">🦉</div>
+          <Dino size={110} mood="thinking" className="mx-auto" />
           <p className="text-gray-500 mt-4 font-bold">{tx.loading}</p>
         </div>
       </div>

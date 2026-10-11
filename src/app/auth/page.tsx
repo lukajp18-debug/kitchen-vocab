@@ -1,4 +1,5 @@
 'use client'
+import { Dino } from '@/components/kid/Dino'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -140,7 +141,7 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen bg-app flex flex-col items-center justify-center p-4 relative">
 <div className="text-center mb-8">
-        <div className="text-6xl mb-4 animate-bounce-custom">🦉</div>
+        <Dino size={110} mood="happy" className="mx-auto mb-2" />
         <h1 className="text-3xl font-bold text-gray-800">Study App</h1>
         <p className="text-gray-500 mt-2">{t.appTagline}</p>
       </div>

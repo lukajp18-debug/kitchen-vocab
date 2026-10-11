@@ -14,7 +14,7 @@ interface I18nContextType {
 }
 
 const I18nContext = createContext<I18nContextType>({
-  lang: 'en',
+  lang: 'es',
   t: en,
   toggleLang: () => {},
 })
@@ -24,7 +24,7 @@ export const useI18n = () => useContext(I18nContext)
 const dictionaries: Record<Lang, Translations> = { en, es }
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLang] = useState<Lang>('en')
+  const [lang, setLang] = useState<Lang>('es')
 
   useEffect(() => {
     const saved = localStorage.getItem('lang') as Lang | null

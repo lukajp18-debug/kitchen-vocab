@@ -653,3 +653,85 @@
   background-color: color-mix(in srgb, var(--oops) 18%, var(--surface));
   border-radius: 8px;
 }
+
+/* ============ DINO MASCOT ============ */
+.dino .dino-body,
+.dino .dino-shadow,
+.dino [class*="dino-wave"],
+.dino .dino-pump,
+.dino .dino-star,
+.dino .dino-dot,
+.dino .dino-blink {
+  transform-box: fill-box;
+}
+.dino .dino-body { transform-origin: 50% 100%; }
+.dino .dino-shadow { transform-origin: 50% 50%; }
+.dino .dino-blink { transform-origin: 50% 50%; animation: dino-blink 4s infinite; }
+.dino-wave-l { transform-origin: 100% 100%; animation: dino-wave-l 0.6s ease-in-out infinite; }
+.dino-wave-r { transform-origin: 0% 100%; animation: dino-wave-r 0.6s ease-in-out infinite; }
+.dino-pump { transform-origin: 0% 100%; animation: dino-pump 0.9s ease-in-out infinite; }
+.dino-star { transform-origin: 50% 50%; animation: dino-twinkle 1.2s ease-in-out infinite; }
+.dino-star-2 { animation-delay: 0.3s; }
+.dino-star-3 { animation-delay: 0.6s; }
+.dino-dot { transform-origin: 50% 50%; animation: dino-dot 1.5s ease-in-out infinite; }
+.dino-dot-2 { animation-delay: 0.2s; }
+.dino-dot-3 { animation-delay: 0.4s; }
+
+.dino-idle .dino-body { animation: dino-breathe 2.8s ease-in-out infinite; }
+.dino-happy .dino-body { animation: dino-hop 0.9s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+.dino-thinking .dino-body { animation: dino-tilt 2.4s ease-in-out infinite; }
+.dino-cheer .dino-body { animation: dino-nod 0.9s ease-in-out infinite; }
+.dino-celebrate .dino-body { animation: dino-jump 0.8s cubic-bezier(0.22, 1, 0.36, 1) infinite; }
+.dino-celebrate .dino-shadow,
+.dino-happy .dino-shadow { animation: dino-shadow 0.8s ease-in-out infinite; }
+
+@keyframes dino-breathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-3px) scale(1.015, 0.985); }
+}
+@keyframes dino-hop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  15% { transform: translateY(0) scale(1.05, 0.95); }
+  45% { transform: translateY(-10px) scale(0.97, 1.03); }
+}
+@keyframes dino-jump {
+  0%, 100% { transform: translateY(0) scale(1, 1) rotate(0); }
+  15% { transform: translateY(0) scale(1.08, 0.92); }
+  50% { transform: translateY(-22px) scale(0.95, 1.05) rotate(-4deg); }
+}
+@keyframes dino-tilt {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-4deg); }
+}
+@keyframes dino-nod {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-4px) rotate(3deg); }
+}
+@keyframes dino-shadow {
+  0%, 100% { transform: scale(1); opacity: 0.08; }
+  50% { transform: scale(0.75); opacity: 0.04; }
+}
+@keyframes dino-blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  97% { transform: scaleY(0.1); }
+}
+@keyframes dino-wave-l {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(14deg); }
+}
+@keyframes dino-wave-r {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-14deg); }
+}
+@keyframes dino-pump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes dino-twinkle {
+  0%, 100% { transform: scale(0.6) rotate(0); opacity: 0.4; }
+  50% { transform: scale(1.15) rotate(20deg); opacity: 1; }
+}
+@keyframes dino-dot {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
