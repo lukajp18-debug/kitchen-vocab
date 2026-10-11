@@ -24,6 +24,7 @@ export interface LessonDef {
 
 import type { MathContent } from './math'
 import type { LanguageContent } from './language'
+import type { WorkshopContent } from './workshop'
 
 export interface TopicDef {
   id: string
@@ -38,9 +39,11 @@ export interface TopicDef {
   weekLabel?: string
   quizDate?: string
   // Optional Math Workshop fields. Vocab topics omit these (default kind: 'vocab').
-  kind?: 'vocab' | 'math' | 'language'
+  kind?: 'vocab' | 'math' | 'language' | 'workshop'
   mathLessons?: LessonDef[]
   mathContent?: MathContent
   languageLessons?: LessonDef[]
   languageContent?: LanguageContent
+  workshopLessons?: LessonDef[]
+  workshopContent?: WorkshopContent
 }

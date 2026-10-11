@@ -1,6 +1,7 @@
 import { TopicDef, LessonDef } from '../types/vocab'
 import { MATH_TOPIC } from './mathTopic'
 import { LANGUAGE_TOPIC } from './languageTopic'
+import { WORKSHOP_3_TOPIC } from './workshopTopic'
 
 export const CONFETTI_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD93D', '#6BCB77', '#9B59B6', '#58CC02', '#CE82FF', '#FF9600', '#FFC800'
@@ -20,6 +21,38 @@ export const LESSONS: LessonDef[] = [
 ]
 
 export const TOPICS: TopicDef[] = [
+  WORKSHOP_3_TOPIC,
+  {
+    id: 'vocab-week-5',
+    name: 'Vocabulario del Colegio - Semana 5',
+    displayName: 'School Vocab - Week 5',
+    icon: '🏫',
+    color: '#4C6FFF',
+    bgColor: '#E3E8FF',
+    weekLabel: 'Vocabulary #3 · Semana 5',
+    words: [
+      { word: 'hour', image: '/images/vocab-weekly/week5/hour.png' },
+      { word: 'between', image: '/images/vocab-weekly/week5/between.png' },
+      { word: 'protect', image: '/images/vocab-weekly/week5/protect.png' },
+      { word: 'planet', image: '/images/vocab-weekly/week5/planet.png' },
+      { word: 'different', image: '/images/vocab-weekly/week5/different.png' },
+      { word: 'rainbow', image: '/images/vocab-weekly/week5/rainbow.png' },
+      { word: 'colors', image: '/images/vocab-weekly/week5/colors.png' },
+      { word: 'school', image: '/images/vocab-weekly/week5/school.png' },
+      { word: 'history', image: '/images/vocab-weekly/week5/history.png' },
+      { word: 'symbol', image: '/images/vocab-weekly/week5/symbol.png' },
+      { word: 'same', image: '/images/vocab-weekly/week5/same.png' },
+      { word: 'water', image: '/images/vocab-weekly/week5/water.png' },
+      { word: 'light', image: '/images/vocab-weekly/week5/light.png' },
+      { word: 'ruler', image: '/images/vocab-weekly/week5/ruler.png' },
+      { word: 'build', image: '/images/vocab-weekly/week5/build.png' },
+    ],
+    rewards: [
+      { id: 'sticker-pack', name: 'Sticker Pack', image: '/images/rewards/panelita.png', lessonsRequired: 2, description: 'Complete 2 lessons (33%)', is3D: false },
+      { id: 'extra-playtime', name: 'Tiempo Extra de Juego', image: '/images/rewards/trululu.png', lessonsRequired: 4, description: 'Complete 4 lessons (66%)', is3D: false },
+      { id: 'surprise-prize', name: 'Premio Sorpresa', image: '/images/rewards/hotwheels.png', lessonsRequired: 6, description: 'Complete ALL lessons (100%)', is3D: false },
+    ]
+  },
   {
     id: 'vocab-week-2',
     name: 'Vocabulario del Colegio - Semana 2',

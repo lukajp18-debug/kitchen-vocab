@@ -10,7 +10,7 @@ import { ArticleWord, ArticleTheWord, Article, ThereIsAreItem, ActionWordItem, P
 const ENCOURAGEMENTS = ['¡Excelente! 🌟', '¡Muy bien! 🎉', '¡Genial! ✨', '¡Súper! 🚀', '¡Perfecto! 💯', '¡Increíble! 🎊']
 const randomEncouragement = () => ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
 
-function shuffle<T>(arr: T[]): T[] {
+export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -20,7 +20,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 // ============ SHARED CHROME ============
-function LAHeader({ title, hearts, current, total, onBack }: {
+export function LAHeader({ title, hearts, current, total, onBack }: {
   title: string; hearts: number; current: number; total: number; onBack: () => void
 }) {
   const pct = total > 0 ? (current / total) * 100 : 0
@@ -40,7 +40,7 @@ function LAHeader({ title, hearts, current, total, onBack }: {
   )
 }
 
-function Feedback({ feedback }: { feedback: 'correct' | 'wrong' | null }) {
+export function Feedback({ feedback }: { feedback: 'correct' | 'wrong' | null }) {
   if (!feedback) return null
   return (
     <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>

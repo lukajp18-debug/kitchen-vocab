@@ -17,11 +17,13 @@ import { fileToCompressedDataUrl, buildRewardConfigs, saveUserRewardsConfig, sav
 import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
+import { DictationView, ImageWordsView, WhQuestionsView, CompleteSentencesView, SortCircleView, LongAnswersView } from '@/components/workshop/WorkshopViews'
 
 // Resolve the lesson set for a topic: math topics carry their own lessons.
 function getLessonsForTopic(topic: TopicDef): LessonDef[] {
   if (topic.kind === 'math' && topic.mathLessons) return topic.mathLessons
   if (topic.kind === 'language' && topic.languageLessons) return topic.languageLessons
+  if (topic.kind === 'workshop' && topic.workshopLessons) return topic.workshopLessons
   return LESSONS
 }
 
@@ -75,6 +77,12 @@ type ViewType =
   | 'la-there-is-are'
   | 'la-action-words'
   | 'la-present-tense'
+  | 'ws-dictation'
+  | 'ws-image-words'
+  | 'ws-wh-questions'
+  | 'ws-complete-sentences'
+  | 'ws-sort-circle'
+  | 'ws-long-answers'
   | 'lesson-complete'
   | 'game-over'
 
@@ -134,6 +142,16 @@ const VIRTUAL_REWARD_INFO: Record<string, { emoji: string; name: string; nameEs:
     { emoji: '🥉', name: 'Class Learner',   nameEs: 'Aprendiz de Clase' },
     { emoji: '🥈', name: 'Vocab Builder',   nameEs: 'Constructor de Vocabulario' },
     { emoji: '🏆', name: 'Vocab Champion',  nameEs: 'Campeón del Vocabulario' },
+  ],
+  'vocab-week-5': [
+    { emoji: '🥉', name: 'Class Learner',   nameEs: 'Aprendiz de Clase' },
+    { emoji: '🥈', name: 'Vocab Builder',   nameEs: 'Constructor de Vocabulario' },
+    { emoji: '🏆', name: 'Vocab Champion',  nameEs: 'Campeón del Vocabulario' },
+  ],
+  'workshop-vocab-3': [
+    { emoji: '🥉', name: 'Quiz Rookie',     nameEs: 'Novato del Quiz' },
+    { emoji: '🥈', name: 'Quiz Pro',        nameEs: 'Pro del Quiz' },
+    { emoji: '🏆', name: 'Quiz Champion',   nameEs: 'Campeón del Quiz' },
   ],
 }
 
@@ -2941,6 +2959,49 @@ export default function KitchenVocabApp() {
           sentences={activeTopic.languageContent.presentTense}
           xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'la-present-tense')?.xpReward ?? 100}
           onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'ws-dictation' && activeTopic.workshopContent && (
+        <DictationView
+          items={activeTopic.workshopContent.dictation}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'ws-dictation')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'ws-image-words' && activeTopic.workshopContent && (
+        <ImageWordsView
+          items={activeTopic.workshopContent.imageWords}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'ws-image-words')?.xpReward ?? 60}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'ws-wh-questions' && activeTopic.workshopContent && (
+        <WhQuestionsView
+          words={activeTopic.workshopContent.whWords}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'ws-wh-questions')?.xpReward ?? 80}
+          onComplete={handleLessonComplete} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'ws-complete-sentences' && activeTopic.workshopContent && (
+        <CompleteSentencesView
+          items={activeTopic.workshopContent.completeSentences}
+          bank={activeTopic.workshopContent.wordBank}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'ws-complete-sentences')?.xpReward ?? 60}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'ws-sort-circle' && activeTopic.workshopContent && (
+        <SortCircleView
+          content={activeTopic.workshopContent.sort}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'ws-sort-circle')?.xpReward ?? 60}
+          onComplete={handleLessonComplete} onGameOver={handleGameOver} onBack={handleBackToDashboard}
+        />
+      )}
+      {view === 'ws-long-answers' && activeTopic.workshopContent && (
+        <LongAnswersView
+          questions={activeTopic.workshopContent.longAnswers}
+          xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'ws-long-answers')?.xpReward ?? 100}
+          onComplete={handleLessonComplete} onBack={handleBackToDashboard}
         />
       )}
       {view === 'lesson-complete' && (
