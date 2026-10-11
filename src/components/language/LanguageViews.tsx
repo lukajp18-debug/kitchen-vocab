@@ -2,13 +2,14 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/components/I18nProvider'
+import { lessonTitle } from '@/lib/lessonText'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { ArticleWord, ArticleTheWord, Article, ThereIsAreItem, ActionWordItem, PresentTenseItem } from '@/types/language'
 
 // ============ HELPERS ============
-const ENCOURAGEMENTS = ['¡Excelente! 🌟', '¡Muy bien! 🎉', '¡Genial! ✨', '¡Súper! 🚀', '¡Perfecto! 💯', '¡Increíble! 🎊']
-const randomEncouragement = () => ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
+const randomEncouragement = (list: string[]) => list[Math.floor(Math.random() * list.length)]
 
 export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -41,10 +42,12 @@ export function LAHeader({ title, hearts, current, total, onBack }: {
 }
 
 export function Feedback({ feedback }: { feedback: 'correct' | 'wrong' | null }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   if (!feedback) return null
   return (
     <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-      {feedback === 'correct' ? randomEncouragement() : '¡Inténtalo otra vez! 💪'}
+      {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.tryAgain}
     </div>
   )
 }
@@ -53,6 +56,8 @@ export function Feedback({ feedback }: { feedback: 'correct' | 'wrong' | null })
 export function ArticlesAAnView({ words, xp, onComplete, onGameOver, onBack }: {
   words: ArticleWord[]; xp: number; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const shuffled = useMemo(() => shuffle(words), [words])
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
@@ -86,7 +91,7 @@ export function ArticlesAAnView({ words, xp, onComplete, onGameOver, onBack }: {
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><LAHeader title="Articles: A or An" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><LAHeader title={lessonTitle('la-articles-a-an', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <div className={`flex flex-col items-center gap-2 ${anim}`}>
           <span className="text-8xl">{item.emoji}</span>
@@ -119,6 +124,8 @@ export function ArticlesAAnView({ words, xp, onComplete, onGameOver, onBack }: {
 export function ArticlesTheView({ words, xp, onComplete, onGameOver, onBack }: {
   words: ArticleTheWord[]; xp: number; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const shuffled = useMemo(() => shuffle(words), [words])
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
@@ -153,7 +160,7 @@ export function ArticlesTheView({ words, xp, onComplete, onGameOver, onBack }: {
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><LAHeader title="Articles: A / An / The" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><LAHeader title={lessonTitle('la-articles-the', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-5">
         <div className={`flex flex-col items-center gap-2 ${anim}`}>
           <span className="text-8xl">{item.emoji}</span>
@@ -189,6 +196,8 @@ export function ArticlesTheView({ words, xp, onComplete, onGameOver, onBack }: {
 export function ThereIsAreView({ items, xp, onComplete, onGameOver, onBack }: {
   items: ThereIsAreItem[]; xp: number; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const shuffled = useMemo(() => shuffle(items), [items])
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
@@ -222,7 +231,7 @@ export function ThereIsAreView({ items, xp, onComplete, onGameOver, onBack }: {
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><LAHeader title="There is / There are" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><LAHeader title={lessonTitle('la-there-is-are', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <div className={`flex flex-col items-center gap-3 ${anim}`}>
           <span className="text-6xl">{item.emoji}</span>
@@ -256,6 +265,8 @@ export function ThereIsAreView({ items, xp, onComplete, onGameOver, onBack }: {
 export function ActionWordsView({ actions, xp, onComplete, onGameOver, onBack }: {
   actions: ActionWordItem[]; xp: number; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const shuffled = useMemo(() => shuffle(actions), [actions])
   const allWords = useMemo(() => actions.map(a => a.word), [actions])
 
@@ -303,9 +314,9 @@ export function ActionWordsView({ actions, xp, onComplete, onGameOver, onBack }:
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><LAHeader title="Action Words" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><LAHeader title={lessonTitle('la-action-words', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
-        <p className="text-gray-500 font-semibold">What action is this?</p>
+        <p className="text-gray-500 font-semibold">{tx.whatAction}</p>
         <div className={`text-9xl ${anim}`}>{item.emoji}</div>
         <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
           {options.map((opt) => {
@@ -332,6 +343,8 @@ export function ActionWordsView({ actions, xp, onComplete, onGameOver, onBack }:
 export function PresentTenseView({ sentences, xp, onComplete, onGameOver, onBack }: {
   sentences: PresentTenseItem[]; xp: number; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const shuffled = useMemo(() => shuffle(sentences), [sentences])
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
@@ -367,7 +380,7 @@ export function PresentTenseView({ sentences, xp, onComplete, onGameOver, onBack
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><LAHeader title="Simple Present Tense" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><LAHeader title={lessonTitle('la-present-tense', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <Card className={`border-0 shadow-md w-full max-w-sm ${anim}`}>
           <CardContent className="p-6 text-center">
@@ -375,7 +388,7 @@ export function PresentTenseView({ sentences, xp, onComplete, onGameOver, onBack
             <p className="text-lg text-gray-600">{item.verbPhrase.replace(/_{2,}/g, '______')}</p>
           </CardContent>
         </Card>
-        <p className="text-gray-500 text-sm font-semibold">Choose the correct form:</p>
+        <p className="text-gray-500 text-sm font-semibold">{tx.chooseForm}</p>
         <div className="flex gap-4">
           {item.options.map((opt) => {
             const isSel = selected === opt

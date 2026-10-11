@@ -12,12 +12,12 @@ export const ENCOURAGEMENTS = [
 ]
 
 export const LESSONS: LessonDef[] = [
-  { id: 'flashcards', name: 'Learn the Words', icon: '📚', color: '#58CC02', bgColor: '#E5F9D0', description: 'Learn 10 words with pictures!', xpReward: 10 },
-  { id: 'picture-match', name: 'Match the Picture', icon: '🖼️', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Match words to pictures!', xpReward: 80 },
-  { id: 'listen-choose', name: 'Listen and Pick', icon: '👂', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Listen and pick the right word!', xpReward: 80 },
-  { id: 'spelling-challenge', name: 'Spell the Word', icon: '✏️', color: '#00CD9C', bgColor: '#CCF5EA', description: 'Spell the words you hear!', xpReward: 80 },
-  { id: 'whats-missing', name: 'Fill the Blank', icon: '❓', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Find the missing letter!', xpReward: 80 },
-  { id: 'final-test', name: 'Show What You Know!', icon: '🏆', color: '#FFB700', bgColor: '#FFF0CC', description: 'Final test - prove your skills!', xpReward: 120 },
+  { id: 'flashcards', name: 'Learn the Words', nameEs: 'Aprende las palabras', icon: '📚', color: '#58CC02', bgColor: '#E5F9D0', description: 'Learn the words with pictures!', descriptionEs: '¡Aprende las palabras con imágenes!', xpReward: 10 },
+  { id: 'picture-match', name: 'Match the Picture', nameEs: 'Une la imagen', icon: '🖼️', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Match words to pictures!', descriptionEs: '¡Une las palabras con las imágenes!', xpReward: 80 },
+  { id: 'listen-choose', name: 'Listen and Pick', nameEs: 'Escucha y elige', icon: '👂', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Listen and pick the right word!', descriptionEs: '¡Escucha y elige la palabra correcta!', xpReward: 80 },
+  { id: 'spelling-challenge', name: 'Spell the Word', nameEs: 'Deletrea la palabra', icon: '✏️', color: '#00CD9C', bgColor: '#CCF5EA', description: 'Spell the words you hear!', descriptionEs: '¡Deletrea las palabras que escuchas!', xpReward: 80 },
+  { id: 'whats-missing', name: 'Fill the Blank', nameEs: 'Completa la palabra', icon: '❓', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Find the missing letter!', descriptionEs: '¡Encuentra la letra que falta!', xpReward: 80 },
+  { id: 'final-test', name: 'Show What You Know!', nameEs: '¡Demuestra lo que sabes!', icon: '🏆', color: '#FFB700', bgColor: '#FFF0CC', description: 'Final test - prove your skills!', descriptionEs: 'Prueba final: ¡demuestra lo que aprendiste!', xpReward: 120 },
 ]
 
 export const TOPICS: TopicDef[] = [

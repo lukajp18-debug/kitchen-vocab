@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/components/I18nProvider'
+import { lessonTitle } from '@/lib/lessonText'
 import { LAHeader, Feedback, shuffle } from '@/components/language/LanguageViews'
 import { TypedItem, WhQuestionItem, LongAnswerItem, WorkshopContent } from '@/types/workshop'
 
@@ -37,6 +39,8 @@ const inputCls = 'w-full max-w-sm text-center text-2xl font-bold rounded-2xl bor
 function TypedLesson({ title, items, bank, xp, onComplete, onGameOver, onBack }: LessonProps & {
   title: string; items: TypedItem[]; bank?: string[]
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const later = useLater()
   const rounds = useMemo(() => shuffle(items), [items])
   const [round, setRound] = useState(0)
@@ -93,8 +97,8 @@ function TypedLesson({ title, items, bank, xp, onComplete, onGameOver, onBack }:
               {sentenceParts[0]}<span className="inline-block min-w-[6rem] border-b-4 border-gray-400 text-duo-green">{feedback === 'correct' ? item.answer : ' '}</span>{sentenceParts[1]}
             </p>
           )}
-          {!item.speak && !sentenceParts && <p className="text-gray-500 font-semibold">Write the word</p>}
-          {item.speak && <p className="text-gray-500 font-semibold">Listen and write the word</p>}
+          {!item.speak && !sentenceParts && <p className="text-gray-500 font-semibold">{tx.writeTheWord}</p>}
+          {item.speak && <p className="text-gray-500 font-semibold">{tx.listenAndWrite}</p>}
         </div>
 
         {bank && (
@@ -112,11 +116,11 @@ function TypedLesson({ title, items, bank, xp, onComplete, onGameOver, onBack }:
           disabled={!!feedback}
           autoFocus
           autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false}
-          placeholder="Type here..."
+          placeholder={tx.typeHere}
           className={inputCls + (feedback === 'correct' ? 'border-duo-green bg-green-50 text-duo-green' : feedback === 'wrong' ? 'border-duo-red bg-red-50 text-duo-red' : 'border-gray-200 bg-surface text-gray-800 focus:border-duo-blue')}
         />
         <Button onClick={check} disabled={!!feedback || !value.trim()} className="duo-button bg-duo-green hover:bg-duo-green/90 text-white font-black text-lg px-10 py-6 rounded-2xl">
-          CHECK
+          {tx.check}
         </Button>
         {feedback === 'correct' && <p className="font-bold text-duo-green text-xl">{item.answer}</p>}
         <Feedback feedback={feedback} />
@@ -126,15 +130,21 @@ function TypedLesson({ title, items, bank, xp, onComplete, onGameOver, onBack }:
 }
 
 export function DictationView({ items, ...p }: LessonProps & { items: TypedItem[] }) {
-  return <TypedLesson title="Listen and Write" items={items} {...p} />
+  const { t, lang } = useI18n()
+  const tx = t.study
+  return <TypedLesson title={lessonTitle('ws-dictation', lang)} items={items} {...p} />
 }
 
 export function ImageWordsView({ items, ...p }: LessonProps & { items: TypedItem[] }) {
-  return <TypedLesson title="Look and Write" items={items} {...p} />
+  const { t, lang } = useI18n()
+  const tx = t.study
+  return <TypedLesson title={lessonTitle('ws-image-words', lang)} items={items} {...p} />
 }
 
 export function CompleteSentencesView({ items, bank, ...p }: LessonProps & { items: TypedItem[]; bank: string[] }) {
-  return <TypedLesson title="Complete the Sentence" items={items} bank={bank} {...p} />
+  const { t, lang } = useI18n()
+  const tx = t.study
+  return <TypedLesson title={lessonTitle('ws-complete-sentences', lang)} items={items} bank={bank} {...p} />
 }
 
 // ============ FREE-TEXT SHELL (Wh questions / long answers) ============
@@ -145,6 +155,8 @@ function FreeTextLesson({ title, total, round, prompt, extra, value, setValue, h
   value: string; setValue: (v: string) => void; hint: string | null; done: boolean
   onSubmit: () => void; onBack: () => void; rows?: number
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   return (
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title={title} hearts={3} current={round + 1} total={total} onBack={onBack} /></div>
@@ -157,13 +169,13 @@ function FreeTextLesson({ title, total, round, prompt, extra, value, setValue, h
           disabled={done}
           rows={rows}
           autoCorrect="off" autoComplete="off" spellCheck={false}
-          placeholder="Type your answer here..."
+          placeholder={tx.typeAnswer}
           className={'w-full max-w-sm text-lg font-semibold rounded-2xl border-4 px-4 py-3 outline-none transition-all resize-none ' + (done ? 'border-duo-green bg-green-50 text-duo-green' : 'border-gray-200 bg-surface text-gray-800 focus:border-duo-blue')}
         />
         {hint && !done && <p className="text-sm font-bold text-duo-orange text-center max-w-sm">💡 {hint}</p>}
-        {done && <p className="font-bold text-duo-green text-xl animate-slide-up">Great writing! ✍️</p>}
+        {done && <p className="font-bold text-duo-green text-xl animate-slide-up">{tx.greatWriting}</p>}
         <Button onClick={onSubmit} disabled={done || !value.trim()} className="duo-button bg-duo-green hover:bg-duo-green/90 text-white font-black text-lg px-10 py-6 rounded-2xl">
-          CHECK
+          {tx.check}
         </Button>
       </div>
     </div>
@@ -174,6 +186,8 @@ function FreeTextLesson({ title, total, round, prompt, extra, value, setValue, h
 const WH_WORDS = ['What', 'When', 'Why', 'Where', 'Who', 'How']
 
 export function WhQuestionsView({ words, xp, onComplete, onBack }: { words: WhQuestionItem[] } & Pick<LessonProps, 'xp' | 'onComplete' | 'onBack'>) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const later = useLater()
   const [round, setRound] = useState(0)
   const [value, setValue] = useState('')
@@ -185,10 +199,10 @@ export function WhQuestionsView({ words, xp, onComplete, onBack }: { words: WhQu
     const text = value.trim()
     const first = text.split(/\s+/)[0]?.toLowerCase().replace(/[^a-z]/g, '')
     let problem: string | null = null
-    if (!WH_WORDS.some((w) => w.toLowerCase() === first)) problem = 'Start your question with What, When, Why, Where, Who or How.'
-    else if (!text.toLowerCase().includes(item.word.toLowerCase())) problem = `Use the word "${item.word}" in your question.`
-    else if (countWords(text) < 4) problem = 'Write a longer question.'
-    else if (!text.endsWith('?')) problem = 'End your question with a question mark ( ? ).'
+    if (!WH_WORDS.some((w) => w.toLowerCase() === first)) problem = tx.whStart
+    else if (!text.toLowerCase().includes(item.word.toLowerCase())) problem = tx.whUseWord(item.word)
+    else if (countWords(text) < 4) problem = tx.whLonger
+    else if (!text.endsWith('?')) problem = tx.whQuestionMark
     setHint(problem)
     if (problem) return
     setDone(true)
@@ -200,12 +214,12 @@ export function WhQuestionsView({ words, xp, onComplete, onBack }: { words: WhQu
 
   return (
     <FreeTextLesson
-      title="Wh Questions" total={words.length} round={round} value={value} setValue={setValue}
+      title={lessonTitle('ws-wh-questions', lang)} total={words.length} round={round} value={value} setValue={setValue}
       hint={hint} done={done} onSubmit={submit} onBack={onBack}
       prompt={
         <div className="flex flex-col items-center gap-2">
           {item.image && <img src={item.image} alt="" className="max-h-32 max-w-[12rem] object-contain rounded-2xl bg-surface p-2 shadow-sm" />}
-          <p className="text-gray-500 font-semibold text-center">Write a question using this word:</p>
+          <p className="text-gray-500 font-semibold text-center">{tx.writeQuestionWith}</p>
           <p className="text-4xl font-black text-duo-purple capitalize">{item.word}</p>
         </div>
       }
@@ -227,6 +241,8 @@ export function WhQuestionsView({ words, xp, onComplete, onBack }: { words: WhQu
 
 // ============ LONG ANSWERS ============
 export function LongAnswersView({ questions, xp, onComplete, onBack }: { questions: LongAnswerItem[] } & Pick<LessonProps, 'xp' | 'onComplete' | 'onBack'>) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const later = useLater()
   const [round, setRound] = useState(0)
   const [value, setValue] = useState('')
@@ -240,7 +256,7 @@ export function LongAnswersView({ questions, xp, onComplete, onBack }: { questio
   }, [item])
 
   const submit = useCallback(() => {
-    const problem = countWords(value) < 3 ? `Write a long answer, like: ${item.starter}` : null
+    const problem = countWords(value) < 3 ? tx.longAnswerHint(item.starter) : null
     setHint(problem)
     if (problem) return
     setDone(true)
@@ -252,21 +268,23 @@ export function LongAnswersView({ questions, xp, onComplete, onBack }: { questio
 
   return (
     <FreeTextLesson
-      title="Long Answers" total={questions.length} round={round} value={value} setValue={setValue}
+      title={lessonTitle('ws-long-answers', lang)} total={questions.length} round={round} value={value} setValue={setValue}
       hint={hint} done={done} onSubmit={submit} onBack={onBack}
       prompt={
         <div className="flex flex-col items-center gap-2">
           <p className="text-2xl font-black text-gray-800 text-center max-w-xs">{item.question}</p>
-          <Button variant="ghost" size="sm" className="text-duo-blue" onClick={() => speak(item.question)}>🔊 Hear again</Button>
+          <Button variant="ghost" size="sm" className="text-duo-blue" onClick={() => speak(item.question)}>{tx.hearAgain}</Button>
         </div>
       }
-      extra={<p className="text-sm text-gray-400 font-semibold text-center max-w-sm">Start like this: {item.starter}</p>}
+      extra={<p className="text-sm text-gray-400 font-semibold text-center max-w-sm">{tx.startLike} {item.starter}</p>}
     />
   )
 }
 
 // ============ GROUP & CIRCLE ============
 export function SortCircleView({ content, xp, onComplete, onGameOver, onBack }: LessonProps & { content: WorkshopContent['sort'] }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const later = useLater()
   const items = useMemo(() => shuffle(content.items), [content.items])
   const circleOptions = useMemo(() => shuffle([...content.circle.options]), [content.circle.options])
@@ -305,16 +323,16 @@ export function SortCircleView({ content, xp, onComplete, onGameOver, onBack }: 
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><LAHeader title="Group and Circle" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><LAHeader title={lessonTitle('ws-sort-circle', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <div className={`flex flex-col items-center gap-3 ${anim}`}>
           {isCircle ? (
             <p className="text-xl font-black text-gray-800 text-center max-w-xs">{content.circle.prompt}</p>
           ) : (
             <>
-              <p className="text-gray-500 font-semibold">Put the word in the correct group</p>
+              <p className="text-gray-500 font-semibold">{tx.putInGroup}</p>
               <p className="text-5xl font-black text-gray-800">{item.word}</p>
-              <button onClick={() => speak(item.word)} className="text-duo-blue font-bold text-sm cursor-pointer">🔊 Hear it</button>
+              <button onClick={() => speak(item.word)} className="text-duo-blue font-bold text-sm cursor-pointer">{tx.hearIt}</button>
             </>
           )}
         </div>

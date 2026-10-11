@@ -4,11 +4,11 @@ import { MathContent } from '../types/math'
 // Lessons for the Math Workshop topic. Same shape as vocab LessonDef so the
 // Dashboard can render them uniformly; ids map to the math view dispatch in page.tsx.
 export const MATH_LESSONS: LessonDef[] = [
-  { id: 'math-addition', name: '3-Digit Addition', icon: '➕', color: '#58CC02', bgColor: '#E5F9D0', description: 'Suma de 3 dígitos con reagrupación', xpReward: 80 },
-  { id: 'math-subtraction', name: '3-Digit Subtraction', icon: '➖', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Resta de 3 dígitos con reagrupación', xpReward: 80 },
-  { id: 'math-word-problems', name: 'Word Problems', icon: '🧠', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Resuelve los problemas', xpReward: 100 },
-  { id: 'math-money', name: 'Money & Coins', icon: '🪙', color: '#FFB700', bgColor: '#FFF0CC', description: 'Nombra y cuenta monedas', xpReward: 80 },
-  { id: 'math-time', name: 'Telling the Time', icon: '🕐', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Lee y pon la hora en el reloj', xpReward: 80 },
+  { id: 'math-addition', name: '3-Digit Addition', nameEs: 'Suma de 3 dígitos', icon: '➕', color: '#58CC02', bgColor: '#E5F9D0', description: 'Add 3-digit numbers with regrouping', descriptionEs: 'Suma de 3 dígitos con reagrupación', xpReward: 80 },
+  { id: 'math-subtraction', name: '3-Digit Subtraction', nameEs: 'Resta de 3 dígitos', icon: '➖', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Subtract 3-digit numbers with regrouping', descriptionEs: 'Resta de 3 dígitos con reagrupación', xpReward: 80 },
+  { id: 'math-word-problems', name: 'Word Problems', nameEs: 'Problemas', icon: '🧠', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Solve the word problems', descriptionEs: 'Resuelve los problemas', xpReward: 100 },
+  { id: 'math-money', name: 'Money & Coins', nameEs: 'Dinero y monedas', icon: '🪙', color: '#FFB700', bgColor: '#FFF0CC', description: 'Name and count coins', descriptionEs: 'Nombra y cuenta monedas', xpReward: 80 },
+  { id: 'math-time', name: 'Telling the Time', nameEs: 'La hora', icon: '🕐', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Read and set the time on the clock', descriptionEs: 'Lee y pon la hora en el reloj', xpReward: 80 },
 ]
 
 // Exact content taken from "Math Workshop 3rd Term - 2025 - 2026.pdf".

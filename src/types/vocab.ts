@@ -19,6 +19,9 @@ export interface LessonDef {
   color: string
   bgColor: string
   description: string
+  // Spanish versions; name/description are the English ones.
+  nameEs?: string
+  descriptionEs?: string
   xpReward: number
 }
 

@@ -2,11 +2,11 @@ import { TopicDef, LessonDef } from '../types/vocab'
 import { LanguageContent } from '../types/language'
 
 export const LANGUAGE_LESSONS: LessonDef[] = [
-  { id: 'la-articles-a-an',   name: 'Articles: A or An',      icon: '🔤', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Choose "a" or "an" for each word',           xpReward: 80  },
-  { id: 'la-articles-the',    name: 'Articles: A / An / The', icon: '📝', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Choose the correct article',                  xpReward: 80  },
-  { id: 'la-there-is-are',    name: 'There is / There are',   icon: '👥', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Is or are? Fill in the sentence',             xpReward: 80  },
-  { id: 'la-action-words',    name: 'Action Words',           icon: '🏃', color: '#58CC02', bgColor: '#E5F9D0', description: 'Match the picture to the action word',        xpReward: 80  },
-  { id: 'la-present-tense',   name: 'Simple Present Tense',   icon: '⏱️', color: '#FFB700', bgColor: '#FFF0CC', description: 'Choose the correct verb form',                xpReward: 100 },
+  { id: 'la-articles-a-an',   name: 'Articles: A or An', nameEs: 'Artículos: A o An',      icon: '🔤', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Choose "a" or "an" for each word', descriptionEs: 'Elige "a" o "an" para cada palabra',           xpReward: 80  },
+  { id: 'la-articles-the',    name: 'Articles: A / An / The', nameEs: 'Artículos: A / An / The', icon: '📝', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Choose the correct article', descriptionEs: 'Elige el artículo correcto',                  xpReward: 80  },
+  { id: 'la-there-is-are',    name: 'There is / There are', nameEs: 'There is / There are',   icon: '👥', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Is or are? Fill in the sentence', descriptionEs: '¿Is o are? Completa la oración',             xpReward: 80  },
+  { id: 'la-action-words',    name: 'Action Words', nameEs: 'Palabras de acción',           icon: '🏃', color: '#58CC02', bgColor: '#E5F9D0', description: 'Match the picture to the action word', descriptionEs: 'Une la imagen con la acción',        xpReward: 80  },
+  { id: 'la-present-tense',   name: 'Simple Present Tense', nameEs: 'Presente simple',   icon: '⏱️', color: '#FFB700', bgColor: '#FFF0CC', description: 'Choose the correct verb form', descriptionEs: 'Elige la forma correcta del verbo',                xpReward: 100 },
 ]
 
 // Exact content from "Language Arts Workshop 3rd Term - 2025 - 2026.pdf"

@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
+import { useI18n } from '@/components/I18nProvider'
+import { lessonTitle } from '@/lib/lessonText'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -15,8 +17,7 @@ import {
 } from '@/types/math'
 
 // ============ SHARED HELPERS ============
-const ENCOURAGEMENTS = ['¡Excelente! 🌟', '¡Muy bien! 🎉', '¡Genial! ✨', '¡Súper! 🚀', '¡Perfecto! 💯', '¡Increíble! 🎊']
-const randomEncouragement = () => ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
+const randomEncouragement = (list: string[]) => list[Math.floor(Math.random() * list.length)]
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -75,10 +76,12 @@ function AnswerInput({ value, onChange, onSubmit, disabled }: {
 }
 
 function Feedback({ feedback }: { feedback: 'correct' | 'wrong' | null }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   if (!feedback) return null
   return (
     <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-      {feedback === 'correct' ? randomEncouragement() : '¡Inténtalo otra vez! 💪'}
+      {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.tryAgain}
     </div>
   )
 }
@@ -184,6 +187,8 @@ export function ColumnSolveView({ title, columns, breakApart, op, xp, onComplete
   onGameOver: (xp: number) => void
   onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const rounds: ColRound[] = useMemo(() => {
     const base: ColRound[] = columns.map((c) => ({ a: c.a, b: c.b, op: c.op }))
     const ba: ColRound[] = (breakApart ?? []).map((p) => ({ a: p.a, b: p.b, op: 'add', breakApart: true }))
@@ -226,11 +231,11 @@ export function ColumnSolveView({ title, columns, breakApart, op, xp, onComplete
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><MathHeader title={title} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
-        <p className="text-gray-500 font-semibold mb-2">{r.breakApart ? 'Suma usando "break apart" 🧩' : 'Resuelve la operación'}</p>
+        <p className="text-gray-500 font-semibold mb-2">{r.breakApart ? tx.breakApart : tx.solve}</p>
         <div className={anim}><PlaceValueGrid a={r.a} b={r.b} op={op} reveal={feedback === 'correct' ? answer : null} /></div>
         {r.breakApart && feedback !== 'correct' && (
           <p className="mt-3 text-sm text-gray-500 text-center max-w-xs">
-            Pista: {r.a} = {Math.floor(r.a / 100) * 100} + {Math.floor((r.a % 100) / 10) * 10} + {r.a % 10}
+            {tx.hintLabel} {r.a} = {Math.floor(r.a / 100) * 100} + {Math.floor((r.a % 100) / 10) * 10} + {r.a % 10}
             {'  •  '}{r.b} = {Math.floor(r.b / 100) * 100} + {Math.floor((r.b % 100) / 10) * 10} + {r.b % 10}
           </p>
         )}
@@ -245,6 +250,8 @@ export function ColumnSolveView({ title, columns, breakApart, op, xp, onComplete
 export function WordProblemsView({ problems, xp, onComplete, onGameOver, onBack }: {
   problems: WordProblem[]; xp: number; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [correct, setCorrect] = useState(0)
@@ -275,7 +282,7 @@ export function WordProblemsView({ problems, xp, onComplete, onGameOver, onBack 
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><MathHeader title="Word Problems" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><MathHeader title={lessonTitle('math-word-problems', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <Card className={`border-0 shadow-md w-full max-w-md ${anim}`}>
           <CardContent className="p-5 flex flex-col items-center text-center">
@@ -300,6 +307,8 @@ type MoneyRound =
 export function MoneyView({ rounds, xp, onComplete, onGameOver, onBack }: {
   rounds: CountCoinsRound[]; xp: number; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const allCoins: CoinType[] = ['penny', 'nickel', 'dime', 'quarter']
   const sequence: MoneyRound[] = useMemo(() => {
     const naming: MoneyRound[] = shuffle(allCoins).map((coin) => ({ kind: 'name', coin, options: shuffle(allCoins) }))
@@ -337,11 +346,11 @@ export function MoneyView({ rounds, xp, onComplete, onGameOver, onBack }: {
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><MathHeader title="Money & Coins" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><MathHeader title={lessonTitle('math-money', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         {cur.kind === 'name' ? (
           <>
-            <p className="text-gray-500 font-semibold mb-3">¿Qué moneda es esta?</p>
+            <p className="text-gray-500 font-semibold mb-3">{tx.whichCoin}</p>
             <div className={anim}><Coin type={cur.coin} /></div>
             <div className="grid grid-cols-2 gap-3 w-full max-w-xs mt-6">
               {cur.options.map((opt) => {
@@ -360,7 +369,7 @@ export function MoneyView({ rounds, xp, onComplete, onGameOver, onBack }: {
           </>
         ) : (
           <>
-            <p className="text-gray-500 font-semibold mb-3">Cuenta las monedas. Escribe el total en centavos (¢).</p>
+            <p className="text-gray-500 font-semibold mb-3">{tx.countCoins}</p>
             <div className={`flex flex-wrap gap-2 justify-center max-w-sm ${anim}`}>
               {cur.coins.map((c, i) => <Coin key={i} type={c} />)}
             </div>
@@ -380,6 +389,8 @@ type TimeRound = { kind: 'read'; time: ClockTime; options: string[] } | { kind: 
 export function TimeView({ times, xp, onComplete, onGameOver, onBack }: {
   times: ClockTime[]; xp: number; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const sequence: TimeRound[] = useMemo(() => {
     const labels = times.map(fmtTime)
     return times.map((t, i) => {
@@ -422,11 +433,11 @@ export function TimeView({ times, xp, onComplete, onGameOver, onBack }: {
 
   return (
     <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><MathHeader title="Telling the Time" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
+      <div className="px-4 pt-4"><MathHeader title={lessonTitle('math-time', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         {cur.kind === 'read' ? (
           <>
-            <p className="text-gray-500 font-semibold mb-3">¿Qué hora marca el reloj?</p>
+            <p className="text-gray-500 font-semibold mb-3">{tx.whatTime}</p>
             <div className={anim}><ClockFace hour={cur.time.hour} minute={cur.time.minute} /></div>
             <div className="grid grid-cols-2 gap-3 w-full max-w-xs mt-6">
               {cur.options.map((opt) => {
@@ -441,12 +452,12 @@ export function TimeView({ times, xp, onComplete, onGameOver, onBack }: {
           </>
         ) : (
           <>
-            <p className="text-gray-500 font-semibold mb-1">Pon las manecillas en:</p>
+            <p className="text-gray-500 font-semibold mb-1">{tx.setHands}</p>
             <p className="text-3xl font-black text-duo-pink mb-3">{fmtTime(cur.time)}</p>
             <div className={anim}><ClockFace hour={setHour} minute={setMin} /></div>
             <div className="flex gap-6 mt-4">
               <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-gray-500 mb-1">Hora</span>
+                <span className="text-xs font-bold text-gray-500 mb-1">{tx.hour}</span>
                 <div className="flex items-center gap-2">
                   <button disabled={!!feedback} onClick={() => setSetHour((h) => (h === 1 ? 12 : h - 1))} className="w-10 h-10 rounded-full bg-gray-200 font-black text-xl">−</button>
                   <span className="w-8 text-center text-2xl font-black">{setHour}</span>
@@ -454,7 +465,7 @@ export function TimeView({ times, xp, onComplete, onGameOver, onBack }: {
                 </div>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-gray-500 mb-1">Minutos</span>
+                <span className="text-xs font-bold text-gray-500 mb-1">{tx.minutes}</span>
                 <div className="flex items-center gap-2">
                   <button disabled={!!feedback} onClick={() => setSetMin((m) => (m === 0 ? 45 : m - 15))} className="w-10 h-10 rounded-full bg-gray-200 font-black text-xl">−</button>
                   <span className="w-10 text-center text-2xl font-black">{String(setMin).padStart(2, '0')}</span>
@@ -463,7 +474,7 @@ export function TimeView({ times, xp, onComplete, onGameOver, onBack }: {
               </div>
             </div>
             <Button onClick={() => { if (!feedback) advance(setHour === cur.time.hour && setMin === cur.time.minute) }} disabled={feedback === 'correct'} className="duo-button bg-duo-green hover:bg-duo-green-dark text-white font-bold text-lg px-10 py-6 rounded-2xl mt-5">
-              Comprobar ✓
+              {tx.checkMark}
             </Button>
           </>
         )}

@@ -4,12 +4,12 @@ import { WorkshopContent } from '../types/workshop'
 // Lessons for the "Preparation Workshop - Vocabulary Quiz #3" topic. Ids map to the
 // workshop view dispatch in page.tsx.
 export const WORKSHOP_3_LESSONS: LessonDef[] = [
-  { id: 'ws-dictation', name: 'Listen and Write', icon: '🎧', color: '#58CC02', bgColor: '#E5F9D0', description: 'Escucha y escribe la palabra', xpReward: 80 },
-  { id: 'ws-image-words', name: 'Look and Write', icon: '🖼️', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Mira la imagen y escribe la palabra', xpReward: 60 },
-  { id: 'ws-wh-questions', name: 'Wh Questions', icon: '❓', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Escribe preguntas con What, Where, Why...', xpReward: 80 },
-  { id: 'ws-complete-sentences', name: 'Complete the Sentence', icon: '✏️', color: '#FFB700', bgColor: '#FFF0CC', description: 'Completa con la palabra correcta', xpReward: 60 },
-  { id: 'ws-sort-circle', name: 'Group and Circle', icon: '🗂️', color: '#00CD9C', bgColor: '#CCF5EA', description: 'Clasifica las palabras y escoge la correcta', xpReward: 60 },
-  { id: 'ws-long-answers', name: 'Long Answers', icon: '💬', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Responde con oraciones completas', xpReward: 100 },
+  { id: 'ws-dictation', name: 'Listen and Write', nameEs: 'Escucha y escribe', icon: '🎧', color: '#58CC02', bgColor: '#E5F9D0', description: 'Listen and write the word', descriptionEs: 'Escucha y escribe la palabra', xpReward: 80 },
+  { id: 'ws-image-words', name: 'Look and Write', nameEs: 'Mira y escribe', icon: '🖼️', color: '#1CB0F6', bgColor: '#D0EFFA', description: 'Look at the picture and write the word', descriptionEs: 'Mira la imagen y escribe la palabra', xpReward: 60 },
+  { id: 'ws-wh-questions', name: 'Wh Questions', nameEs: 'Preguntas Wh', icon: '❓', color: '#CE82FF', bgColor: '#F0D8FF', description: 'Write questions with What, Where, Why...', descriptionEs: 'Escribe preguntas con What, Where, Why...', xpReward: 80 },
+  { id: 'ws-complete-sentences', name: 'Complete the Sentence', nameEs: 'Completa la oración', icon: '✏️', color: '#FFB700', bgColor: '#FFF0CC', description: 'Fill in with the correct word', descriptionEs: 'Completa con la palabra correcta', xpReward: 60 },
+  { id: 'ws-sort-circle', name: 'Group and Circle', nameEs: 'Agrupa y elige', icon: '🗂️', color: '#00CD9C', bgColor: '#CCF5EA', description: 'Sort the words and pick the right one', descriptionEs: 'Clasifica las palabras y escoge la correcta', xpReward: 60 },
+  { id: 'ws-long-answers', name: 'Long Answers', nameEs: 'Respuestas largas', icon: '💬', color: '#FF86D0', bgColor: '#FFD8EE', description: 'Answer with full sentences', descriptionEs: 'Responde con oraciones completas', xpReward: 100 },
 ]
 
 // Content from "PREPARATION WORKSHOP VOCABULARY QUIZ #3" (Second Grade, October 2nd 2026).

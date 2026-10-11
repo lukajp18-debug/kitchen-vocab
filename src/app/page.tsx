@@ -15,6 +15,7 @@ import { onSnapshot, doc } from 'firebase/firestore'
 import { WordDef, RewardDef, LessonDef, TopicDef } from '@/types/vocab'
 import { fileToCompressedDataUrl, buildRewardConfigs, saveUserRewardsConfig, saveGuestRewardsConfig, loadGuestRewardsConfig } from '@/lib/rewards-storage'
 import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
+import { lessonName, lessonDescription, lessonTitle, topicTitle, topicSubtitle } from '@/lib/lessonText'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
 import { DictationView, ImageWordsView, WhQuestionsView, CompleteSentencesView, SortCircleView, LongAnswersView } from '@/components/workshop/WorkshopViews'
@@ -320,8 +321,8 @@ function generateConfettiParticles() {
   }))
 }
 
-function randomEncouragement(): string {
-  return ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]
+function randomEncouragement(list: string[] = ENCOURAGEMENTS): string {
+  return list[Math.floor(Math.random() * list.length)]
 }
 
 // ============ CONFETTI COMPONENT ============
@@ -350,6 +351,8 @@ function ConfettiEffect() {
 
 // ============ REWARD CELEBRATION COMPONENT ============
 function RewardCelebration({ reward, onDismiss }: { reward: RewardDef; onDismiss: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [showConfetti, setShowConfetti] = useState(true)
   const sparkles = useMemo(() =>
     Array.from({ length: 12 }, (_, i) => ({
@@ -385,21 +388,21 @@ function RewardCelebration({ reward, onDismiss }: { reward: RewardDef; onDismiss
       ))}
       <div className="relative bg-surface rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full text-center animate-reward-bounce" onClick={(e) => e.stopPropagation()}>
         <div className="text-5xl mb-2">🎉</div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-1">YOU EARNED A REWARD!</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-1">{tx.rewardEarned}</h2>
         <div className="animate-reward-glow rounded-2xl p-4 mb-4">
           <img src={reward.image} alt={reward.name} className="w-40 h-40 object-contain mx-auto" />
         </div>
         <h3 className="text-xl font-bold text-duo-gold mb-2">{reward.name}</h3>
         {reward.is3D && (
-          <span className="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full mb-2">🎮 3D Image</span>
+          <span className="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full mb-2">{tx.image3d}</span>
         )}
-        <p className="text-lg text-gray-600 mb-4 font-semibold">Ask Mom or Dad for your prize! 🎁</p>
+        <p className="text-lg text-gray-600 mb-4 font-semibold">{tx.askParents}</p>
         <Button
           onClick={onDismiss}
           className="duo-button bg-duo-green hover:bg-duo-green-dark text-white font-bold text-lg px-8 py-5 rounded-2xl"
           size="lg"
         >
-          Claim your prize! 🌟
+          {tx.claimPrize}
         </Button>
       </div>
     </div>
@@ -469,7 +472,8 @@ function Dashboard({
   rewardType?: 'virtual' | 'real'
   customRewards?: import('@/lib/reward-utils').RewardConfig[]
 }) {
-  const { lang } = useI18n()
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [activeTab, setActiveTab] = useState<'lessons' | 'leaderboard'>('lessons')
   const [showResetConfirm, setShowResetConfirm] = useState(false)
   const isCompleted = (id: string): boolean => progress.completedLessons.includes(`${activeTopic.id}:${id}`)
@@ -487,24 +491,24 @@ function Dashboard({
           <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto">
             <button
               onClick={onBackToTopics}
-              aria-label={lang === 'es' ? 'Volver a los temas' : 'Back to topics'}
+              aria-label={tx.backToTopics}
               className="w-12 h-12 shrink-0 flex items-center justify-center rounded-full bg-slate-100 text-slate-700 font-black text-xl hover:bg-slate-200 transition-colors cursor-pointer"
             >←</button>
             <span className="text-2xl shrink-0">{activeTopic.icon}</span>
             <div className="min-w-0">
-              <span className="block font-black text-lg text-gray-800 truncate">{activeTopic.displayName}</span>
-              <p className="text-xs text-gray-400 -mt-0.5">Hi, {studentName}! 👋</p>
+              <span className="block font-black text-lg text-gray-800 truncate">{topicTitle(activeTopic, lang)}</span>
+              <p className="text-xs text-gray-400 -mt-0.5">{tx.hi(studentName)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 ml-auto">
             <button
               onClick={() => setShowResetConfirm(true)}
               className="flex items-center justify-center gap-1 w-11 h-11 rounded-full bg-red-50 border-2 border-red-300 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors shrink-0 shadow-sm"
-              title={lang === 'es' ? `Reiniciar ${activeTopic.name}` : `Reset ${activeTopic.name}`}
+              title={tx.resetHint(topicTitle(activeTopic, lang))}
             >
               <span className="text-lg leading-none">↺</span>
             </button>
-            <button onClick={onLogout} className="min-h-11 text-sm text-gray-500 hover:text-gray-700 font-bold border-2 border-gray-200 px-3 rounded-xl" title={lang === 'es' ? 'Cerrar sesión' : 'Log out'}>{lang === 'es' ? 'Salir' : 'Exit'}</button>
+            <button onClick={onLogout} className="min-h-11 text-sm text-gray-500 hover:text-gray-700 font-bold border-2 border-gray-200 px-3 rounded-xl" title={tx.logoutTitle}>{tx.logout}</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -527,9 +531,9 @@ function Dashboard({
           <div className="text-center mb-6">
             <Mascot size={56} />
             <h1 className="text-2xl font-bold text-gray-800 mt-2">
-              {overallProgress === 100 ? 'You did it! All done! 🎉' : `Let's learn ${activeTopic.displayName}!`}
+              {overallProgress === 100 ? tx.allDone : tx.letsLearn(topicTitle(activeTopic, lang))}
             </h1>
-            <p className="text-gray-500 mt-1">{activeTopic.name}</p>
+            <p className="text-gray-500 mt-1">{topicSubtitle(activeTopic, lang)}</p>
             {(activeTopic.weekLabel || activeTopic.quizDate) && (
               <div className="flex flex-wrap justify-center gap-2 mt-3">
                 {activeTopic.weekLabel && (
@@ -550,8 +554,8 @@ function Dashboard({
           <Card className="mb-6 border-0 shadow-md">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-600">Overall Progress</span>
-                <span className="text-sm font-bold text-duo-green">{completedCount}/{totalLessons} lessons</span>
+                <span className="text-sm font-semibold text-gray-600">{tx.overallProgress}</span>
+                <span className="text-sm font-bold text-duo-green">{tx.lessonsCount(completedCount, totalLessons)}</span>
               </div>
               <div className="duo-progress">
                 <Progress value={overallProgress} className="h-3 rounded-full" />
@@ -569,7 +573,7 @@ function Dashboard({
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
               }`}
             >
-              {lang === 'es' ? '📚 LECCIONES' : '📚 LESSONS'}
+              {tx.lessonsTab}
             </button>
             <button
               onClick={() => setActiveTab('leaderboard')}
@@ -579,9 +583,7 @@ function Dashboard({
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
               }`}
             >
-              {lang === 'es'
-                ? `🏆 LIGA DE ${activeTopic.name.toUpperCase()}`
-                : `🏆 ${activeTopic.displayName.toUpperCase()} LEAGUE`}
+              {tx.league(topicTitle(activeTopic, lang).toUpperCase())}
             </button>
           </div>
 
@@ -590,22 +592,20 @@ function Dashboard({
               <div className="bg-surface rounded-3xl p-8 mx-4 max-w-sm w-full text-center shadow-2xl animate-reward-bounce" onClick={e => e.stopPropagation()}>
                 <div className="text-4xl mb-3">⚠️</div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
-                  {lang === 'es' ? `¿Reiniciar ${activeTopic.name}?` : `Reset ${activeTopic.name}?`}
+                  {tx.resetTitle(topicTitle(activeTopic, lang))}
                 </h3>
                 <p className="text-gray-500 text-sm mb-6">
-                  {lang === 'es'
-                    ? 'Se borrarán las lecciones y premios de este tema. Tu XP total no cambia.'
-                    : 'Lessons and rewards for this topic will be cleared. Your total XP stays.'}
+                  {tx.resetDesc}
                 </p>
                 <div className="flex gap-3">
                   <button onClick={() => setShowResetConfirm(false)} className="flex-1 py-3 rounded-2xl border-2 border-gray-200 font-bold text-gray-600 hover:bg-gray-50">
-                    {lang === 'es' ? 'Cancelar' : 'Cancel'}
+                    {tx.cancel}
                   </button>
                   <button
                     onClick={() => { onResetTopic(); setShowResetConfirm(false) }}
                     className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold transition-colors"
                   >
-                    {lang === 'es' ? 'Reiniciar ↺' : 'Reset ↺'}
+                    {tx.resetBtn}
                   </button>
                 </div>
               </div>
@@ -618,14 +618,14 @@ function Dashboard({
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-lg font-bold text-gray-700 flex items-center gap-2">
-                    {rewardType === 'virtual' ? '🌟 Virtual Badges' : '🎁 Rewards'}
+                    {rewardType === 'virtual' ? tx.virtualBadges : tx.rewards}
                   </h2>
                   <span className={`text-xs font-bold px-2 py-1 rounded-full ${
                     rewardType === 'virtual'
                       ? 'bg-indigo-100 text-indigo-600'
                       : 'bg-emerald-100 text-emerald-600'
                   }`}>
-                    {rewardType === 'virtual' ? (lang === 'es' ? 'Virtual' : 'Virtual') : (lang === 'es' ? 'Reales' : 'Real')}
+                    {rewardType === 'virtual' ? tx.virtualTag : tx.realTag}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
@@ -664,11 +664,11 @@ function Dashboard({
                                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                                     <div className="bg-duo-orange rounded-full h-1.5 transition-all" style={{ width: `${rewardProgress}%` }} />
                                   </div>
-                                  <p className="text-xs text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
+                                  <p className="text-xs text-gray-400 mt-0.5">{tx.lessonsCount(lessonsCompleted, reward.lessonsRequired)}</p>
                                 </div>
                               )}
                               {isUnlocked && (
-                                <span className="text-xs font-bold text-duo-green mt-1">✅ Earned!</span>
+                                <span className="text-xs font-bold text-duo-green mt-1">{tx.earned}</span>
                               )}
                             </CardContent>
                           </Card>
@@ -708,11 +708,11 @@ function Dashboard({
                                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                                     <div className="bg-duo-orange rounded-full h-1.5 transition-all" style={{ width: `${rewardProgress}%` }} />
                                   </div>
-                                  <p className="text-xs text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
+                                  <p className="text-xs text-gray-400 mt-0.5">{tx.lessonsCount(lessonsCompleted, reward.lessonsRequired)}</p>
                                 </div>
                               )}
                               {isUnlocked && (
-                                <span className="text-xs font-bold text-duo-green mt-1">✅ Claimed!</span>
+                                <span className="text-xs font-bold text-duo-green mt-1">{tx.claimed}</span>
                               )}
                             </CardContent>
                           </Card>
@@ -745,8 +745,8 @@ function Dashboard({
                                 {lesson.icon}
                               </div>
                               <div className="flex-1 text-left">
-                                <h3 className="font-bold text-sm text-gray-800">{lesson.name}</h3>
-                                <p className="text-xs mt-0.5 text-gray-600">{lesson.description}</p>
+                                <h3 className="font-bold text-sm text-gray-800">{lessonName(lesson, lang)}</h3>
+                                <p className="text-xs mt-0.5 text-gray-600">{lessonDescription(lesson, lang)}</p>
                               </div>
                               <div className="shrink-0 flex items-center gap-1">
                                 {completed && <span className="text-xl animate-pop-in">✅</span>}
@@ -781,6 +781,8 @@ function Dashboard({
 
 // ============ LESSON COMPLETE VIEW ============
 function LessonCompleteView({ xpEarned, lessonName, onContinue }: { xpEarned: number; lessonName: string; onContinue: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [showConfetti, setShowConfetti] = useState(true)
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 3500)
@@ -791,16 +793,16 @@ function LessonCompleteView({ xpEarned, lessonName, onContinue }: { xpEarned: nu
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 flex flex-col items-center justify-center p-6">
       {showConfetti && <ConfettiEffect />}
       <div className="text-center animate-bounce-custom"><Mascot size={64} /></div>
-      <h1 className="text-3xl font-bold text-gray-800 mt-4 animate-slide-up">Lesson Complete! 🎉</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mt-4 animate-slide-up">{tx.lessonComplete}</h1>
       <p className="text-lg text-gray-600 mt-2 animate-slide-up">{lessonName}</p>
       <div className="mt-6 animate-star-burst">
         <div className="bg-surface rounded-3xl shadow-lg p-8 text-center">
           <div className="text-5xl font-bold text-duo-green">+{xpEarned}</div>
-          <div className="text-xl text-gray-600 mt-1">XP Earned ⭐</div>
+          <div className="text-xl text-gray-600 mt-1">{tx.xpEarned}</div>
         </div>
       </div>
       <Button onClick={onContinue} className="mt-8 duo-button bg-duo-green hover:bg-duo-green-dark text-white font-bold text-lg px-12 py-6 rounded-2xl" size="lg">
-        Continue 🚀
+        {tx.continue}
       </Button>
     </div>
   )
@@ -808,19 +810,21 @@ function LessonCompleteView({ xpEarned, lessonName, onContinue }: { xpEarned: nu
 
 // ============ GAME OVER VIEW ============
 function GameOverView({ xpEarned, lessonName, onRetry, onBack }: { xpEarned: number; lessonName: string; onRetry: () => void; onBack: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   return (
     <div className="min-h-screen bg-gradient-to-b from-red-50 to-orange-50 flex flex-col items-center justify-center p-6">
       <div className="text-center"><Mascot size={64} /></div>
-      <h1 className="text-2xl font-bold text-gray-800 mt-4">Oh no! 😢</h1>
-      <p className="text-lg text-gray-600 mt-2">You ran out of hearts in</p>
+      <h1 className="text-2xl font-bold text-gray-800 mt-4">{tx.almostThere}</h1>
+      <p className="text-lg text-gray-600 mt-2">{tx.outOfHearts}</p>
       <p className="text-lg font-bold text-gray-700">{lessonName}</p>
       <div className="mt-4 bg-surface rounded-2xl shadow-md p-6 text-center">
         <div className="text-3xl font-bold text-duo-orange">+{xpEarned}</div>
-        <div className="text-gray-600">XP Earned ⭐</div>
+        <div className="text-gray-600">{tx.xpEarned}</div>
       </div>
       <div className="flex gap-4 mt-6">
-        <Button onClick={onBack} variant="outline" className="rounded-2xl px-6 py-5 font-bold">Go Back</Button>
-        <Button onClick={onRetry} className="duo-button bg-duo-green hover:bg-duo-green-dark text-white font-bold rounded-2xl px-6 py-5">Try Again! 💪</Button>
+        <Button onClick={onBack} variant="outline" className="rounded-2xl px-6 py-5 font-bold">{tx.goBack}</Button>
+        <Button onClick={onRetry} className="duo-button bg-duo-green hover:bg-duo-green-dark text-white font-bold rounded-2xl px-6 py-5">{tx.tryAgainBtn}</Button>
       </div>
     </div>
   )
@@ -828,6 +832,8 @@ function GameOverView({ xpEarned, lessonName, onRetry, onBack }: { xpEarned: num
 
 // ============ FLASHCARD VIEW ============
 function FlashcardView({ words, onComplete, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onBack: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [currentIndex, setCurrentIndex] = useState(0)
   const [animClass, setAnimClass] = useState('')
   const total = words.length
@@ -865,7 +871,7 @@ function FlashcardView({ words, onComplete, onBack }: { words: WordDef[]; onComp
   return (
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Learn the Words" hearts={3} current={currentIndex + 1} total={total} onBack={onBack} />
+        <LessonHeader title={lessonTitle('flashcards', lang)} hearts={3} current={currentIndex + 1} total={total} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className={`w-full max-w-sm ${animClass}`}>
@@ -873,16 +879,16 @@ function FlashcardView({ words, onComplete, onBack }: { words: WordDef[]; onComp
             <CardContent className="p-6 flex flex-col items-center">
               <img src={currentWord.image} alt={currentWord.word} className="w-48 h-48 object-contain mb-4" />
               <div className="text-3xl font-bold text-gray-800 animate-slide-up">{currentWord.word.toUpperCase()}</div>
-              <p className="text-sm text-gray-400 mt-2">Tap the picture to hear it! 🔊</p>
+              <p className="text-sm text-gray-400 mt-2">{tx.tapPicture}</p>
             </CardContent>
           </Card>
           <Button onClick={handleSpeak} className="w-full duo-button bg-duo-blue hover:bg-duo-blue/90 text-white font-bold text-lg py-6 rounded-2xl mb-4">
-            🔊 Hear &quot;{currentWord.word}&quot;
+            {tx.hearQuoted(currentWord.word)}
           </Button>
           <div className="flex gap-3">
-            <Button onClick={handlePrev} disabled={currentIndex === 0} variant="outline" className="flex-1 rounded-2xl py-5 font-bold text-base">← Back</Button>
+            <Button onClick={handlePrev} disabled={currentIndex === 0} variant="outline" className="flex-1 rounded-2xl py-5 font-bold text-base">{tx.back}</Button>
             <Button onClick={handleNext} className="flex-1 duo-button bg-duo-green hover:bg-duo-green-dark text-white font-bold text-base py-5 rounded-2xl">
-              {currentIndex === total - 1 ? 'Finish! 🎉' : 'Next →'}
+              {currentIndex === total - 1 ? tx.finish : tx.next}
             </Button>
           </div>
         </div>
@@ -901,6 +907,8 @@ function createPictureMatchRound(words: WordDef[]): { targetWord: WordDef; optio
 }
 
 function PictureMatchView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
@@ -951,14 +959,14 @@ function PictureMatchView({ words, onComplete, onGameOver, onBack }: { words: Wo
   return (
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Match the Picture" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+        <LessonHeader title={lessonTitle('picture-match', lang)} hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-bold text-gray-800 animate-slide-up">
-            Find: <span className="text-duo-blue">{roundData.targetWord.word.toUpperCase()}</span>
+            {tx.find} <span className="text-duo-blue">{roundData.targetWord.word.toUpperCase()}</span>
           </h2>
-          <Button variant="ghost" size="sm" className="mt-1 text-duo-blue" onClick={() => speakWord(roundData.targetWord.word)}>🔊 Hear again</Button>
+          <Button variant="ghost" size="sm" className="mt-1 text-duo-blue" onClick={() => speakWord(roundData.targetWord.word)}>{tx.hearAgain}</Button>
         </div>
         <div className={`grid grid-cols-2 gap-3 w-full max-w-sm ${animClass}`}>
           {roundData.options.map((option) => {
@@ -981,7 +989,7 @@ function PictureMatchView({ words, onComplete, onGameOver, onBack }: { words: Wo
         </div>
         {feedback && (
           <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-            {feedback === 'correct' ? randomEncouragement() : 'Try again! 💪'}
+            {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.tryAgain}
           </div>
         )}
       </div>
@@ -999,6 +1007,8 @@ function createListenRound(words: WordDef[]): { targetWord: WordDef; options: st
 }
 
 function ListenChooseView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
@@ -1123,7 +1133,7 @@ function ListenChooseView({ words, onComplete, onGameOver, onBack }: { words: Wo
   return (
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Listen and Pick" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+        <LessonHeader title={lessonTitle('listen-choose', lang)} hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className="mb-6 text-center">
@@ -1132,16 +1142,16 @@ function ListenChooseView({ words, onComplete, onGameOver, onBack }: { words: Wo
             disabled={isSpelling}
             className={`w-24 h-24 rounded-full bg-duo-purple text-white flex items-center justify-center text-4xl shadow-lg transition-all ${isSpelling ? 'animate-pulse-grow' : 'clickable-image'}`}
           >🔊</button>
-          <p className="text-sm text-gray-500 mt-2">{isSpelling ? 'Spelling the word...' : 'Tap to hear the word!'}</p>
+          <p className="text-sm text-gray-500 mt-2">{isSpelling ? tx.spelling : tx.tapToHear}</p>
           {learningMode && (
             <div className="mt-2 bg-yellow-50 border-2 border-yellow-400 rounded-xl px-4 py-2 animate-slide-up">
-              <p className="text-sm font-bold text-yellow-700">📚 Learning mode! Listen carefully to the spelling...</p>
+              <p className="text-sm font-bold text-yellow-700">{tx.learningSpelling}</p>
               <p className="text-2xl font-black text-yellow-800 mt-1 tracking-widest">{roundData.targetWord.word.toUpperCase()}</p>
             </div>
           )}
           {showHint && !learningMode && (
             <div className="mt-2 bg-purple-50 border-2 border-duo-purple/30 rounded-xl px-4 py-2 animate-slide-up">
-              <p className="text-sm font-bold text-duo-purple">💡 Hint: {roundData.targetWord.word.toUpperCase().split('').join(' - ')}</p>
+              <p className="text-sm font-bold text-duo-purple">{tx.hint} {roundData.targetWord.word.toUpperCase().split('').join(' - ')}</p>
             </div>
           )}
         </div>
@@ -1164,7 +1174,7 @@ function ListenChooseView({ words, onComplete, onGameOver, onBack }: { words: Wo
         </div>
         {feedback && (
           <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-            {feedback === 'correct' ? randomEncouragement() : 'Not quite! Try again 💪'}
+            {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.notQuite}
           </div>
         )}
       </div>
@@ -1181,6 +1191,8 @@ function createSpellingRound(words: WordDef[]): { targetWord: WordDef; scrambled
 }
 
 function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
@@ -1332,7 +1344,7 @@ function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: { word
   return (
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Spell the Word" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+        <LessonHeader title={lessonTitle('spelling-challenge', lang)} hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className={`w-full max-w-sm ${animClass}`}>
@@ -1345,19 +1357,19 @@ function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: { word
           </div>
 
           <Button onClick={handleHearWord} className="w-full duo-button bg-duo-blue hover:bg-duo-blue/90 text-white font-bold text-base py-4 rounded-2xl mb-2">
-            🔊 Hear the word
+            {tx.hearWord}
           </Button>
 
           {learningMode && (
             <div className="mb-4 bg-yellow-50 border-2 border-yellow-400 rounded-xl px-4 py-2 text-center animate-slide-up">
-              <p className="text-sm font-bold text-yellow-700">📚 Learning mode! Listen and spell along...</p>
+              <p className="text-sm font-bold text-yellow-700">{tx.learningSpellAlong}</p>
               <p className="text-2xl font-black text-yellow-800 mt-1 tracking-widest">{targetWord.toUpperCase()}</p>
             </div>
           )}
 
           {showHint && !learningMode && (
             <div className="mb-4 bg-blue-50 border-2 border-duo-blue/30 rounded-xl px-4 py-2 text-center animate-slide-up">
-              <p className="text-sm font-bold text-duo-blue">💡 Hint: {targetWord.toUpperCase().split('').join(' - ')}</p>
+              <p className="text-sm font-bold text-duo-blue">{tx.hint} {targetWord.toUpperCase().split('').join(' - ')}</p>
             </div>
           )}
 
@@ -1393,7 +1405,7 @@ function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: { word
 
           {feedback && (
             <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-              {feedback === 'correct' ? randomEncouragement() : `It was "${targetWord.toUpperCase()}"! Try again 💪`}
+              {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.itWas(targetWord.toUpperCase())}
             </div>
           )}
         </div>
@@ -1424,6 +1436,8 @@ function createMissingRound(words: WordDef[]): { targetWord: WordDef; displayWor
 }
 
 function WhatsMissingView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
   const [xpEarned, setXpEarned] = useState(0)
@@ -1538,7 +1552,7 @@ function WhatsMissingView({ words, onComplete, onGameOver, onBack }: { words: Wo
   return (
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Fill the Blank" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+        <LessonHeader title={lessonTitle('whats-missing', lang)} hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className={`w-full max-w-sm ${animClass}`}>
@@ -1556,14 +1570,14 @@ function WhatsMissingView({ words, onComplete, onGameOver, onBack }: { words: Wo
 
           {learningMode && (
             <div className="mb-4 bg-yellow-50 border-2 border-yellow-400 rounded-xl px-4 py-2 text-center animate-slide-up">
-              <p className="text-sm font-bold text-yellow-700">📚 Learning mode! Listen carefully...</p>
+              <p className="text-sm font-bold text-yellow-700">{tx.learningListen}</p>
               <p className="text-2xl font-black text-yellow-800 mt-1 tracking-widest">{roundData.targetWord.word.toUpperCase()}</p>
             </div>
           )}
 
           {showHint && !learningMode && (
             <div className="mb-4 bg-pink-50 border-2 border-duo-pink/30 rounded-xl px-4 py-2 text-center animate-slide-up">
-              <p className="text-sm font-bold text-duo-pink">💡 Hint: {roundData.targetWord.word.toUpperCase().split('').join(' - ')}</p>
+              <p className="text-sm font-bold text-duo-pink">{tx.hint} {roundData.targetWord.word.toUpperCase().split('').join(' - ')}</p>
             </div>
           )}
 
@@ -1590,12 +1604,12 @@ function WhatsMissingView({ words, onComplete, onGameOver, onBack }: { words: Wo
             className="w-full mt-4 text-duo-blue font-bold"
             onClick={() => speakWord(roundData.targetWord.word)}
           >
-            🔊 Hear the word
+            {tx.hearWord}
           </Button>
 
           {feedback && (
             <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-              {feedback === 'correct' ? randomEncouragement() : 'Not quite! Try again 💪'}
+              {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.notQuite}
             </div>
           )}
         </div>
@@ -1612,6 +1626,8 @@ function FinalPictureMatch({ targetWord, options, onAnswer }: {
   targetWord: WordDef; options: WordDef[]
   onAnswer: (correct: boolean) => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
 
@@ -1633,8 +1649,8 @@ function FinalPictureMatch({ targetWord, options, onAnswer }: {
   return (
     <>
       <div className="mb-4 text-center">
-        <h2 className="text-2xl font-bold text-gray-800">Find: <span className="text-duo-blue">{targetWord.word.toUpperCase()}</span></h2>
-        <Button variant="ghost" size="sm" className="mt-1 text-duo-blue" onClick={() => speakWord(targetWord.word)}>🔊 Hear again</Button>
+        <h2 className="text-2xl font-bold text-gray-800">{tx.find} <span className="text-duo-blue">{targetWord.word.toUpperCase()}</span></h2>
+        <Button variant="ghost" size="sm" className="mt-1 text-duo-blue" onClick={() => speakWord(targetWord.word)}>{tx.hearAgain}</Button>
       </div>
       <div className="grid grid-cols-2 gap-3 w-full">
         {options.map((option) => {
@@ -1661,6 +1677,8 @@ function FinalListenChoose({ targetWord, options, onAnswer }: {
   targetWord: WordDef; options: string[]
   onAnswer: (correct: boolean) => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
 
@@ -1691,7 +1709,7 @@ function FinalListenChoose({ targetWord, options, onAnswer }: {
           onClick={() => spellAndSpeak(targetWord.word)}
           className="w-20 h-20 rounded-full bg-duo-purple text-white flex items-center justify-center text-3xl shadow-lg mx-auto clickable-image"
         >🔊</button>
-        <p className="text-sm text-gray-500 mt-2">Tap to hear the word!</p>
+        <p className="text-sm text-gray-500 mt-2">{tx.tapToHear}</p>
       </div>
       <div className="w-full space-y-3">
         {options.map((option) => {
@@ -1718,6 +1736,8 @@ function FinalSpelling({ targetWord, scrambledLetters, onAnswer }: {
   targetWord: WordDef; scrambledLetters: string[]
   onAnswer: (correct: boolean) => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [selectedLetters, setSelectedLetters] = useState<(string | null)[]>(() => Array(targetWord.word.length).fill(null))
   const [usedIndices, setUsedIndices] = useState<Set<number>>(() => new Set())
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
@@ -1785,7 +1805,7 @@ function FinalSpelling({ targetWord, scrambledLetters, onAnswer }: {
         <img src={targetWord.image} alt={word} className="w-24 h-24 object-contain mx-auto" />
       </div>
       <Button onClick={() => speakWord(word)} className="w-full duo-button bg-duo-blue hover:bg-duo-blue/90 text-white font-bold text-base py-3 rounded-2xl mb-3">
-        🔊 Hear the word
+        {tx.hearWord}
       </Button>
       <div className="flex justify-center gap-1.5 mb-4 flex-wrap">
         {selectedLetters.map((letter, i) => (
@@ -1824,6 +1844,8 @@ function FinalWhatsMissing({ targetWord, displayWord, missingLetter, options, on
   targetWord: WordDef; displayWord: string; missingLetter: string; options: string[]
   onAnswer: (correct: boolean) => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [selected, setSelected] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
 
@@ -1929,6 +1951,8 @@ function createFinalTestQuestions(words: WordDef[]): FinalTestQuestion[] {
 }
 
 function FinalTestView({ words, onComplete, onGameOver, onBack }: { words: WordDef[]; onComplete: (xp: number) => void; onGameOver: (xp: number) => void; onBack: () => void }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [questions] = useState(() => createFinalTestQuestions(words))
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
@@ -2013,7 +2037,7 @@ function FinalTestView({ words, onComplete, onGameOver, onBack }: { words: WordD
   return (
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
-        <LessonHeader title="Show What You Know!" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
+        <LessonHeader title={lessonTitle('final-test', lang)} hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <div className={`w-full max-w-sm ${animClass}`}>
@@ -2313,6 +2337,8 @@ function TopicSelectionView({
   onSelectTopic: (topicId: string) => void
   onLogout: () => void
 }) {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const [category, setCategory] = useState<'vocab' | 'subjects'>('vocab')
   return (
     <div className="min-h-screen bg-app flex flex-col">
@@ -2323,11 +2349,11 @@ function TopicSelectionView({
             <span className="text-2xl">🦉</span>
             <div>
               <span className="font-black text-lg text-gray-800 whitespace-nowrap">Study App</span>
-              <p className="text-xs text-gray-400 -mt-0.5">Hi, {studentName}! 👋</p>
+              <p className="text-xs text-gray-400 -mt-0.5">{tx.hi(studentName)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2 ml-2">
-            <button onClick={onLogout} className="min-h-11 text-sm text-gray-500 hover:text-gray-700 font-bold border-2 border-gray-200 px-3 rounded-xl shrink-0">Salir</button>
+            <button onClick={onLogout} className="min-h-11 text-sm text-gray-500 hover:text-gray-700 font-bold border-2 border-gray-200 px-3 rounded-xl shrink-0" title={tx.logoutTitle}>{tx.logout}</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -2348,8 +2374,8 @@ function TopicSelectionView({
         <div className="max-w-lg mx-auto">
           <div className="text-center mb-8">
             <span className="text-5xl animate-float block mb-2">📚</span>
-            <h1 className="text-2xl font-black text-gray-800">Elige un Tema para Practicar</h1>
-            <p className="text-gray-500 mt-1">¡Aprende y gana recompensas reales!</p>
+            <h1 className="text-2xl font-black text-gray-800">{tx.chooseTopic}</h1>
+            <p className="text-gray-500 mt-1">{tx.chooseTopicSub}</p>
           </div>
 
           {/* Category Tabs */}
@@ -2363,7 +2389,7 @@ function TopicSelectionView({
               }`}
             >
               <span className="text-4xl">📖</span>
-              <span className="text-sm font-black tracking-wide text-center leading-tight">VOCABULARIO</span>
+              <span className="text-sm font-black tracking-wide text-center leading-tight">{tx.tabVocab}</span>
             </button>
             <button
               onClick={() => setCategory('subjects')}
@@ -2374,7 +2400,7 @@ function TopicSelectionView({
               }`}
             >
               <span className="text-4xl">📘</span>
-              <span className="text-sm font-black tracking-wide text-center leading-tight">ESTUDIO DE MATERIAS</span>
+              <span className="text-sm font-black tracking-wide text-center leading-tight">{tx.tabSubjects}</span>
             </button>
           </div>
 
@@ -2399,8 +2425,8 @@ function TopicSelectionView({
                         {topic.icon}
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-bold text-lg text-gray-800">{topic.displayName}</h3>
-                        <p className="text-xs text-gray-500">{topic.name}</p>
+                        <h3 className="font-bold text-lg text-gray-800">{topicTitle(topic, lang)}</h3>
+                        <p className="text-xs text-gray-500">{topicSubtitle(topic, lang)}</p>
                         {(topic.weekLabel || topic.quizDate) && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {topic.weekLabel && (
@@ -2438,6 +2464,8 @@ function TopicSelectionView({
 
 // ============ MAIN APP ============
 export default function KitchenVocabApp() {
+  const { t, lang } = useI18n()
+  const tx = t.study
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [studentName, setStudentName] = useState<string>('')
@@ -2778,7 +2806,7 @@ export default function KitchenVocabApp() {
 
   const getLessonName = (id: LessonViewType): string => {
     const lesson = getLessonsForTopic(activeTopic).find((l) => l.id === id)
-    return lesson ? lesson.name : ''
+    return lesson ? lessonName(lesson, lang) : ''
   }
 
   const handleSelectTopic = useCallback((topicId: string) => {
@@ -2819,13 +2847,13 @@ export default function KitchenVocabApp() {
         <div className="bg-surface rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
           <div className="text-6xl mb-4 animate-float">🦉</div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Study App</h1>
-          <p className="text-gray-500 mb-6">What&apos;s your name?</p>
+          <p className="text-gray-500 mb-6">{tx.whatsYourName}</p>
           <input
             type="text"
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
-            placeholder="Type your name..."
+            placeholder={tx.typeName}
             autoFocus
             className="w-full text-center text-2xl font-bold text-gray-900 placeholder:text-gray-400 py-4 px-6 rounded-2xl border-2 border-gray-200 focus:border-duo-green focus:outline-none transition-colors mb-4"
             disabled={isLoading}
@@ -2836,7 +2864,7 @@ export default function KitchenVocabApp() {
             className="w-full py-4 rounded-2xl font-bold text-xl text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: nameInput.trim() ? '#58CC02' : '#D0D0D0' }}
           >
-            {isLoading ? 'Loading...' : 'Let\'s go! 🚀'}
+            {isLoading ? tx.loading : tx.letsGo}
           </button>
         </div>
       </div>
@@ -2848,7 +2876,7 @@ export default function KitchenVocabApp() {
       <div className="min-h-screen bg-app flex items-center justify-center">
         <div className="text-center">
           <div className="text-5xl animate-float">🦉</div>
-          <p className="text-gray-500 mt-4 font-bold">Loading...</p>
+          <p className="text-gray-500 mt-4 font-bold">{tx.loading}</p>
         </div>
       </div>
     )
@@ -2892,7 +2920,7 @@ export default function KitchenVocabApp() {
       )}
       {view === 'math-addition' && activeTopic.mathContent && (
         <ColumnSolveView
-          title="3-Digit Addition"
+          title={lessonTitle('math-addition', lang)}
           columns={activeTopic.mathContent.addition.columns}
           breakApart={activeTopic.mathContent.addition.breakApart}
           op="add"
@@ -2902,7 +2930,7 @@ export default function KitchenVocabApp() {
       )}
       {view === 'math-subtraction' && activeTopic.mathContent && (
         <ColumnSolveView
-          title="3-Digit Subtraction"
+          title={lessonTitle('math-subtraction', lang)}
           columns={activeTopic.mathContent.subtraction.columns}
           op="sub"
           xp={getLessonsForTopic(activeTopic).find((l) => l.id === 'math-subtraction')?.xpReward ?? 80}
