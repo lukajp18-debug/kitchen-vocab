@@ -735,3 +735,10 @@
   0%, 100% { transform: translateY(0); opacity: 0.6; }
   50% { transform: translateY(-4px); opacity: 1; }
 }
+
+/* Answer feedback sheet */
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.animate-sheet-up { animation: sheet-up 0.25s cubic-bezier(0.22, 1, 0.36, 1); }

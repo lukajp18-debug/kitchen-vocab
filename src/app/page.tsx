@@ -17,6 +17,7 @@ import { fileToCompressedDataUrl, buildRewardConfigs, saveUserRewardsConfig, sav
 import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
 import { lessonName, lessonDescription, lessonTitle, topicTitle, topicSubtitle } from '@/lib/lessonText'
 import { Dino, type DinoMood } from '@/components/kid/Dino'
+import { FeedbackSheet } from '@/components/kid/FeedbackSheet'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
 import { DictationView, ImageWordsView, WhQuestionsView, CompleteSentencesView, SortCircleView, LongAnswersView } from '@/components/workshop/WorkshopViews'
@@ -420,7 +421,7 @@ function HeartsDisplay({ hearts, max = 3 }: { hearts: number; max?: number }) {
   return (
     <div className="flex gap-1 items-center">
       {Array.from({ length: max }, (_, i) => (
-        <span key={i} className={`text-xl transition-all duration-300 ${i < hearts ? 'opacity-100 scale-100' : 'opacity-30 scale-75'}`}>
+        <span key={`${i}-${i < hearts}`} className={`text-xl transition-all duration-300 ${i < hearts ? 'opacity-100 scale-100' : 'opacity-30 scale-75 animate-heart-break'}`}>
           ❤️
         </span>
       ))}
@@ -984,11 +985,7 @@ function PictureMatchView({ words, onComplete, onGameOver, onBack }: { words: Wo
             )
           })}
         </div>
-        {feedback && (
-          <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-            {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.tryAgain}
-          </div>
-        )}
+        <FeedbackSheet feedback={feedback} message={feedback === 'wrong' ? tx.tryAgain : undefined} />
       </div>
     </div>
   )
@@ -1169,11 +1166,7 @@ function ListenChooseView({ words, onComplete, onGameOver, onBack }: { words: Wo
             )
           })}
         </div>
-        {feedback && (
-          <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-            {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.notQuite}
-          </div>
-        )}
+        <FeedbackSheet feedback={feedback} message={feedback === 'wrong' ? tx.notQuite : undefined} />
       </div>
     </div>
   )
@@ -1400,11 +1393,7 @@ function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: { word
             ))}
           </div>
 
-          {feedback && (
-            <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-              {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.itWas(targetWord.toUpperCase())}
-            </div>
-          )}
+          <FeedbackSheet feedback={feedback} message={feedback === 'wrong' ? tx.itWas(targetWord.toUpperCase()) : undefined} />
         </div>
       </div>
     </div>
@@ -1604,11 +1593,7 @@ function WhatsMissingView({ words, onComplete, onGameOver, onBack }: { words: Wo
             {tx.hearWord}
           </Button>
 
-          {feedback && (
-            <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-              {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.notQuite}
-            </div>
-          )}
+          <FeedbackSheet feedback={feedback} message={feedback === 'wrong' ? tx.notQuite : undefined} />
         </div>
       </div>
     </div>
@@ -1645,6 +1630,7 @@ function FinalPictureMatch({ targetWord, options, onAnswer }: {
 
   return (
     <>
+      <FeedbackSheet feedback={feedback} />
       <div className="mb-4 text-center">
         <h2 className="text-2xl font-bold text-gray-800">{tx.find} <span className="text-duo-blue">{targetWord.word.toUpperCase()}</span></h2>
         <Button variant="ghost" size="sm" className="mt-1 text-duo-blue" onClick={() => speakWord(targetWord.word)}>{tx.hearAgain}</Button>
@@ -1701,6 +1687,7 @@ function FinalListenChoose({ targetWord, options, onAnswer }: {
 
   return (
     <>
+      <FeedbackSheet feedback={feedback} />
       <div className="mb-4 text-center">
         <button
           onClick={() => spellAndSpeak(targetWord.word)}
@@ -1798,6 +1785,7 @@ function FinalSpelling({ targetWord, scrambledLetters, onAnswer }: {
 
   return (
     <>
+      <FeedbackSheet feedback={feedback} />
       <div className="text-center mb-3">
         <img src={targetWord.image} alt={word} className="w-24 h-24 object-contain mx-auto" />
       </div>
@@ -1868,6 +1856,7 @@ function FinalWhatsMissing({ targetWord, displayWord, missingLetter, options, on
 
   return (
     <>
+      <FeedbackSheet feedback={feedback} />
       <div className="text-center mb-3">
         <img src={targetWord.image} alt={targetWord.word} className="w-24 h-24 object-contain mx-auto" />
       </div>

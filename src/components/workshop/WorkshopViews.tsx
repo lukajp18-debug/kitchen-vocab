@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/components/I18nProvider'
 import { lessonTitle } from '@/lib/lessonText'
+import { FeedbackSheet } from '@/components/kid/FeedbackSheet'
 import { LAHeader, Feedback, shuffle } from '@/components/language/LanguageViews'
 import { TypedItem, WhQuestionItem, LongAnswerItem, WorkshopContent } from '@/types/workshop'
 
@@ -173,7 +174,7 @@ function FreeTextLesson({ title, total, round, prompt, extra, value, setValue, h
           className={'w-full max-w-sm text-lg font-semibold rounded-2xl border-4 px-4 py-3 outline-none transition-all resize-none ' + (done ? 'border-duo-green bg-green-50 text-duo-green' : 'border-gray-200 bg-surface text-gray-800 focus:border-duo-blue')}
         />
         {hint && !done && <p className="text-sm font-bold text-duo-orange text-center max-w-sm">💡 {hint}</p>}
-        {done && <p className="font-bold text-duo-green text-xl animate-slide-up">{tx.greatWriting}</p>}
+        <FeedbackSheet feedback={done ? 'correct' : null} message={tx.greatWriting} />
         <Button onClick={onSubmit} disabled={done || !value.trim()} className="duo-button bg-duo-green hover:bg-duo-green/90 text-white font-black text-lg px-10 py-6 rounded-2xl">
           {tx.check}
         </Button>

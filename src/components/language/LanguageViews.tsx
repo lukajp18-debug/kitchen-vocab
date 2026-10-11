@@ -4,12 +4,12 @@ import { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/components/I18nProvider'
 import { lessonTitle } from '@/lib/lessonText'
+import { FeedbackSheet } from '@/components/kid/FeedbackSheet'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { ArticleWord, ArticleTheWord, Article, ThereIsAreItem, ActionWordItem, PresentTenseItem } from '@/types/language'
 
 // ============ HELPERS ============
-const randomEncouragement = (list: string[]) => list[Math.floor(Math.random() * list.length)]
 
 export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -33,7 +33,7 @@ export function LAHeader({ title, hearts, current, total, onBack }: {
           <Progress value={pct} className="h-4 rounded-full" />
         </div>
         <div className="flex gap-0.5 text-lg shrink-0">
-          {[0, 1, 2].map((i) => <span key={i}>{i < hearts ? '❤️' : '🤍'}</span>)}
+          {[0, 1, 2].map((i) => <span key={`${i}-${i < hearts}`} className={i < hearts ? '' : 'inline-block animate-heart-break'}>{i < hearts ? '❤️' : '🤍'}</span>)}
         </div>
       </div>
       <h2 className="text-center font-bold text-gray-700 text-sm">{title}</h2>
@@ -42,14 +42,7 @@ export function LAHeader({ title, hearts, current, total, onBack }: {
 }
 
 export function Feedback({ feedback }: { feedback: 'correct' | 'wrong' | null }) {
-  const { t, lang } = useI18n()
-  const tx = t.study
-  if (!feedback) return null
-  return (
-    <div className={`mt-4 text-center font-bold text-lg animate-slide-up ${feedback === 'correct' ? 'text-duo-green' : 'text-duo-red'}`}>
-      {feedback === 'correct' ? randomEncouragement(tx.encouragements) : tx.tryAgain}
-    </div>
-  )
+  return <FeedbackSheet feedback={feedback} />
 }
 
 // ============ LESSON 1: ARTICLES A or AN ============
