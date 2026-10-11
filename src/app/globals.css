@@ -742,3 +742,12 @@
   to { transform: translateY(0); }
 }
 .animate-sheet-up { animation: sheet-up 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Streak flame flicker */
+@keyframes flame {
+  0%, 100% { transform: scale(1) rotate(0); }
+  25% { transform: scale(1.12) rotate(-4deg); }
+  50% { transform: scale(0.96) rotate(3deg); }
+  75% { transform: scale(1.08) rotate(-2deg); }
+}
+.animate-flame { animation: flame 1.6s ease-in-out infinite; transform-origin: 50% 90%; }

@@ -200,5 +200,9 @@ export const es = {
     hour: 'Hora',
     minutes: 'Minutos',
     checkMark: 'Comprobar ✓',
+    streakDays: (n: number) => (n === 1 ? '1 día de racha' : `${n} días de racha`),
+    level: (n: number) => `Nivel ${n}`,
+    toNextLevel: (n: number) => `${n} XP para el siguiente nivel`,
+    levelUp: (n: number) => `¡Subiste al nivel ${n}! 🎉`,
   },
 }

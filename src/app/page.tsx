@@ -19,6 +19,8 @@ import { TOPICS, LESSONS, CONFETTI_COLORS, ENCOURAGEMENTS } from '@/data/topics'
 import { lessonName, lessonDescription, lessonTitle, topicTitle, topicSubtitle } from '@/lib/lessonText'
 import { Dino, type DinoMood } from '@/components/kid/Dino'
 import { FeedbackSheet } from '@/components/kid/FeedbackSheet'
+import { LessonComplete } from '@/components/kid/LessonComplete'
+import { playReward } from '@/lib/sound'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
 import { DictationView, ImageWordsView, WhQuestionsView, CompleteSentencesView, SortCircleView, LongAnswersView } from '@/components/workshop/WorkshopViews'
@@ -357,6 +359,7 @@ function RewardCelebration({ reward, onDismiss }: { reward: RewardDef; onDismiss
   const { t, lang } = useI18n()
   const tx = t.study
   const [showConfetti, setShowConfetti] = useState(true)
+  useEffect(() => { playReward() }, [])
   const sparkles = useMemo(() =>
     Array.from({ length: 12 }, (_, i) => ({
       id: i,
@@ -779,31 +782,21 @@ function Dashboard({
 }
 
 // ============ LESSON COMPLETE VIEW ============
-function LessonCompleteView({ xpEarned, lessonName, onContinue }: { xpEarned: number; lessonName: string; onContinue: () => void }) {
-  const { t, lang } = useI18n()
-  const tx = t.study
+function LessonCompleteView({ xpEarned, totalXp, streak, lessonName, onContinue }: { xpEarned: number; totalXp: number; streak: number; lessonName: string; onContinue: () => void }) {
   const [showConfetti, setShowConfetti] = useState(true)
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(false), 3500)
     return () => clearTimeout(timer)
   }, [])
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-blue-50 flex flex-col items-center justify-center p-6">
-      {showConfetti && <ConfettiEffect />}
-      <div className="text-center"><Mascot size={150} mood="celebrate" /></div>
-      <h1 className="text-3xl font-bold text-gray-800 mt-4 animate-slide-up">{tx.lessonComplete}</h1>
-      <p className="text-lg text-gray-600 mt-2 animate-slide-up">{lessonName}</p>
-      <div className="mt-6 animate-star-burst">
-        <div className="bg-surface rounded-3xl shadow-lg p-8 text-center">
-          <div className="text-5xl font-bold text-duo-green">+{xpEarned}</div>
-          <div className="text-xl text-gray-600 mt-1">{tx.xpEarned}</div>
-        </div>
-      </div>
-      <Button onClick={onContinue} className="mt-8 duo-button bg-duo-green hover:bg-duo-green-dark text-white font-bold text-lg px-12 py-6 rounded-2xl" size="lg">
-        {tx.continue}
-      </Button>
-    </div>
+    <LessonComplete
+      xpEarned={xpEarned}
+      totalXp={totalXp}
+      streak={streak}
+      lessonName={lessonName}
+      onContinue={onContinue}
+      confetti={showConfetti ? <ConfettiEffect /> : null}
+    />
   )
 }
 
@@ -3036,6 +3029,8 @@ export default function KitchenVocabApp() {
       {view === 'lesson-complete' && (
         <LessonCompleteView
           xpEarned={lastXpEarned}
+          totalXp={progress.xp}
+          streak={progress.streak}
           lessonName={getLessonName(currentLessonId)}
           onContinue={handleContinue}
         />
