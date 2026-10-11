@@ -35,9 +35,9 @@ function MathHeader({ title, hearts, current, total, onBack }: {
 }) {
   const pct = total > 0 ? (current / total) * 100 : 0
   return (
-    <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-sm pb-3">
+    <div className="sticky top-0 z-20 bg-surface/90 backdrop-blur-sm pb-3">
       <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 h-10 w-10 rounded-full">✕</Button>
+        <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 h-12 w-12 rounded-full text-xl" aria-label="Close">✕</Button>
         <div className="flex-1 duo-progress">
           <Progress value={pct} className="h-4 rounded-full" />
         </div>
@@ -97,7 +97,7 @@ function PlaceValueGrid({ a, b, op, reveal }: { a: number; b: number; op: 'add' 
     <div className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-gray-300 flex items-center justify-center text-3xl font-black text-gray-800">{d}</div>
   )
   const head = (label: string) => (
-    <div className="w-14 sm:w-16 text-center text-[10px] font-bold text-gray-500 border-2 border-b-0 border-gray-200 py-0.5">{label}</div>
+    <div className="w-14 sm:w-16 text-center text-xs font-bold text-gray-500 border-2 border-b-0 border-gray-200 py-0.5">{label}</div>
   )
   const rev = reveal != null ? String(reveal).padStart(4, ' ') : null
   return (
@@ -223,7 +223,7 @@ export function ColumnSolveView({ title, columns, breakApart, op, xp, onComplete
   }, [feedback, value, answer, correct, round, total, hearts, xp, onComplete, onGameOver])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><MathHeader title={title} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <p className="text-gray-500 font-semibold mb-2">{r.breakApart ? 'Suma usando "break apart" 🧩' : 'Resuelve la operación'}</p>
@@ -274,7 +274,7 @@ export function WordProblemsView({ problems, xp, onComplete, onGameOver, onBack 
   }, [feedback, value, answer, correct, round, total, hearts, xp, onComplete, onGameOver])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><MathHeader title="Word Problems" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         <Card className={`border-0 shadow-md w-full max-w-md ${anim}`}>
@@ -336,7 +336,7 @@ export function MoneyView({ rounds, xp, onComplete, onGameOver, onBack }: {
   }, [correct, round, total, hearts, xp, onComplete, onGameOver])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><MathHeader title="Money & Coins" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         {cur.kind === 'name' ? (
@@ -347,7 +347,7 @@ export function MoneyView({ rounds, xp, onComplete, onGameOver, onBack }: {
               {cur.options.map((opt) => {
                 const isSel = selected === opt
                 const isRight = opt === cur.coin
-                let cls = 'border-2 cursor-pointer transition-all py-3 rounded-2xl font-bold text-gray-700 bg-white'
+                let cls = 'border-2 cursor-pointer transition-all py-3 rounded-2xl font-bold text-gray-700 bg-surface'
                 if (feedback && isRight) cls += ' ring-4 ring-duo-green bg-green-50'
                 else if (feedback === 'wrong' && isSel) cls += ' ring-4 ring-duo-red bg-red-50'
                 return (
@@ -421,7 +421,7 @@ export function TimeView({ times, xp, onComplete, onGameOver, onBack }: {
   }, [correct, round, total, hearts, xp, onComplete, onGameOver])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><MathHeader title="Telling the Time" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6">
         {cur.kind === 'read' ? (
@@ -432,7 +432,7 @@ export function TimeView({ times, xp, onComplete, onGameOver, onBack }: {
               {cur.options.map((opt) => {
                 const isSel = selected === opt
                 const isRight = opt === fmtTime(cur.time)
-                let cls = 'border-2 cursor-pointer transition-all py-3 rounded-2xl font-black text-xl text-gray-700 bg-white'
+                let cls = 'border-2 cursor-pointer transition-all py-3 rounded-2xl font-black text-xl text-gray-700 bg-surface'
                 if (feedback && isRight) cls += ' ring-4 ring-duo-green bg-green-50'
                 else if (feedback === 'wrong' && isSel) cls += ' ring-4 ring-duo-red bg-red-50'
                 return <button key={opt} disabled={!!feedback} onClick={() => { setSelected(opt); advance(isRight) }} className={cls}>{opt}</button>

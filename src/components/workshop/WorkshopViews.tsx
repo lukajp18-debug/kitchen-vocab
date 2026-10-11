@@ -76,11 +76,11 @@ function TypedLesson({ title, items, bank, xp, onComplete, onGameOver, onBack }:
   const sentenceParts = item.sentence?.split('___')
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title={title} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-5">
         <div className={`flex flex-col items-center gap-4 ${anim}`}>
-          {item.image && <img src={item.image} alt="" className="max-h-44 max-w-[16rem] object-contain rounded-2xl bg-white p-2 shadow-sm" />}
+          {item.image && <img src={item.image} alt="" className="max-h-44 max-w-[16rem] object-contain rounded-2xl bg-surface p-2 shadow-sm" />}
           {item.speak && (
             <button
               onClick={() => speak(item.speak!)}
@@ -113,7 +113,7 @@ function TypedLesson({ title, items, bank, xp, onComplete, onGameOver, onBack }:
           autoFocus
           autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false}
           placeholder="Type here..."
-          className={inputCls + (feedback === 'correct' ? 'border-duo-green bg-green-50 text-duo-green' : feedback === 'wrong' ? 'border-duo-red bg-red-50 text-duo-red' : 'border-gray-200 bg-white text-gray-800 focus:border-duo-blue')}
+          className={inputCls + (feedback === 'correct' ? 'border-duo-green bg-green-50 text-duo-green' : feedback === 'wrong' ? 'border-duo-red bg-red-50 text-duo-red' : 'border-gray-200 bg-surface text-gray-800 focus:border-duo-blue')}
         />
         <Button onClick={check} disabled={!!feedback || !value.trim()} className="duo-button bg-duo-green hover:bg-duo-green/90 text-white font-black text-lg px-10 py-6 rounded-2xl">
           CHECK
@@ -146,7 +146,7 @@ function FreeTextLesson({ title, total, round, prompt, extra, value, setValue, h
   onSubmit: () => void; onBack: () => void; rows?: number
 }) {
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title={title} hearts={3} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-4">
         {prompt}
@@ -158,7 +158,7 @@ function FreeTextLesson({ title, total, round, prompt, extra, value, setValue, h
           rows={rows}
           autoCorrect="off" autoComplete="off" spellCheck={false}
           placeholder="Type your answer here..."
-          className={'w-full max-w-sm text-lg font-semibold rounded-2xl border-4 px-4 py-3 outline-none transition-all resize-none ' + (done ? 'border-duo-green bg-green-50 text-duo-green' : 'border-gray-200 bg-white text-gray-800 focus:border-duo-blue')}
+          className={'w-full max-w-sm text-lg font-semibold rounded-2xl border-4 px-4 py-3 outline-none transition-all resize-none ' + (done ? 'border-duo-green bg-green-50 text-duo-green' : 'border-gray-200 bg-surface text-gray-800 focus:border-duo-blue')}
         />
         {hint && !done && <p className="text-sm font-bold text-duo-orange text-center max-w-sm">💡 {hint}</p>}
         {done && <p className="font-bold text-duo-green text-xl animate-slide-up">Great writing! ✍️</p>}
@@ -204,7 +204,7 @@ export function WhQuestionsView({ words, xp, onComplete, onBack }: { words: WhQu
       hint={hint} done={done} onSubmit={submit} onBack={onBack}
       prompt={
         <div className="flex flex-col items-center gap-2">
-          {item.image && <img src={item.image} alt="" className="max-h-32 max-w-[12rem] object-contain rounded-2xl bg-white p-2 shadow-sm" />}
+          {item.image && <img src={item.image} alt="" className="max-h-32 max-w-[12rem] object-contain rounded-2xl bg-surface p-2 shadow-sm" />}
           <p className="text-gray-500 font-semibold text-center">Write a question using this word:</p>
           <p className="text-4xl font-black text-duo-purple capitalize">{item.word}</p>
         </div>
@@ -304,7 +304,7 @@ export function SortCircleView({ content, xp, onComplete, onGameOver, onBack }: 
   const options = isCircle ? circleOptions : [...content.groups]
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title="Group and Circle" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <div className={`flex flex-col items-center gap-3 ${anim}`}>
@@ -325,7 +325,7 @@ export function SortCircleView({ content, xp, onComplete, onGameOver, onBack }: 
             let cls = 'min-w-[8rem] h-20 px-4 text-2xl font-black rounded-3xl border-4 transition-all cursor-pointer '
             if (feedback === 'correct' && isRight) cls += 'bg-green-100 border-duo-green text-duo-green scale-105'
             else if (feedback === 'wrong' && isSel) cls += 'bg-red-100 border-duo-red text-duo-red'
-            else cls += 'bg-white border-gray-200 text-gray-700 hover:border-duo-blue hover:bg-blue-50'
+            else cls += 'bg-surface border-gray-200 text-gray-700 hover:border-duo-blue hover:bg-blue-50'
             return <button key={opt} disabled={!!feedback} onClick={() => pick(opt)} className={cls}>{opt}</button>
           })}
         </div>

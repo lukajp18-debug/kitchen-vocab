@@ -54,7 +54,7 @@ export default function VerifyEmailPage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-app flex flex-col items-center justify-center p-4">
       <div className="text-center mb-8">
         <div className="text-6xl mb-4 animate-float">✉️</div>
         <h1 className="text-3xl font-bold text-gray-800">{t.checkEmailTitle}</h1>

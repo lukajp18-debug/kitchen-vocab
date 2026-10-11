@@ -41,7 +41,7 @@ export function PwaInstallPrompt() {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-xl bg-white rounded-[32px] shadow-2xl border border-indigo-100 overflow-hidden animate-scale-up">
+      <div className="relative w-full max-w-xl bg-surface rounded-[32px] shadow-2xl border border-indigo-100 overflow-hidden animate-scale-up">
         {/* Top Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-6 text-white text-center relative">
           <h2 className="text-2xl font-black tracking-tight">{t.pwaTitle}</h2>
@@ -90,7 +90,7 @@ export function PwaInstallPrompt() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-black text-indigo-700 text-xs">1</div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 text-xs">{t.androidStep1Title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{t.androidStep1Desc}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.androidStep1Desc}</p>
                   </div>
                 </div>
 
@@ -98,7 +98,7 @@ export function PwaInstallPrompt() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-black text-indigo-700 text-xs">2</div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 text-xs">{t.androidStep2Title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{t.androidStep2Desc}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.androidStep2Desc}</p>
                   </div>
                 </div>
 
@@ -106,7 +106,7 @@ export function PwaInstallPrompt() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-black text-indigo-700 text-xs">3</div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 text-xs">{t.androidStep3Title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{t.androidStep3Desc}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.androidStep3Desc}</p>
                   </div>
                 </div>
 
@@ -114,13 +114,13 @@ export function PwaInstallPrompt() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center font-black text-indigo-700 text-xs">4</div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 text-xs">{t.androidStep4Title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{t.androidStep4Desc}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.androidStep4Desc}</p>
                   </div>
                 </div>
               </div>
 
               {/* WebView Trap Alert */}
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/60 mt-4 text-[11px]">
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/60 mt-4 text-xs">
                 <h4 className="font-black text-amber-900 flex items-center gap-1.5">
                   <span>{t.webviewTrapTitle}</span>
                 </h4>
@@ -141,7 +141,7 @@ export function PwaInstallPrompt() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-black text-purple-700 text-xs">1</div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 text-xs">{t.iphoneStep1Title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{t.iphoneStep1Desc}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.iphoneStep1Desc}</p>
                   </div>
                 </div>
 
@@ -149,7 +149,7 @@ export function PwaInstallPrompt() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-black text-purple-700 text-xs">2</div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 text-xs">{t.iphoneStep2Title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{t.iphoneStep2Desc}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.iphoneStep2Desc}</p>
                   </div>
                 </div>
 
@@ -157,7 +157,7 @@ export function PwaInstallPrompt() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-black text-purple-700 text-xs">3</div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 text-xs">{t.iphoneStep3Title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{t.iphoneStep3Desc}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.iphoneStep3Desc}</p>
                   </div>
                 </div>
 
@@ -165,13 +165,13 @@ export function PwaInstallPrompt() {
                   <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-black text-purple-700 text-xs">4</div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 text-xs">{t.iphoneStep4Title}</h4>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{t.iphoneStep4Desc}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{t.iphoneStep4Desc}</p>
                   </div>
                 </div>
               </div>
 
               {/* WebView Trap Alert */}
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/60 mt-4 text-[11px]">
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200/60 mt-4 text-xs">
                 <h4 className="font-black text-amber-900 flex items-center gap-1.5">
                   <span>{t.webviewTrapTitle}</span>
                 </h4>

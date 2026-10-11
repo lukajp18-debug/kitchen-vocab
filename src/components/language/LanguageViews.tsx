@@ -25,9 +25,9 @@ export function LAHeader({ title, hearts, current, total, onBack }: {
 }) {
   const pct = total > 0 ? (current / total) * 100 : 0
   return (
-    <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-sm pb-3">
+    <div className="sticky top-0 z-20 bg-surface/90 backdrop-blur-sm pb-3">
       <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 h-10 w-10 rounded-full">✕</Button>
+        <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 h-12 w-12 rounded-full text-xl" aria-label="Close">✕</Button>
         <div className="flex-1 duo-progress">
           <Progress value={pct} className="h-4 rounded-full" />
         </div>
@@ -85,7 +85,7 @@ export function ArticlesAAnView({ words, xp, onComplete, onGameOver, onBack }: {
   }, [feedback, item, correct, round, total, hearts, xp, onComplete, onGameOver])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title="Articles: A or An" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <div className={`flex flex-col items-center gap-2 ${anim}`}>
@@ -100,7 +100,7 @@ export function ArticlesAAnView({ words, xp, onComplete, onGameOver, onBack }: {
             let cls = 'w-28 h-20 text-3xl font-black rounded-3xl border-4 transition-all cursor-pointer '
             if (feedback === 'correct' && isRight) cls += 'bg-green-100 border-duo-green text-duo-green scale-105'
             else if (feedback === 'wrong' && isSel) cls += 'bg-red-100 border-duo-red text-duo-red'
-            else cls += 'bg-white border-gray-200 text-gray-700 hover:border-duo-pink hover:bg-pink-50'
+            else cls += 'bg-surface border-gray-200 text-gray-700 hover:border-duo-pink hover:bg-pink-50'
             return (
               <button key={opt} disabled={!!feedback} onClick={() => pick(opt)} className={cls}>
                 {opt.toUpperCase()}
@@ -152,7 +152,7 @@ export function ArticlesTheView({ words, xp, onComplete, onGameOver, onBack }: {
   }, [feedback, item, correct, round, total, hearts, xp, onComplete, onGameOver])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title="Articles: A / An / The" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-5">
         <div className={`flex flex-col items-center gap-2 ${anim}`}>
@@ -170,7 +170,7 @@ export function ArticlesTheView({ words, xp, onComplete, onGameOver, onBack }: {
             let cls = 'w-24 h-16 text-2xl font-black rounded-3xl border-4 transition-all cursor-pointer '
             if (feedback === 'correct' && isRight) cls += 'bg-green-100 border-duo-green text-duo-green scale-105'
             else if (feedback === 'wrong' && isSel) cls += 'bg-red-100 border-duo-red text-duo-red'
-            else cls += 'bg-white border-gray-200 text-gray-700 hover:border-duo-purple hover:bg-purple-50'
+            else cls += 'bg-surface border-gray-200 text-gray-700 hover:border-duo-purple hover:bg-purple-50'
             return (
               <button key={opt} disabled={!!feedback} onClick={() => pick(opt)} className={cls}>
                 {opt.toUpperCase()}
@@ -221,7 +221,7 @@ export function ThereIsAreView({ items, xp, onComplete, onGameOver, onBack }: {
   }, [feedback, item, correct, round, total, hearts, xp, onComplete, onGameOver])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title="There is / There are" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <div className={`flex flex-col items-center gap-3 ${anim}`}>
@@ -237,7 +237,7 @@ export function ThereIsAreView({ items, xp, onComplete, onGameOver, onBack }: {
             let cls = 'w-32 h-16 text-2xl font-black rounded-3xl border-4 transition-all cursor-pointer '
             if (feedback === 'correct' && isRight) cls += 'bg-green-100 border-duo-green text-duo-green scale-105'
             else if (feedback === 'wrong' && isSel) cls += 'bg-red-100 border-duo-red text-duo-red'
-            else cls += 'bg-white border-gray-200 text-gray-700 hover:border-duo-blue hover:bg-blue-50'
+            else cls += 'bg-surface border-gray-200 text-gray-700 hover:border-duo-blue hover:bg-blue-50'
             return (
               <button key={opt} disabled={!!feedback} onClick={() => pick(opt)} className={cls}>
                 {opt.toUpperCase()}
@@ -302,7 +302,7 @@ export function ActionWordsView({ actions, xp, onComplete, onGameOver, onBack }:
   }, [feedback, item, correct, round, total, hearts, xp, shuffled, makeOptions, onComplete, onGameOver])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title="Action Words" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <p className="text-gray-500 font-semibold">What action is this?</p>
@@ -314,7 +314,7 @@ export function ActionWordsView({ actions, xp, onComplete, onGameOver, onBack }:
             let cls = 'py-4 text-lg font-black rounded-2xl border-4 transition-all cursor-pointer '
             if (feedback === 'correct' && isRight) cls += 'bg-green-100 border-duo-green text-duo-green scale-105'
             else if (feedback === 'wrong' && isSel) cls += 'bg-red-100 border-duo-red text-duo-red'
-            else cls += 'bg-white border-gray-200 text-gray-700 hover:border-duo-green hover:bg-green-50'
+            else cls += 'bg-surface border-gray-200 text-gray-700 hover:border-duo-green hover:bg-green-50'
             return (
               <button key={opt} disabled={!!feedback} onClick={() => pick(opt)} className={cls}>
                 {opt}
@@ -366,7 +366,7 @@ export function PresentTenseView({ sentences, xp, onComplete, onGameOver, onBack
   const sentence = item.verbPhrase.replace('_____', `[${item.options.join(' / ')}]`).replace('___', `[${item.options.join(' / ')}]`)
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4"><LAHeader title="Simple Present Tense" hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
         <Card className={`border-0 shadow-md w-full max-w-sm ${anim}`}>
@@ -383,7 +383,7 @@ export function PresentTenseView({ sentences, xp, onComplete, onGameOver, onBack
             let cls = 'flex-1 min-w-[120px] py-5 text-xl font-black rounded-3xl border-4 transition-all cursor-pointer '
             if (feedback === 'correct' && isRight) cls += 'bg-green-100 border-duo-green text-duo-green scale-105'
             else if (feedback === 'wrong' && isSel) cls += 'bg-red-100 border-duo-red text-duo-red'
-            else cls += 'bg-white border-gray-200 text-gray-700 hover:border-duo-orange hover:bg-orange-50'
+            else cls += 'bg-surface border-gray-200 text-gray-700 hover:border-duo-orange hover:bg-orange-50'
             return (
               <button key={opt} disabled={!!feedback} onClick={() => pick(opt)} className={cls}>
                 {opt}

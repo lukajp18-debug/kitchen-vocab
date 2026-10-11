@@ -140,7 +140,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
               ? `¡Liga de ${topicName || 'Estudio'} Activa!`
               : `Active ${topicName || 'Study'} League!`}
           </h4>
-          <p className="text-[11px] text-indigo-700 mt-0.5 leading-tight">
+          <p className="text-xs text-indigo-700 mt-0.5 leading-tight">
             {lang === 'es'
               ? 'Completa lecciones para ganar estrellas y subir de puesto. ¡Sana competencia!'
               : 'Complete lessons to earn stars and climb the board. Healthy competition!'}
@@ -149,7 +149,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
       </div>
 
       {/* Leaderboard Board Rows */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100 overflow-hidden">
+      <div className="bg-surface rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100 overflow-hidden">
         {competitors.slice(0, 10).map((competitor, index) => {
           const rank = index + 1
           let badge = `${rank}`
@@ -201,7 +201,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
 
       {/* User Rank Indicator Summary */}
       {userRank && (
-        <div className="text-center text-[11px] font-black text-slate-500 bg-slate-50 border border-slate-100 rounded-full py-1.5 max-w-xs mx-auto animate-pulse-subtle">
+        <div className="text-center text-xs font-black text-slate-500 bg-slate-50 border border-slate-100 rounded-full py-1.5 max-w-xs mx-auto animate-pulse-subtle">
           {lang === 'es'
             ? `🎉 ¡Estás en el Puesto #${userRank} de la Liga de ${topicName || 'Estudio'}!`
             : `🎉 You are currently Rank #${userRank} in the ${topicName || 'Study'} League!`}

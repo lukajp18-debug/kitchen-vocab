@@ -138,7 +138,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col items-center justify-center p-4 relative">
+    <div className="min-h-screen bg-app flex flex-col items-center justify-center p-4 relative">
 <div className="text-center mb-8">
         <div className="text-6xl mb-4 animate-bounce-custom">🦉</div>
         <h1 className="text-3xl font-bold text-gray-800">Study App</h1>
@@ -159,7 +159,7 @@ export default function AuthPage() {
                   type="text"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  className="w-full p-3 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
+                  className="w-full p-3 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-surface transition-colors outline-none"
                   placeholder="e.g. Luka"
                   required={!isLogin}
                 />
@@ -172,7 +172,7 @@ export default function AuthPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full p-3 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
+                className="w-full p-3 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-surface transition-colors outline-none"
                 placeholder="parent@example.com"
                 required
               />
@@ -185,7 +185,7 @@ export default function AuthPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3 pr-12 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-white transition-colors outline-none"
+                  className="w-full p-3 pr-12 bg-gray-100 text-gray-900 placeholder:text-gray-400 rounded-xl border-2 border-transparent focus:border-duo-blue focus:bg-surface transition-colors outline-none"
                   placeholder="••••••••"
                   required
                   minLength={6}

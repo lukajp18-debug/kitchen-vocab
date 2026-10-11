@@ -47,7 +47,7 @@ export default function PendingApprovalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-app flex flex-col items-center justify-center p-4">
       <div className="text-center mb-8">
         <div className="text-6xl mb-4 animate-bounce-custom">🦉</div>
         <h1 className="text-3xl font-bold text-gray-800">
@@ -79,7 +79,7 @@ export default function PendingApprovalPage() {
               >
                 ✅ Aprobar este registro
               </a>
-              <p className="text-[10px] text-amber-600 mt-2 text-center">
+              <p className="text-xs text-amber-600 mt-2 text-center">
                 En producción este link llega por Telegram
               </p>
             </div>

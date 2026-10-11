@@ -100,4 +100,16 @@ export const en = {
   webviewTrapTitle: '⚠️ The WebView Trap (Avoid bugs)',
   webviewTrapDesc: 'If you opened this from WhatsApp, Telegram, or Slack, installation will NOT work. You must tap "Open in external browser" or copy/paste the link manually into Chrome or Safari first.',
   continueBtn: 'Continue to App 🚀',
+
+  // Settings
+  settingsTitle: 'Settings',
+  settingsBtn: 'Open settings',
+  settingsLanguage: 'Language',
+  settingsTheme: 'Theme',
+  themeLight: 'Light',
+  themeDark: 'Dark',
+  settingsSound: 'Sounds',
+  soundOn: 'Sound on',
+  soundOff: 'Muted',
+  howToUseTitle: 'How does it work?',
 }

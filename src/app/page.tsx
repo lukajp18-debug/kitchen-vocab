@@ -48,7 +48,7 @@ function GuestBanner() {
         </div>
         <button
           onClick={() => { localStorage.removeItem('guestMode'); router.push('/auth') }}
-          className="shrink-0 bg-white text-indigo-700 font-black text-xs px-3 py-1.5 rounded-full hover:bg-indigo-50 transition-all whitespace-nowrap"
+          className="shrink-0 bg-surface text-indigo-700 font-black text-xs px-3 py-1.5 rounded-full hover:bg-indigo-50 transition-all whitespace-nowrap"
         >
           {t.guestBannerBtn}
         </button>
@@ -383,7 +383,7 @@ function RewardCelebration({ reward, onDismiss }: { reward: RewardDef; onDismiss
           ✨
         </div>
       ))}
-      <div className="relative bg-white rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full text-center animate-reward-bounce" onClick={(e) => e.stopPropagation()}>
+      <div className="relative bg-surface rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full text-center animate-reward-bounce" onClick={(e) => e.stopPropagation()}>
         <div className="text-5xl mb-2">🎉</div>
         <h2 className="text-2xl font-bold text-gray-800 mb-1">YOU EARNED A REWARD!</h2>
         <div className="animate-reward-glow rounded-2xl p-4 mb-4">
@@ -434,9 +434,9 @@ function LessonHeader({ title, hearts, current, total, onBack }: {
 }) {
   const progressPercent = total > 0 ? (current / total) * 100 : 0
   return (
-    <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-sm pb-3">
+    <div className="sticky top-0 z-20 bg-surface/90 backdrop-blur-sm pb-3">
       <div className="flex items-center gap-3 mb-2">
-        <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 h-10 w-10 rounded-full">✕</Button>
+        <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 h-12 w-12 rounded-full text-xl" aria-label="Close">✕</Button>
         <div className="flex-1 duo-progress">
           <Progress value={progressPercent} className="h-4 rounded-full" />
         </div>
@@ -480,27 +480,31 @@ function Dashboard({
 
   return (
 
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       {/* Top Bar */}
-      <div className="bg-white shadow-sm px-4 py-3">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">{activeTopic.icon}</span>
-            <div>
-              <span className="font-bold text-lg text-gray-800">{activeTopic.displayName}</span>
+      <div className="bg-surface shadow-sm px-4 py-3">
+        <div className="max-w-lg mx-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto">
+            <button
+              onClick={onBackToTopics}
+              aria-label={lang === 'es' ? 'Volver a los temas' : 'Back to topics'}
+              className="w-12 h-12 shrink-0 flex items-center justify-center rounded-full bg-slate-100 text-slate-700 font-black text-xl hover:bg-slate-200 transition-colors cursor-pointer"
+            >←</button>
+            <span className="text-2xl shrink-0">{activeTopic.icon}</span>
+            <div className="min-w-0">
+              <span className="block font-black text-lg text-gray-800 truncate">{activeTopic.displayName}</span>
               <p className="text-xs text-gray-400 -mt-0.5">Hi, {studentName}! 👋</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={onBackToTopics} className="text-xs font-bold text-duo-blue hover:text-duo-blue/80 underline shrink-0">← Themes</button>
+          <div className="flex items-center gap-2 ml-auto">
             <button
               onClick={() => setShowResetConfirm(true)}
-              className="flex items-center justify-center gap-1 w-9 h-9 rounded-full bg-red-50 border-2 border-red-300 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors shrink-0 shadow-sm"
+              className="flex items-center justify-center gap-1 w-11 h-11 rounded-full bg-red-50 border-2 border-red-300 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors shrink-0 shadow-sm"
               title={lang === 'es' ? `Reiniciar ${activeTopic.name}` : `Reset ${activeTopic.name}`}
             >
               <span className="text-lg leading-none">↺</span>
             </button>
-            <button onClick={onLogout} className="text-xs text-gray-500 hover:text-gray-700 font-semibold border border-gray-200 px-2 py-1 rounded-lg" title={lang === 'es' ? 'Cerrar sesión' : 'Log out'}>{lang === 'es' ? 'Salir' : 'Exit'}</button>
+            <button onClick={onLogout} className="min-h-11 text-sm text-gray-500 hover:text-gray-700 font-bold border-2 border-gray-200 px-3 rounded-xl" title={lang === 'es' ? 'Cerrar sesión' : 'Log out'}>{lang === 'es' ? 'Salir' : 'Exit'}</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -556,7 +560,7 @@ function Dashboard({
           </Card>
 
           {/* Navigation Tabs */}
-          <div className="flex gap-2 p-1 bg-white border border-slate-200 rounded-2xl mb-6 shadow-sm">
+          <div className="flex gap-2 p-1 bg-surface border border-slate-200 rounded-2xl mb-6 shadow-sm">
             <button
               onClick={() => setActiveTab('lessons')}
               className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 cursor-pointer ${
@@ -583,7 +587,7 @@ function Dashboard({
 
           {showResetConfirm && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowResetConfirm(false)}>
-              <div className="bg-white rounded-3xl p-8 mx-4 max-w-sm w-full text-center shadow-2xl animate-reward-bounce" onClick={e => e.stopPropagation()}>
+              <div className="bg-surface rounded-3xl p-8 mx-4 max-w-sm w-full text-center shadow-2xl animate-reward-bounce" onClick={e => e.stopPropagation()}>
                 <div className="text-4xl mb-3">⚠️</div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">
                   {lang === 'es' ? `¿Reiniciar ${activeTopic.name}?` : `Reset ${activeTopic.name}?`}
@@ -660,11 +664,11 @@ function Dashboard({
                                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                                     <div className="bg-duo-orange rounded-full h-1.5 transition-all" style={{ width: `${rewardProgress}%` }} />
                                   </div>
-                                  <p className="text-[10px] text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
+                                  <p className="text-xs text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
                                 </div>
                               )}
                               {isUnlocked && (
-                                <span className="text-[10px] font-bold text-duo-green mt-1">✅ Earned!</span>
+                                <span className="text-xs font-bold text-duo-green mt-1">✅ Earned!</span>
                               )}
                             </CardContent>
                           </Card>
@@ -704,11 +708,11 @@ function Dashboard({
                                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                                     <div className="bg-duo-orange rounded-full h-1.5 transition-all" style={{ width: `${rewardProgress}%` }} />
                                   </div>
-                                  <p className="text-[10px] text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
+                                  <p className="text-xs text-gray-400 mt-0.5">{lessonsCompleted}/{reward.lessonsRequired} lessons</p>
                                 </div>
                               )}
                               {isUnlocked && (
-                                <span className="text-[10px] font-bold text-duo-green mt-1">✅ Claimed!</span>
+                                <span className="text-xs font-bold text-duo-green mt-1">✅ Claimed!</span>
                               )}
                             </CardContent>
                           </Card>
@@ -725,15 +729,15 @@ function Dashboard({
                   return (
                     <div key={lesson.id} className="flex flex-col items-center w-full">
                       {index > 0 && (
-                        <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isCompleted(topicLessons[index - 1].id) ? lesson.color : '#E0E0E0' }} />
+                        <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isCompleted(topicLessons[index - 1].id) ? lesson.color : 'var(--line)' }} />
                       )}
                       <button
                         onClick={() => onSelectLesson(lesson.id as LessonViewType)}
                         className="w-full max-w-xs mb-2 transition-all duration-200 lesson-card-hover cursor-pointer"
                       >
                         <Card
-                           className={`border-0 shadow-md overflow-hidden ${completed ? 'ring-2' : ''}`}
-                           style={{ backgroundColor: lesson.bgColor, ...(completed ? { ringColor: lesson.color } : {}) }}
+                           className={`tint-bg border-0 shadow-md overflow-hidden ${completed ? 'ring-2' : ''}`}
+                           style={{ backgroundColor: lesson.bgColor, '--tint': lesson.color, ...(completed ? { ringColor: lesson.color } : {}) } as React.CSSProperties}
                         >
                           <CardContent className="p-4">
                             <div className="flex items-center gap-3">
@@ -790,7 +794,7 @@ function LessonCompleteView({ xpEarned, lessonName, onContinue }: { xpEarned: nu
       <h1 className="text-3xl font-bold text-gray-800 mt-4 animate-slide-up">Lesson Complete! 🎉</h1>
       <p className="text-lg text-gray-600 mt-2 animate-slide-up">{lessonName}</p>
       <div className="mt-6 animate-star-burst">
-        <div className="bg-white rounded-3xl shadow-lg p-8 text-center">
+        <div className="bg-surface rounded-3xl shadow-lg p-8 text-center">
           <div className="text-5xl font-bold text-duo-green">+{xpEarned}</div>
           <div className="text-xl text-gray-600 mt-1">XP Earned ⭐</div>
         </div>
@@ -810,7 +814,7 @@ function GameOverView({ xpEarned, lessonName, onRetry, onBack }: { xpEarned: num
       <h1 className="text-2xl font-bold text-gray-800 mt-4">Oh no! 😢</h1>
       <p className="text-lg text-gray-600 mt-2">You ran out of hearts in</p>
       <p className="text-lg font-bold text-gray-700">{lessonName}</p>
-      <div className="mt-4 bg-white rounded-2xl shadow-md p-6 text-center">
+      <div className="mt-4 bg-surface rounded-2xl shadow-md p-6 text-center">
         <div className="text-3xl font-bold text-duo-orange">+{xpEarned}</div>
         <div className="text-gray-600">XP Earned ⭐</div>
       </div>
@@ -859,7 +863,7 @@ function FlashcardView({ words, onComplete, onBack }: { words: WordDef[]; onComp
   }, [currentIndex, currentWord.word])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
         <LessonHeader title="Learn the Words" hearts={3} current={currentIndex + 1} total={total} onBack={onBack} />
       </div>
@@ -945,7 +949,7 @@ function PictureMatchView({ words, onComplete, onGameOver, onBack }: { words: Wo
   }, [feedback, roundData, hearts, xpEarned, round, totalRounds, onComplete, onGameOver, advanceRound])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
         <LessonHeader title="Match the Picture" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
@@ -1117,7 +1121,7 @@ function ListenChooseView({ words, onComplete, onGameOver, onBack }: { words: Wo
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
         <LessonHeader title="Listen and Pick" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
@@ -1150,7 +1154,7 @@ function ListenChooseView({ words, onComplete, onGameOver, onBack }: { words: Wo
             else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white animate-shake'
             else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
             else if (learningMode && isCorrect && !feedback) btnClass += ' bg-duo-green/20 text-duo-green border-2 border-duo-green animate-pulse'
-            else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 hover:border-duo-purple'
+            else btnClass += ' bg-surface text-gray-800 border-2 border-gray-200 hover:border-duo-purple'
             return (
               <button key={option} className={btnClass} onClick={() => handleSelect(option)}>
                 {option.toUpperCase()}
@@ -1326,7 +1330,7 @@ function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: { word
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
         <LessonHeader title="Spell the Word" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
@@ -1379,7 +1383,7 @@ function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: { word
                 className={`w-12 h-12 rounded-xl font-bold text-xl flex items-center justify-center letter-tile
                   ${usedIndices.has(i)
                     ? 'bg-gray-200 text-gray-400 opacity-30 pointer-events-none'
-                    : 'bg-white text-gray-800 border-2 border-gray-300 shadow-md hover:border-duo-teal hover:shadow-lg'
+                    : 'bg-surface text-gray-800 border-2 border-gray-300 shadow-md hover:border-duo-teal hover:shadow-lg'
                   }`}
               >
                 {letter.toUpperCase()}
@@ -1532,7 +1536,7 @@ function WhatsMissingView({ words, onComplete, onGameOver, onBack }: { words: Wo
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
         <LessonHeader title="Fill the Blank" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
@@ -1572,7 +1576,7 @@ function WhatsMissingView({ words, onComplete, onGameOver, onBack }: { words: Wo
               else if (feedback === 'wrong' && isSelected && !isCorrect) btnClass += ' bg-duo-red text-white animate-shake'
               else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
               else if (learningMode && isCorrect && !feedback) btnClass += ' bg-duo-green/20 text-duo-green border-2 border-duo-green animate-pulse'
-              else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 shadow-md hover:border-duo-pink'
+              else btnClass += ' bg-surface text-gray-800 border-2 border-gray-200 shadow-md hover:border-duo-pink'
               return (
                 <button key={letter} className={btnClass} onClick={() => handleSelect(letter)}>
                   {letter.toUpperCase()}
@@ -1697,7 +1701,7 @@ function FinalListenChoose({ targetWord, options, onAnswer }: {
           if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white'
           else if (feedback === 'wrong' && isSelectedOpt && !isCorrect) btnClass += ' bg-duo-red text-white'
           else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
-          else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 hover:border-duo-purple'
+          else btnClass += ' bg-surface text-gray-800 border-2 border-gray-200 hover:border-duo-purple'
           return (
             <button key={option} className={btnClass} onClick={() => handleSelect(option)}>
               {option.toUpperCase()}
@@ -1804,7 +1808,7 @@ function FinalSpelling({ targetWord, scrambledLetters, onAnswer }: {
             className={`w-11 h-11 rounded-xl font-bold text-lg flex items-center justify-center letter-tile
               ${usedIndices.has(i)
                 ? 'bg-gray-200 text-gray-400 opacity-30'
-                : 'bg-white text-gray-800 border-2 border-gray-300 shadow-md'
+                : 'bg-surface text-gray-800 border-2 border-gray-300 shadow-md'
               }`}
           >
             {letter.toUpperCase()}
@@ -1872,7 +1876,7 @@ function FinalWhatsMissing({ targetWord, displayWord, missingLetter, options, on
           if (feedback === 'correct' && isCorrect) btnClass += ' bg-duo-green text-white'
           else if (feedback === 'wrong' && isSelectedOpt && !isCorrect) btnClass += ' bg-duo-red text-white'
           else if (feedback && !isCorrect) btnClass += ' bg-gray-100 text-gray-400'
-          else btnClass += ' bg-white text-gray-800 border-2 border-gray-200 shadow-md'
+          else btnClass += ' bg-surface text-gray-800 border-2 border-gray-200 shadow-md'
           return (
             <button key={letter} className={btnClass} onClick={() => handleSelect(letter)}>
               {letter.toUpperCase()}
@@ -2007,7 +2011,7 @@ function FinalTestView({ words, onComplete, onGameOver, onBack }: { words: WordD
     currentQuestion.type === 'spelling' ? '✏️ Spelling' : '❓ Fill the Blank'
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
         <LessonHeader title="Show What You Know!" hearts={hearts} current={round + 1} total={totalRounds} onBack={onBack} />
       </div>
@@ -2044,7 +2048,7 @@ function RewardStyleModal({
       onClick={onCancel}
     >
       <div
-        className="relative bg-white rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full animate-reward-bounce"
+        className="relative bg-surface rounded-3xl shadow-2xl p-8 mx-4 max-w-sm w-full animate-reward-bounce"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -2201,7 +2205,7 @@ function RealRewardConfigModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-6">
       <div
-        className="relative bg-white rounded-3xl shadow-2xl p-6 mx-4 max-w-sm w-full"
+        className="relative bg-surface rounded-3xl shadow-2xl p-6 mx-4 max-w-sm w-full"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -2267,7 +2271,7 @@ function RealRewardConfigModal({
                   value={p.name}
                   onChange={(e) => updateName(i, e.target.value)}
                   placeholder={lang === 'es' ? 'Nombre del premio…' : 'Prize name…'}
-                  className="w-full text-sm font-semibold bg-white border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  className="w-full text-sm font-semibold bg-surface border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 />
               </div>
             </div>
@@ -2311,19 +2315,19 @@ function TopicSelectionView({
 }) {
   const [category, setCategory] = useState<'vocab' | 'subjects'>('vocab')
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col">
       {/* Top Bar */}
-      <div className="bg-white shadow-sm px-4 py-3">
+      <div className="bg-surface shadow-sm px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-2xl">🦉</span>
             <div>
-              <span className="font-bold text-lg text-gray-800">Study App</span>
+              <span className="font-black text-lg text-gray-800 whitespace-nowrap">Study App</span>
               <p className="text-xs text-gray-400 -mt-0.5">Hi, {studentName}! 👋</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button onClick={onLogout} className="text-xs text-gray-500 hover:text-gray-700 font-semibold border border-gray-200 px-2 py-1 rounded-lg shrink-0">Salir</button>
+          <div className="flex items-center gap-2 ml-2">
+            <button onClick={onLogout} className="min-h-11 text-sm text-gray-500 hover:text-gray-700 font-bold border-2 border-gray-200 px-3 rounded-xl shrink-0">Salir</button>
             <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
               <span className="text-lg">🔥</span>
               <span className="font-bold text-orange-600">{progress.streak}</span>
@@ -2391,7 +2395,7 @@ function TopicSelectionView({
                 >
                   <Card className="border-0 shadow-md overflow-hidden hover:shadow-lg transition-all" style={{ borderLeft: `8px solid ${topic.color}` }}>
                     <CardContent className="p-5 flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0" style={{ backgroundColor: topic.bgColor }}>
+                      <div className="tint-bg w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0" style={{ backgroundColor: topic.bgColor, '--tint': topic.color } as React.CSSProperties}>
                         {topic.icon}
                       </div>
                       <div className="flex-1">
@@ -2400,12 +2404,12 @@ function TopicSelectionView({
                         {(topic.weekLabel || topic.quizDate) && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {topic.weekLabel && (
-                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
                                 📅 {topic.weekLabel}
                               </span>
                             )}
                             {topic.quizDate && (
-                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-600">
                                 📝 {topic.quizDate}
                               </span>
                             )}
@@ -2811,8 +2815,8 @@ export default function KitchenVocabApp() {
   // Name entry screen
   if (isHydrated && !studentName) {
     return (
-      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center px-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
+      <div className="min-h-screen bg-app flex items-center justify-center px-4">
+        <div className="bg-surface rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center">
           <div className="text-6xl mb-4 animate-float">🦉</div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Study App</h1>
           <p className="text-gray-500 mb-6">What&apos;s your name?</p>
@@ -2841,7 +2845,7 @@ export default function KitchenVocabApp() {
 
   if (!isHydrated) {
     return (
-      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center">
+      <div className="min-h-screen bg-app flex items-center justify-center">
         <div className="text-center">
           <div className="text-5xl animate-float">🦉</div>
           <p className="text-gray-500 mt-4 font-bold">Loading...</p>

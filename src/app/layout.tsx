@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Nunito, Geist_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { I18nProvider } from "@/components/I18nProvider";
-import { LangToggle } from "@/components/LangToggle";
 import { HelpButton } from "@/components/HelpButton";
 import { PwaInstallPrompt } from "@/components/PwaInstallPrompt";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Rounded, highly legible family for young readers.
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["600", "700", "800", "900"],
 });
 
 const geistMono = Geist_Mono({
@@ -55,19 +57,20 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${nunito.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <I18nProvider>
-          <AuthProvider>
-            <ProtectedRoute>
-              <PwaInstallPrompt />
-              <LangToggle />
-              <HelpButton />
-              {children}
-            </ProtectedRoute>
-          </AuthProvider>
-          <Toaster />
-        </I18nProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="theme">
+          <I18nProvider>
+            <AuthProvider>
+              <ProtectedRoute>
+                <PwaInstallPrompt />
+                <HelpButton />
+                {children}
+              </ProtectedRoute>
+            </AuthProvider>
+            <Toaster />
+          </I18nProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

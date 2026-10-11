@@ -46,7 +46,7 @@ export default function OnboardingPage() {
 
   if (saving) {
     return (
-      <div className="min-h-screen bg-[#F7F7F7] flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-app flex flex-col items-center justify-center p-4">
         <div className="text-6xl animate-bounce-custom mb-6">🚀</div>
         <h2 className="text-2xl font-bold text-gray-800 animate-pulse">{t.savingAdventure}</h2>
       </div>
@@ -54,7 +54,7 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-app flex flex-col items-center justify-center p-4">
       <Card className="w-full max-w-lg border-0 shadow-lg overflow-hidden">
         <CardContent className="p-8">
           <div className="text-center animate-slide-up">

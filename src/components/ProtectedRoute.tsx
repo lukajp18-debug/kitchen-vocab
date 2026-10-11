@@ -82,7 +82,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (loading || !ready) {
     return (
-      <div className="min-h-screen bg-[#F7F7F7] flex items-center justify-center">
+      <div className="min-h-screen bg-app flex items-center justify-center">
         <div className="text-6xl animate-bounce-custom">🦉</div>
       </div>
     )

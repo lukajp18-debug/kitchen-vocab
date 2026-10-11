@@ -116,22 +116,22 @@ export default function AdminPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
             <div className="text-3xl font-black text-indigo-600">{students.length}</div>
             <div className="text-xs text-gray-500 mt-1 font-semibold">Registrados</div>
           </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
             <div className="text-3xl font-black text-green-500">{approved}</div>
             <div className="text-xs text-gray-500 mt-1 font-semibold">Aprobados</div>
           </div>
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
             <div className="text-3xl font-black text-yellow-500">{pending}</div>
             <div className="text-xs text-gray-500 mt-1 font-semibold">Pendientes</div>
           </div>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="font-bold text-gray-700">Usuarios Registrados</h2>
             <span className="text-xs text-gray-400 font-semibold">{students.length} total</span>

@@ -100,4 +100,16 @@ export const es = {
   webviewTrapTitle: '⚠️ Evita errores (El "WebView Trap")',
   webviewTrapDesc: 'Si abres el enlace desde WhatsApp, Telegram o Slack, la instalación NO funcionará. Debes seleccionar "Abrir en el navegador externo" o copiar y pegar el enlace directamente en Chrome o Safari antes de seguir los pasos.',
   continueBtn: 'Continuar a la App 🚀',
+
+  // Ajustes
+  settingsTitle: 'Ajustes',
+  settingsBtn: 'Abrir ajustes',
+  settingsLanguage: 'Idioma',
+  settingsTheme: 'Tema',
+  themeLight: 'Claro',
+  themeDark: 'Oscuro',
+  settingsSound: 'Sonidos',
+  soundOn: 'Con sonido',
+  soundOff: 'Silencio',
+  howToUseTitle: '¿Cómo se usa?',
 }

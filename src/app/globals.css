@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-nunito);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -51,14 +51,40 @@
   --color-duo-teal: #00CD9C;
   --color-duo-gold: #FFB700;
   --color-duo-bg: #F0F4F8;
+
+  /* Study App design tokens (see PLAN.md). Values flip in .dark below. */
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-go: var(--go);
+  --color-go-shadow: var(--go-shadow);
+  --color-sun: var(--sun);
+  --color-oops: var(--oops);
+  --color-sky: var(--sky);
+  --color-app: var(--app-bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
 }
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.97 0.005 250);
-  --foreground: oklch(0.2 0.02 260);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.02 260);
+  --brand: #5B4BFF;
+  --brand-soft: #ECEAFF;
+  --go: #3DBE29;
+  --go-shadow: #2E9420;
+  --sun: #FFC23D;
+  --oops: #FF7A6B;
+  --sky: #2BB3FF;
+  --app-bg: #FFF9F2;
+  --surface: #FFFFFF;
+  --ink: #2B2A45;
+  --ink-soft: #6B6987;
+  --line: #E8E4F5;
+  --background: var(--app-bg);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.02 260);
   --primary: oklch(0.6 0.2 145);
@@ -70,8 +96,8 @@
   --accent: oklch(0.92 0.02 90);
   --accent-foreground: oklch(0.3 0.02 260);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.01 250);
-  --input: oklch(0.9 0.01 250);
+  --border: var(--line);
+  --input: var(--line);
   --ring: oklch(0.6 0.2 145);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -89,10 +115,22 @@
 }
 
 .dark {
-  --background: oklch(0.15 0.01 250);
-  --foreground: oklch(0.95 0.01 250);
-  --card: oklch(0.2 0.01 250);
-  --card-foreground: oklch(0.95 0.01 250);
+  --brand: #8B7FFF;
+  --brand-soft: #2A2550;
+  --go: #4FD63A;
+  --go-shadow: #2E9420;
+  --sun: #FFCF5C;
+  --oops: #FF8F82;
+  --sky: #5CC6FF;
+  --app-bg: #14122B;
+  --surface: #1F1C3D;
+  --ink: #F2F0FF;
+  --ink-soft: #B5B2D6;
+  --line: #34305C;
+  --background: var(--app-bg);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
   --popover: oklch(0.2 0.01 250);
   --popover-foreground: oklch(0.95 0.01 250);
   --primary: oklch(0.6 0.2 145);
@@ -104,8 +142,8 @@
   --accent: oklch(0.25 0.02 90);
   --accent-foreground: oklch(0.9 0.01 250);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --border: var(--line);
+  --input: var(--line);
   --ring: oklch(0.6 0.2 145);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
@@ -120,6 +158,164 @@
   --sidebar-accent-foreground: oklch(0.9 0.01 250);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.6 0.2 145);
+}
+
+
+/* ============ THEME: NEUTRALS + DARK MODE ============
+   gray-* and slate-* share one soft indigo-tinted scale. In dark mode the scale is
+   inverted and light color tints become deep tints, so the hundreds of existing
+   utility classes (bg-white aside) follow the theme without per-file edits. */
+:root {
+  --color-gray-50: oklch(0.985 0.004 285);
+  --color-gray-100: oklch(0.965 0.008 285);
+  --color-gray-200: oklch(0.925 0.012 285);
+  --color-gray-300: oklch(0.87 0.016 285);
+  --color-gray-400: oklch(0.62 0.025 285);
+  --color-gray-500: oklch(0.55 0.028 285);
+  --color-gray-600: oklch(0.47 0.03 285);
+  --color-gray-700: oklch(0.38 0.035 285);
+  --color-gray-800: oklch(0.3 0.04 285);
+  --color-gray-900: oklch(0.24 0.04 285);
+  --color-slate-50: oklch(0.985 0.004 285);
+  --color-slate-100: oklch(0.965 0.008 285);
+  --color-slate-200: oklch(0.925 0.012 285);
+  --color-slate-300: oklch(0.87 0.016 285);
+  --color-slate-400: oklch(0.62 0.025 285);
+  --color-slate-500: oklch(0.55 0.028 285);
+  --color-slate-600: oklch(0.47 0.03 285);
+  --color-slate-700: oklch(0.38 0.035 285);
+  --color-slate-800: oklch(0.3 0.04 285);
+  --color-slate-900: oklch(0.24 0.04 285);
+}
+
+.dark {
+  --color-gray-50: oklch(0.24 0.045 285);
+  --color-gray-100: oklch(0.27 0.045 285);
+  --color-gray-200: oklch(0.32 0.045 285);
+  --color-gray-300: oklch(0.4 0.04 285);
+  --color-gray-400: oklch(0.68 0.03 285);
+  --color-gray-500: oklch(0.74 0.03 285);
+  --color-gray-600: oklch(0.8 0.025 285);
+  --color-gray-700: oklch(0.87 0.02 285);
+  --color-gray-800: oklch(0.93 0.015 285);
+  --color-gray-900: oklch(0.97 0.01 285);
+  --color-slate-50: oklch(0.24 0.045 285);
+  --color-slate-100: oklch(0.27 0.045 285);
+  --color-slate-200: oklch(0.32 0.045 285);
+  --color-slate-300: oklch(0.4 0.04 285);
+  --color-slate-400: oklch(0.68 0.03 285);
+  --color-slate-500: oklch(0.74 0.03 285);
+  --color-slate-600: oklch(0.8 0.025 285);
+  --color-slate-700: oklch(0.87 0.02 285);
+  --color-slate-800: oklch(0.93 0.015 285);
+  --color-slate-900: oklch(0.97 0.01 285);
+  --color-red-50: color-mix(in srgb, var(--color-red-500) 12%, var(--surface));
+  --color-red-100: color-mix(in srgb, var(--color-red-500) 18%, var(--surface));
+  --color-red-200: color-mix(in srgb, var(--color-red-500) 28%, var(--surface));
+  --color-red-700: color-mix(in oklch, var(--color-red-500) 55%, white);
+  --color-red-800: color-mix(in oklch, var(--color-red-500) 45%, white);
+  --color-red-900: color-mix(in oklch, var(--color-red-500) 35%, white);
+  --color-orange-50: color-mix(in srgb, var(--color-orange-500) 12%, var(--surface));
+  --color-orange-100: color-mix(in srgb, var(--color-orange-500) 18%, var(--surface));
+  --color-orange-200: color-mix(in srgb, var(--color-orange-500) 28%, var(--surface));
+  --color-orange-700: color-mix(in oklch, var(--color-orange-500) 55%, white);
+  --color-orange-800: color-mix(in oklch, var(--color-orange-500) 45%, white);
+  --color-orange-900: color-mix(in oklch, var(--color-orange-500) 35%, white);
+  --color-amber-50: color-mix(in srgb, var(--color-amber-500) 12%, var(--surface));
+  --color-amber-100: color-mix(in srgb, var(--color-amber-500) 18%, var(--surface));
+  --color-amber-200: color-mix(in srgb, var(--color-amber-500) 28%, var(--surface));
+  --color-amber-700: color-mix(in oklch, var(--color-amber-500) 55%, white);
+  --color-amber-800: color-mix(in oklch, var(--color-amber-500) 45%, white);
+  --color-amber-900: color-mix(in oklch, var(--color-amber-500) 35%, white);
+  --color-yellow-50: color-mix(in srgb, var(--color-yellow-500) 12%, var(--surface));
+  --color-yellow-100: color-mix(in srgb, var(--color-yellow-500) 18%, var(--surface));
+  --color-yellow-200: color-mix(in srgb, var(--color-yellow-500) 28%, var(--surface));
+  --color-yellow-700: color-mix(in oklch, var(--color-yellow-500) 55%, white);
+  --color-yellow-800: color-mix(in oklch, var(--color-yellow-500) 45%, white);
+  --color-yellow-900: color-mix(in oklch, var(--color-yellow-500) 35%, white);
+  --color-lime-50: color-mix(in srgb, var(--color-lime-500) 12%, var(--surface));
+  --color-lime-100: color-mix(in srgb, var(--color-lime-500) 18%, var(--surface));
+  --color-lime-200: color-mix(in srgb, var(--color-lime-500) 28%, var(--surface));
+  --color-lime-700: color-mix(in oklch, var(--color-lime-500) 55%, white);
+  --color-lime-800: color-mix(in oklch, var(--color-lime-500) 45%, white);
+  --color-lime-900: color-mix(in oklch, var(--color-lime-500) 35%, white);
+  --color-green-50: color-mix(in srgb, var(--color-green-500) 12%, var(--surface));
+  --color-green-100: color-mix(in srgb, var(--color-green-500) 18%, var(--surface));
+  --color-green-200: color-mix(in srgb, var(--color-green-500) 28%, var(--surface));
+  --color-green-700: color-mix(in oklch, var(--color-green-500) 55%, white);
+  --color-green-800: color-mix(in oklch, var(--color-green-500) 45%, white);
+  --color-green-900: color-mix(in oklch, var(--color-green-500) 35%, white);
+  --color-emerald-50: color-mix(in srgb, var(--color-emerald-500) 12%, var(--surface));
+  --color-emerald-100: color-mix(in srgb, var(--color-emerald-500) 18%, var(--surface));
+  --color-emerald-200: color-mix(in srgb, var(--color-emerald-500) 28%, var(--surface));
+  --color-emerald-700: color-mix(in oklch, var(--color-emerald-500) 55%, white);
+  --color-emerald-800: color-mix(in oklch, var(--color-emerald-500) 45%, white);
+  --color-emerald-900: color-mix(in oklch, var(--color-emerald-500) 35%, white);
+  --color-teal-50: color-mix(in srgb, var(--color-teal-500) 12%, var(--surface));
+  --color-teal-100: color-mix(in srgb, var(--color-teal-500) 18%, var(--surface));
+  --color-teal-200: color-mix(in srgb, var(--color-teal-500) 28%, var(--surface));
+  --color-teal-700: color-mix(in oklch, var(--color-teal-500) 55%, white);
+  --color-teal-800: color-mix(in oklch, var(--color-teal-500) 45%, white);
+  --color-teal-900: color-mix(in oklch, var(--color-teal-500) 35%, white);
+  --color-cyan-50: color-mix(in srgb, var(--color-cyan-500) 12%, var(--surface));
+  --color-cyan-100: color-mix(in srgb, var(--color-cyan-500) 18%, var(--surface));
+  --color-cyan-200: color-mix(in srgb, var(--color-cyan-500) 28%, var(--surface));
+  --color-cyan-700: color-mix(in oklch, var(--color-cyan-500) 55%, white);
+  --color-cyan-800: color-mix(in oklch, var(--color-cyan-500) 45%, white);
+  --color-cyan-900: color-mix(in oklch, var(--color-cyan-500) 35%, white);
+  --color-sky-50: color-mix(in srgb, var(--color-sky-500) 12%, var(--surface));
+  --color-sky-100: color-mix(in srgb, var(--color-sky-500) 18%, var(--surface));
+  --color-sky-200: color-mix(in srgb, var(--color-sky-500) 28%, var(--surface));
+  --color-sky-700: color-mix(in oklch, var(--color-sky-500) 55%, white);
+  --color-sky-800: color-mix(in oklch, var(--color-sky-500) 45%, white);
+  --color-sky-900: color-mix(in oklch, var(--color-sky-500) 35%, white);
+  --color-blue-50: color-mix(in srgb, var(--color-blue-500) 12%, var(--surface));
+  --color-blue-100: color-mix(in srgb, var(--color-blue-500) 18%, var(--surface));
+  --color-blue-200: color-mix(in srgb, var(--color-blue-500) 28%, var(--surface));
+  --color-blue-700: color-mix(in oklch, var(--color-blue-500) 55%, white);
+  --color-blue-800: color-mix(in oklch, var(--color-blue-500) 45%, white);
+  --color-blue-900: color-mix(in oklch, var(--color-blue-500) 35%, white);
+  --color-indigo-50: color-mix(in srgb, var(--color-indigo-500) 12%, var(--surface));
+  --color-indigo-100: color-mix(in srgb, var(--color-indigo-500) 18%, var(--surface));
+  --color-indigo-200: color-mix(in srgb, var(--color-indigo-500) 28%, var(--surface));
+  --color-indigo-700: color-mix(in oklch, var(--color-indigo-500) 55%, white);
+  --color-indigo-800: color-mix(in oklch, var(--color-indigo-500) 45%, white);
+  --color-indigo-900: color-mix(in oklch, var(--color-indigo-500) 35%, white);
+  --color-violet-50: color-mix(in srgb, var(--color-violet-500) 12%, var(--surface));
+  --color-violet-100: color-mix(in srgb, var(--color-violet-500) 18%, var(--surface));
+  --color-violet-200: color-mix(in srgb, var(--color-violet-500) 28%, var(--surface));
+  --color-violet-700: color-mix(in oklch, var(--color-violet-500) 55%, white);
+  --color-violet-800: color-mix(in oklch, var(--color-violet-500) 45%, white);
+  --color-violet-900: color-mix(in oklch, var(--color-violet-500) 35%, white);
+  --color-purple-50: color-mix(in srgb, var(--color-purple-500) 12%, var(--surface));
+  --color-purple-100: color-mix(in srgb, var(--color-purple-500) 18%, var(--surface));
+  --color-purple-200: color-mix(in srgb, var(--color-purple-500) 28%, var(--surface));
+  --color-purple-700: color-mix(in oklch, var(--color-purple-500) 55%, white);
+  --color-purple-800: color-mix(in oklch, var(--color-purple-500) 45%, white);
+  --color-purple-900: color-mix(in oklch, var(--color-purple-500) 35%, white);
+  --color-fuchsia-50: color-mix(in srgb, var(--color-fuchsia-500) 12%, var(--surface));
+  --color-fuchsia-100: color-mix(in srgb, var(--color-fuchsia-500) 18%, var(--surface));
+  --color-fuchsia-200: color-mix(in srgb, var(--color-fuchsia-500) 28%, var(--surface));
+  --color-fuchsia-700: color-mix(in oklch, var(--color-fuchsia-500) 55%, white);
+  --color-fuchsia-800: color-mix(in oklch, var(--color-fuchsia-500) 45%, white);
+  --color-fuchsia-900: color-mix(in oklch, var(--color-fuchsia-500) 35%, white);
+  --color-pink-50: color-mix(in srgb, var(--color-pink-500) 12%, var(--surface));
+  --color-pink-100: color-mix(in srgb, var(--color-pink-500) 18%, var(--surface));
+  --color-pink-200: color-mix(in srgb, var(--color-pink-500) 28%, var(--surface));
+  --color-pink-700: color-mix(in oklch, var(--color-pink-500) 55%, white);
+  --color-pink-800: color-mix(in oklch, var(--color-pink-500) 45%, white);
+  --color-pink-900: color-mix(in oklch, var(--color-pink-500) 35%, white);
+  --color-rose-50: color-mix(in srgb, var(--color-rose-500) 12%, var(--surface));
+  --color-rose-100: color-mix(in srgb, var(--color-rose-500) 18%, var(--surface));
+  --color-rose-200: color-mix(in srgb, var(--color-rose-500) 28%, var(--surface));
+  --color-rose-700: color-mix(in oklch, var(--color-rose-500) 55%, white);
+  --color-rose-800: color-mix(in oklch, var(--color-rose-500) 45%, white);
+  --color-rose-900: color-mix(in oklch, var(--color-rose-500) 35%, white);
+}
+
+/* Inline pastel backgrounds from topic/lesson data: tint them from --tint in dark mode. */
+.dark .tint-bg {
+  background-color: color-mix(in srgb, var(--tint) 22%, var(--surface)) !important;
 }
 
 @layer base {
@@ -233,22 +429,49 @@
   to { transform: rotate(0deg) scale(1); opacity: 1; }
 }
 
-.animate-shake { animation: shake 0.5s ease-in-out; }
+.animate-shake { animation: shake 0.4s ease-in-out; }
 .animate-bounce-custom { animation: bounce-custom 0.6s ease-in-out; }
 .animate-confetti { animation: confetti-fall 3s ease-out forwards; }
 .animate-star-burst { animation: star-burst 0.6s ease-out forwards; }
 .animate-pulse-grow { animation: pulse-grow 0.5s ease-in-out; }
 .animate-float { animation: float 3s ease-in-out infinite; }
-.animate-slide-up { animation: slide-up 0.4s ease-out; }
-.animate-slide-in-right { animation: slide-in-right 0.4s ease-out; }
+.animate-slide-up { animation: slide-up 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+.animate-slide-in-right { animation: slide-in-right 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
 .animate-wiggle { animation: wiggle 0.5s ease-in-out; }
-.animate-pop-in { animation: pop-in 0.4s ease-out; }
+.animate-pop-in { animation: pop-in 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
 .animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
 .animate-heart-break { animation: heart-break 0.5s ease-out; }
 .animate-correct-flash { animation: correct-flash 0.6s ease-out; }
 .animate-wrong-flash { animation: wrong-flash 0.6s ease-out; }
 .animate-xp-float { animation: xp-float 1s ease-out forwards; }
-.animate-rotate-in { animation: rotate-in 0.4s ease-out; }
+.animate-rotate-in { animation: rotate-in 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Used by the settings/help modal and its button; were referenced but never defined. */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scale-up {
+  from { transform: scale(0.92) translateY(8px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.animate-fade-in { animation: fade-in 0.2s ease-out; }
+.animate-scale-up { animation: scale-up 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+.animate-bounce-subtle { animation: bounce-subtle 2s ease-in-out infinite; }
+
+/* Respect the device "reduce motion" setting: keep state changes, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* Custom scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
@@ -267,6 +490,7 @@
 
 /* Duolingo-style button press effect */
 .duo-button {
+  min-height: 52px;
   transition: all 0.15s ease;
   border-bottom: 4px solid rgba(0,0,0,0.2);
 }
@@ -347,7 +571,7 @@
 
 /* Progress bar green color override for Duolingo style */
 .duo-progress [data-slot="progress-indicator"] {
-  background-color: #58CC02 !important;
+  background-color: var(--go) !important;
 }
 
 /* Reward sparkle animation */
@@ -408,7 +632,7 @@
 .spelling-slot {
   min-width: 40px;
   min-height: 48px;
-  border-bottom: 3px solid #333;
+  border-bottom: 3px solid var(--ink-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -419,13 +643,13 @@
 }
 
 .spelling-slot.filled {
-  border-bottom-color: #58CC02;
-  background-color: #E5F9D0;
+  border-bottom-color: var(--go);
+  background-color: color-mix(in srgb, var(--go) 18%, var(--surface));
   border-radius: 8px;
 }
 
 .spelling-slot.wrong {
-  border-bottom-color: #FF4B4B;
-  background-color: #FFE0E0;
+  border-bottom-color: var(--oops);
+  background-color: color-mix(in srgb, var(--oops) 18%, var(--surface));
   border-radius: 8px;
 }
