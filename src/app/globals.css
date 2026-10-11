@@ -751,3 +751,28 @@
   75% { transform: scale(1.08) rotate(-2deg); }
 }
 .animate-flame { animation: flame 1.6s ease-in-out infinite; transform-origin: 50% 90%; }
+
+/* Background shapes */
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(24px, -18px) scale(1.06); }
+  66% { transform: translate(-16px, 14px) scale(0.96); }
+}
+.animate-drift { animation: drift 18s ease-in-out infinite; }
+
+/* Lesson path nodes: raised circles that press down */
+.lesson-node {
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--node) 70%, black);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.lesson-node:hover { transform: translateY(-2px); box-shadow: 0 8px 0 color-mix(in srgb, var(--node) 70%, black); }
+.lesson-node:active { transform: translateY(5px); box-shadow: 0 1px 0 color-mix(in srgb, var(--node) 70%, black); }
+@keyframes node-ping {
+  0% { transform: scale(1); opacity: 0.45; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+.animate-node-ping { animation: node-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+/* Tactile cards (topics) */
+.press-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+.press-card:active { transform: translateY(3px); }

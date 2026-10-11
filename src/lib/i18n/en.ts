@@ -203,6 +203,8 @@ export const en = {
     streakDays: (n: number) => (n === 1 ? '1-day streak' : `${n}-day streak`),
     level: (n: number) => `Level ${n}`,
     toNextLevel: (n: number) => `${n} XP to next level`,
+    levelShort: (n: number) => `Lv ${n}`,
+    startHere: 'Start here!',
     levelUp: (n: number) => `Level up! You reached level ${n}! 🎉`,
   },
 }

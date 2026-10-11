@@ -20,6 +20,9 @@ import { lessonName, lessonDescription, lessonTitle, topicTitle, topicSubtitle }
 import { Dino, type DinoMood } from '@/components/kid/Dino'
 import { FeedbackSheet } from '@/components/kid/FeedbackSheet'
 import { LessonComplete } from '@/components/kid/LessonComplete'
+import { LessonPath } from '@/components/kid/LessonPath'
+import { StatChips } from '@/components/kid/StatChips'
+import { FloatingShapes } from '@/components/kid/FloatingShapes'
 import { playReward } from '@/lib/sound'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
@@ -486,9 +489,10 @@ function Dashboard({
 
   return (
 
-    <div className="min-h-screen bg-app flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col relative isolate">
+      <FloatingShapes />
       {/* Top Bar */}
-      <div className="bg-surface shadow-sm px-4 py-3">
+      <div className="bg-surface/85 backdrop-blur-sm shadow-sm px-4 py-3">
         <div className="max-w-lg mx-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
           <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto">
             <button
@@ -511,14 +515,7 @@ function Dashboard({
               <span className="text-lg leading-none">↺</span>
             </button>
             <button onClick={onLogout} className="min-h-11 text-sm text-gray-500 hover:text-gray-700 font-bold border-2 border-gray-200 px-3 rounded-xl" title={tx.logoutTitle}>{tx.logout}</button>
-            <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
-              <span className="text-lg">🔥</span>
-              <span className="font-bold text-orange-600">{progress.streak}</span>
-            </div>
-            <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full shrink-0">
-              <span className="text-lg">⭐</span>
-              <span className="font-bold text-yellow-600">{progress.xp}</span>
-            </div>
+            <StatChips streak={progress.streak} xp={progress.xp} />
           </div>
         </div>
       </div>
@@ -725,45 +722,7 @@ function Dashboard({
               </div>
 
               {/* Lesson Path */}
-              <div className="flex flex-col items-center">
-                {topicLessons.map((lesson, index) => {
-                  const completed = isCompleted(lesson.id)
-                  return (
-                    <div key={lesson.id} className="flex flex-col items-center w-full">
-                      {index > 0 && (
-                        <div className="w-1 h-8 rounded-full" style={{ backgroundColor: isCompleted(topicLessons[index - 1].id) ? lesson.color : 'var(--line)' }} />
-                      )}
-                      <button
-                        onClick={() => onSelectLesson(lesson.id as LessonViewType)}
-                        className="w-full max-w-xs mb-2 transition-all duration-200 lesson-card-hover cursor-pointer"
-                      >
-                        <Card
-                           className={`tint-bg border-0 shadow-md overflow-hidden ${completed ? 'ring-2' : ''}`}
-                           style={{ backgroundColor: lesson.bgColor, '--tint': lesson.color, ...(completed ? { ringColor: lesson.color } : {}) } as React.CSSProperties}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0" style={{ backgroundColor: lesson.color }}>
-                                {lesson.icon}
-                              </div>
-                              <div className="flex-1 text-left">
-                                <h3 className="font-bold text-sm text-gray-800">{lessonName(lesson, lang)}</h3>
-                                <p className="text-xs mt-0.5 text-gray-600">{lessonDescription(lesson, lang)}</p>
-                              </div>
-                              <div className="shrink-0 flex items-center gap-1">
-                                {completed && <span className="text-xl animate-pop-in">✅</span>}
-                                <span className="text-xs font-bold px-2 py-1 rounded-full" style={{ backgroundColor: `${lesson.color}20`, color: lesson.color }}>
-                                  +{lesson.xpReward}XP
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
+              <LessonPath lessons={topicLessons} isCompleted={isCompleted} onSelect={(id) => onSelectLesson(id as LessonViewType)} />
             </>
           ) : (
             <Leaderboard
@@ -2321,9 +2280,10 @@ function TopicSelectionView({
   const tx = t.study
   const [category, setCategory] = useState<'vocab' | 'subjects'>('vocab')
   return (
-    <div className="min-h-screen bg-app flex flex-col">
+    <div className="min-h-screen bg-app flex flex-col relative isolate">
+      <FloatingShapes />
       {/* Top Bar */}
-      <div className="bg-surface shadow-sm px-4 py-3">
+      <div className="bg-surface/85 backdrop-blur-sm shadow-sm px-4 py-3">
         <div className="max-w-lg mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Dino size={44} mood="idle" />
@@ -2334,14 +2294,7 @@ function TopicSelectionView({
           </div>
           <div className="flex items-center gap-2 ml-2">
             <button onClick={onLogout} className="min-h-11 text-sm text-gray-500 hover:text-gray-700 font-bold border-2 border-gray-200 px-3 rounded-xl shrink-0" title={tx.logoutTitle}>{tx.logout}</button>
-            <div className="flex items-center gap-1 bg-orange-50 px-3 py-1.5 rounded-full shrink-0">
-              <span className="text-lg">🔥</span>
-              <span className="font-bold text-orange-600">{progress.streak}</span>
-            </div>
-            <div className="flex items-center gap-1 bg-yellow-50 px-3 py-1.5 rounded-full shrink-0">
-              <span className="text-lg">⭐</span>
-              <span className="font-bold text-yellow-600">{progress.xp}</span>
-            </div>
+            <StatChips streak={progress.streak} xp={progress.xp} />
           </div>
         </div>
       </div>
@@ -2399,7 +2352,7 @@ function TopicSelectionView({
                   onClick={() => onSelectTopic(topic.id)}
                   className="w-full text-left transition-all duration-200 hover:scale-[1.02] cursor-pointer"
                 >
-                  <Card className="border-0 shadow-md overflow-hidden hover:shadow-lg transition-all" style={{ borderLeft: `8px solid ${topic.color}` }}>
+                  <Card className="press-card border-2 border-line border-b-[6px] shadow-sm overflow-hidden hover:shadow-md transition-all rounded-[28px]" style={{ borderLeft: `8px solid ${topic.color}` }}>
                     <CardContent className="p-5 flex items-center gap-4">
                       <div className="tint-bg w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0" style={{ backgroundColor: topic.bgColor, '--tint': topic.color } as React.CSSProperties}>
                         {topic.icon}
