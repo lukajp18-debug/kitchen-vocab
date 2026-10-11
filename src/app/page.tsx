@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { LazyMotion, domAnimation, m, AnimatePresence, MotionConfig } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -2869,7 +2870,17 @@ export default function KitchenVocabApp() {
   }
 
   return (
+    <LazyMotion features={domAnimation}>
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen">
+      <AnimatePresence mode="wait" initial={false}>
+      <m.div
+        key={view}
+        initial={{ opacity: 0, x: 24 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -24, transition: { duration: 0.15, ease: 'easeIn' } }}
+        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+      >
       {view === 'topic-selection' && (
         <TopicSelectionView progress={progress} studentName={studentName} onSelectTopic={handleSelectTopic} onLogout={handleLogout} />
       )}
@@ -3038,6 +3049,9 @@ export default function KitchenVocabApp() {
         />
       )}
 
+      </m.div>
+      </AnimatePresence>
+
       {/* Reward Celebration Overlay */}
       {pendingReward && (
         <RewardCelebration
@@ -3066,5 +3080,7 @@ export default function KitchenVocabApp() {
         />
       )}
     </div>
+    </MotionConfig>
+    </LazyMotion>
   )
 }
