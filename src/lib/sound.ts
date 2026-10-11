@@ -44,6 +44,9 @@ function play(notes: [freq: number, offset: number, duration: number][], volume 
 
 function vibrate(pattern: number | number[]) {
   if (!getSoundOn()) return
+  // Browsers block vibration until the user has tapped the page at least once.
+  const activation = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation
+  if (activation && !activation.hasBeenActive) return
   try {
     navigator.vibrate?.(pattern)
   } catch {}
