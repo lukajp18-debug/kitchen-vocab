@@ -26,6 +26,10 @@ export const metadata: Metadata = {
   description:
     "A fun, Duolingo-style vocabulary learning app for kids. Interactive lessons, games, and real rewards.",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

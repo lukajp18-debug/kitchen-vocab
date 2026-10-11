@@ -1,18 +1,30 @@
 {
-  "name": "Kitchen Vocabulary",
-  "short_name": "Kitchen Vocab",
-  "description": "Learn kitchen words and earn rewards! A fun Duolingo-style learning app for kids.",
+  "name": "Study App",
+  "short_name": "Study App",
+  "description": "Aprende vocabulario, matemáticas y más jugando con Dino. Learn vocabulary, math and more with Dino!",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#F0F4F8",
-  "theme_color": "#58CC02",
+  "background_color": "#FFF9F2",
+  "theme_color": "#5B4BFF",
   "icons": [
     {
-      "src": "/logo.svg",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

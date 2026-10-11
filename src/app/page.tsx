@@ -23,6 +23,7 @@ import { LessonComplete } from '@/components/kid/LessonComplete'
 import { LessonPath } from '@/components/kid/LessonPath'
 import { StatChips } from '@/components/kid/StatChips'
 import { FloatingShapes } from '@/components/kid/FloatingShapes'
+import { TopicsSkeleton } from '@/components/kid/Skeletons'
 import { playReward } from '@/lib/sound'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
@@ -2806,12 +2807,7 @@ export default function KitchenVocabApp() {
 
   if (!isHydrated) {
     return (
-      <div className="min-h-screen bg-app flex items-center justify-center">
-        <div className="text-center">
-          <Dino size={110} mood="thinking" className="mx-auto" />
-          <p className="text-gray-500 mt-4 font-bold">{tx.loading}</p>
-        </div>
-      </div>
+      <TopicsSkeleton />
     )
   }
 

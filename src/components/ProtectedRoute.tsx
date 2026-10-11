@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from './AuthProvider'
 import { Dino } from '@/components/kid/Dino'
+import { TopicsSkeleton } from '@/components/kid/Skeletons'
 import { db } from '@/lib/firebase'
 import { doc, getDoc } from 'firebase/firestore'
 import { signOut } from 'firebase/auth'
@@ -82,6 +83,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, [user, loading, pathname, router])
 
   if (loading || !ready) {
+    if (pathname === '/') return <TopicsSkeleton />
     return (
       <div className="min-h-screen bg-app flex items-center justify-center">
         <Dino size={120} mood="idle" />

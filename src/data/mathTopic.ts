@@ -53,7 +53,7 @@ const MATH_CONTENT: MathContent = {
       a: 678, b: 239, op: 'sub', answerSuffix: 'pencils',
     },
     {
-      image: '/images/math/chicks.png',
+      image: '/images/math/chicks.webp',
       sentenceEs: 'Hay 532 pollos en la granja y el granjero vendió 278 pollos. ¿Cuántos pollos quedaron?',
       sentenceEn: 'There are 532 chickens in the farm, and the farmer sold 278 chickens. How many chickens were left?',
       a: 532, b: 278, op: 'sub', answerSuffix: 'chickens',

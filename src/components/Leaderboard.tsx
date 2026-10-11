@@ -96,7 +96,7 @@ export function Leaderboard({ studentName, userXp, topicId, topicName, topicIcon
       name: `${studentName} (${lang === 'es' ? 'Tú' : 'You'}) 🌟`,
       xp: userXp,
       isUser: true,
-      avatar: '🦉'
+      avatar: '🦖'
     })
 
     // Sort descending by XP
