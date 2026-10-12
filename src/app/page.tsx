@@ -24,6 +24,7 @@ import { LessonPath } from '@/components/kid/LessonPath'
 import { StatChips } from '@/components/kid/StatChips'
 import { FloatingShapes } from '@/components/kid/FloatingShapes'
 import { TopicsSkeleton } from '@/components/kid/Skeletons'
+import { SentDateChip } from '@/components/kid/SentDateChip'
 import { playReward } from '@/lib/sound'
 import { ColumnSolveView, WordProblemsView, MoneyView, TimeView } from '@/components/math/MathViews'
 import { ArticlesAAnView, ArticlesTheView, ThereIsAreView, ActionWordsView, PresentTenseView } from '@/components/language/LanguageViews'
@@ -534,7 +535,7 @@ function Dashboard({
               {overallProgress === 100 ? tx.allDone : tx.letsLearn(topicTitle(activeTopic, lang))}
             </h1>
             <p className="text-gray-500 mt-1">{topicSubtitle(activeTopic, lang)}</p>
-            {(activeTopic.weekLabel || activeTopic.quizDate) && (
+            {(activeTopic.weekLabel || activeTopic.quizDate || activeTopic.sentDate) && (
               <div className="flex flex-wrap justify-center gap-2 mt-3">
                 {activeTopic.weekLabel && (
                   <span className="text-xs font-black px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">
@@ -546,6 +547,7 @@ function Dashboard({
                     📝 {activeTopic.quizDate}
                   </span>
                 )}
+                <SentDateChip date={activeTopic.sentDate} className="text-xs px-3 py-1" />
               </div>
             )}
           </div>
@@ -2361,7 +2363,7 @@ function TopicSelectionView({
                       <div className="flex-1">
                         <h3 className="font-bold text-lg text-gray-800">{topicTitle(topic, lang)}</h3>
                         <p className="text-xs text-gray-500">{topicSubtitle(topic, lang)}</p>
-                        {(topic.weekLabel || topic.quizDate) && (
+                        {(topic.weekLabel || topic.quizDate || topic.sentDate) && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {topic.weekLabel && (
                               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
@@ -2373,6 +2375,7 @@ function TopicSelectionView({
                                 📝 {topic.quizDate}
                               </span>
                             )}
+                            <SentDateChip date={topic.sentDate} className="text-xs px-2 py-0.5" />
                           </div>
                         )}
 

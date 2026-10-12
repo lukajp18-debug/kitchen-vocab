@@ -92,6 +92,7 @@ export const MATH_TOPIC: TopicDef = {
   color: '#1CB0F6',
   bgColor: '#D0EFFA',
   kind: 'math',
+  sentDate: '2026-05-25',
   words: [], // unused for math topics
   mathLessons: MATH_LESSONS,
   mathContent: MATH_CONTENT,

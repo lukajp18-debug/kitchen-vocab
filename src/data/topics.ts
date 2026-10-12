@@ -30,6 +30,7 @@ export const TOPICS: TopicDef[] = [
     color: '#4C6FFF',
     bgColor: '#E3E8FF',
     weekLabel: 'Vocabulary #3 · Semana 5',
+    sentDate: '2026-10-03',
     words: [
       { word: 'hour', image: '/images/vocab-weekly/week5/hour.png' },
       { word: 'between', image: '/images/vocab-weekly/week5/between.png' },

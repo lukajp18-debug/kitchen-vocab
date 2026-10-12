@@ -205,6 +205,7 @@ export const en = {
     toNextLevel: (n: number) => `${n} XP to next level`,
     levelShort: (n: number) => `Lv ${n}`,
     startHere: 'Start here!',
+    sentOn: (date: string) => `Sent ${date}`,
     levelUp: (n: number) => `Level up! You reached level ${n}! 🎉`,
   },
 }

@@ -73,6 +73,7 @@ export const WORKSHOP_3_TOPIC: TopicDef = {
   color: '#FF6B6B',
   bgColor: '#FFE3E3',
   kind: 'workshop',
+  sentDate: '2026-10-03',
   words: [], // unused for workshop topics
   workshopLessons: WORKSHOP_3_LESSONS,
   workshopContent: WORKSHOP_3_CONTENT,

@@ -119,6 +119,7 @@ export const LANGUAGE_TOPIC: TopicDef = {
   color: '#FF86D0',
   bgColor: '#FFD8EE',
   kind: 'language',
+  sentDate: '2026-05-25',
   words: [],
   languageLessons: LANGUAGE_LESSONS,
   languageContent: LANGUAGE_CONTENT,

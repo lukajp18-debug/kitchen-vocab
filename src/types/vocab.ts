@@ -40,6 +40,8 @@ export interface TopicDef {
   rewards: RewardDef[]
   // Optional: for a school-assigned weekly vocab list, shown as a prominent badge.
   weekLabel?: string
+  // Date (YYYY-MM-DD) the teacher sent this material, when known.
+  sentDate?: string
   quizDate?: string
   // Optional Math Workshop fields. Vocab topics omit these (default kind: 'vocab').
   kind?: 'vocab' | 'math' | 'language' | 'workshop'
