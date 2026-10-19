@@ -148,8 +148,8 @@ const WORKSHOP_4_CONTENT: WorkshopContent = {
 
 export const WORKSHOP_4_TOPIC: TopicDef = {
   id: 'workshop-vocab-4',
-  name: 'Taller de Repaso - Quiz de Vocabulario #4',
-  displayName: 'Vocab Quiz #4 Workshop',
+  name: 'Taller de Repaso - Quiz #4 (semana del lunes 19 oct)',
+  displayName: 'Vocab Quiz #4 Workshop (week of Mon Oct 19)',
   icon: '📝',
   color: '#FF6B6B',
   bgColor: '#FFE3E3',

@@ -24,8 +24,8 @@ export const TOPICS: TopicDef[] = [
   WORKSHOP_4_TOPIC,
   {
     id: 'vocab-week-6',
-    name: 'Vocabulario del Colegio - Semana 6',
-    displayName: 'School Vocab - Week 6',
+    name: 'Vocabulario del Colegio - Semana 6 (del lunes 19 oct)',
+    displayName: 'School Vocab - Week 6 (week of Mon Oct 19)',
     icon: '🏫',
     color: '#4C6FFF',
     bgColor: '#E3E8FF',
