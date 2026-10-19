@@ -1,7 +1,7 @@
 import { TopicDef, LessonDef } from '../types/vocab'
 import { MATH_TOPIC } from './mathTopic'
 import { LANGUAGE_TOPIC } from './languageTopic'
-import { WORKSHOP_3_TOPIC } from './workshopTopic'
+import { WORKSHOP_3_TOPIC, WORKSHOP_4_TOPIC } from './workshopTopic'
 
 export const CONFETTI_COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#FFD93D', '#6BCB77', '#9B59B6', '#58CC02', '#CE82FF', '#FF9600', '#FFC800'
@@ -21,6 +21,38 @@ export const LESSONS: LessonDef[] = [
 ]
 
 export const TOPICS: TopicDef[] = [
+  WORKSHOP_4_TOPIC,
+  {
+    id: 'vocab-week-6',
+    name: 'Vocabulario del Colegio - Semana 6',
+    displayName: 'School Vocab - Week 6',
+    icon: '🏫',
+    color: '#4C6FFF',
+    bgColor: '#E3E8FF',
+    weekLabel: 'Vocabulary #4 · Semana 6',
+    words: [
+      { word: 'start', image: '/images/vocab-weekly/week6/start.webp' },
+      { word: 'finish', image: '/images/vocab-weekly/week6/finish.webp' },
+      { word: 'friend', image: '/images/vocab-weekly/week6/friend.webp' },
+      { word: 'friendship', image: '/images/vocab-weekly/week6/friendship.webp' },
+      { word: 'think', image: '/images/vocab-weekly/week6/think.webp' },
+      { word: 'together', image: '/images/vocab-weekly/week6/together.webp' },
+      { word: 'rules', image: '/images/vocab-weekly/week6/rules.webp' },
+      { word: 'class', image: '/images/vocab-weekly/week6/class.webp' },
+      { word: 'guess', image: '/images/vocab-weekly/week6/guess.webp' },
+      { word: 'heavy', image: '/images/vocab-weekly/week6/heavy.webp' },
+      { word: 'technology', image: '/images/vocab-weekly/week6/technology.webp' },
+      { word: 'after', image: '/images/vocab-weekly/week6/after.webp' },
+      { word: 'before', image: '/images/vocab-weekly/week6/before.webp' },
+      { word: 'neighborhood', image: '/images/vocab-weekly/week6/neighborhood.webp' },
+      { word: 'neighbor', image: '/images/vocab-weekly/week6/neighbor.webp' },
+    ],
+    rewards: [
+      { id: 'sticker-pack', name: 'Sticker Pack', image: '/images/rewards/panelita.png', lessonsRequired: 2, description: 'Complete 2 lessons (33%)', is3D: false },
+      { id: 'extra-playtime', name: 'Tiempo Extra de Juego', image: '/images/rewards/trululu.png', lessonsRequired: 4, description: 'Complete 4 lessons (66%)', is3D: false },
+      { id: 'surprise-prize', name: 'Premio Sorpresa', image: '/images/rewards/hotwheels.png', lessonsRequired: 6, description: 'Complete ALL lessons (100%)', is3D: false },
+    ]
+  },
   WORKSHOP_3_TOPIC,
   {
     id: 'vocab-week-5',

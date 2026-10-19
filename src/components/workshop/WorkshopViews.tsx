@@ -1,11 +1,17 @@
 'use client'
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { useI18n } from '@/components/I18nProvider'
 import { lessonTitle } from '@/lib/lessonText'
 import { FeedbackSheet } from '@/components/kid/FeedbackSheet'
-import { LAHeader, Feedback, shuffle } from '@/components/language/LanguageViews'
+import { SpellStrip } from '@/components/kid/SpellStrip'
+import { LAHeader, shuffle } from '@/components/language/LanguageViews'
+import {
+  Feedback, Handlers, Runner, SkipButton, buildDeck, useAutoText, useDelayed, useSpeechCleanup, CELEBRATION_MAX_MS,
+} from '@/components/kid/lessonKit'
+import { playWord, speakText, useSpeechView } from '@/lib/speech'
+import { useLater } from '@/lib/useLater'
 import { TypedItem, WhQuestionItem, LongAnswerItem, WorkshopContent } from '@/types/workshop'
 
 interface LessonProps {
@@ -15,137 +21,158 @@ interface LessonProps {
   onBack: () => void
 }
 
-// ============ HELPERS ============
-function speak(text: string) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return
-  window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
-  u.lang = 'en-US'
-  u.rate = 0.8
-  u.pitch = 1.1
-  window.speechSynthesis.speak(u)
-}
-
-// setTimeout that is cancelled when the view unmounts (e.g. the student taps ✕ mid-feedback).
-function useLater() {
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
-  useEffect(() => () => { timers.current.forEach(clearTimeout) }, [])
-  return useCallback((fn: () => void, ms: number) => { timers.current.push(setTimeout(fn, ms)) }, [])
-}
-
 const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length
+const norm = (text: string) => text.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[.!?,;:]+$/, '')
 const inputCls = 'w-full max-w-sm text-center text-2xl font-bold rounded-2xl border-4 px-4 py-3 outline-none transition-all '
 
 // ============ TYPED ANSWER (dictation / picture / complete the sentence) ============
-function TypedLesson({ title, items, bank, xp, onComplete, onGameOver, onBack }: LessonProps & {
-  title: string; items: TypedItem[]; bank?: string[]
-}) {
-  const { t, lang } = useI18n()
+// First miss: a hint with the first letter and the length. Second miss: the word is
+// shown and spelled aloud so the student can copy it; from then on mistakes cost no hearts
+// (they are copying, not guessing).
+type TypedKind = 'dictation' | 'picture' | 'sentence'
+
+function TypedQuestion({ item, bank, kind, h }: { item: TypedItem; bank?: string[]; kind: TypedKind; h: Handlers }) {
+  const { t } = useI18n()
   const tx = t.study
   const later = useLater()
-  const rounds = useMemo(() => shuffle(items), [items])
-  const [round, setRound] = useState(0)
-  const [hearts, setHearts] = useState(3)
-  const [correct, setCorrect] = useState(0)
+  const speech = useSpeechView()
+  const word = item.answer
+  const accepted = useMemo(() => [item.answer, ...(item.alsoAccept ?? [])].map(norm), [item])
   const [value, setValue] = useState('')
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [anim, setAnim] = useState('animate-slide-up')
-
-  const item = rounds[round]
-  const total = rounds.length
-
-  useEffect(() => {
-    if (!item.speak) return
-    const t = setTimeout(() => speak(item.speak!), 300)
-    return () => clearTimeout(t)
-  }, [item])
-
-  const check = useCallback(() => {
-    if (feedback || !value.trim()) return
-    if (value.trim().toLowerCase() === item.answer.toLowerCase()) {
-      setFeedback('correct')
-      setCorrect((c) => c + 1)
-      later(() => {
-        if (round + 1 >= total) onComplete(xp)
-        else { setRound((r) => r + 1); setValue(''); setFeedback(null); setAnim('animate-slide-up'); later(() => setAnim(''), 400) }
-      }, 1200)
-    } else {
-      setFeedback('wrong'); setAnim('animate-shake'); later(() => setAnim(''), 500)
-      const nh = hearts - 1
-      setHearts(nh)
-      if (nh <= 0) later(() => onGameOver(Math.round((correct / total) * xp)), 800)
-      else later(() => setFeedback(null), 1000)
-    }
-  }, [feedback, value, item, round, total, hearts, correct, xp, onComplete, onGameOver, later])
+  const [feedback, setFeedback] = useState<Feedback>(null)
+  const [shake, setShake] = useState(false)
+  const [misses, setMisses] = useState(0)
+  const [dead, setDead] = useState(false)
 
   const sentenceParts = item.sentence?.split('___')
+  const sentenceAloud = item.sentence?.replace('___', 'blank')
+  const fullSentence = item.sentence?.replace('___', word)
+
+  // What the student hears when the round starts.
+  useDelayed(() => {
+    if (kind === 'dictation') playWord(item.speak ?? word, 'word')
+    else if (kind === 'sentence' && sentenceAloud) speakText(sentenceAloud)
+  }, 450, feedback === 'correct', word)
+
+  const check = useCallback(() => {
+    if (feedback || dead || !value.trim()) return
+    if (accepted.includes(norm(value))) {
+      setFeedback('correct')
+      h.correct()
+      const spellOut = () => playWord(word, 'spell', () => later(h.next, 500))
+      if (kind === 'sentence' && fullSentence) speakText(fullSentence, spellOut)
+      else spellOut()
+      later(h.next, CELEBRATION_MAX_MS + 6000)
+      return
+    }
+    setFeedback('wrong')
+    setShake(true)
+    later(() => setShake(false), 500)
+    const nm = misses + 1
+    setMisses(nm)
+    if (nm === 2) {
+      setValue('') // start the copy from a clean box
+      later(() => playWord(word, 'spell'), 900)
+    }
+    // Copying the revealed word costs nothing.
+    if (misses < 2 && h.miss() <= 0) { setDead(true); return }
+    later(() => setFeedback(null), 1000)
+  }, [feedback, dead, value, accepted, misses, word, kind, fullSentence, h, later])
+
+  const speaking = speech.phase !== 'idle'
+  const showHear = kind === 'dictation' || (kind === 'picture' && misses >= 1)
 
   return (
-    <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><LAHeader title={title} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-5">
-        <div className={`flex flex-col items-center gap-4 ${anim}`}>
-          {item.image && <img src={item.image} alt="" className="max-h-44 max-w-[16rem] object-contain rounded-2xl bg-surface p-2 shadow-sm" />}
-          {item.speak && (
-            <button
-              onClick={() => speak(item.speak!)}
-              className="w-24 h-24 rounded-full bg-duo-blue text-white text-5xl shadow-lg hover:scale-105 transition-all cursor-pointer"
-              aria-label="Listen"
-            >🔊</button>
-          )}
-          {sentenceParts && (
-            <p className="text-2xl font-bold text-gray-700 text-center max-w-xs">
-              {sentenceParts[0]}<span className="inline-block min-w-[6rem] border-b-4 border-gray-400 text-duo-green">{feedback === 'correct' ? item.answer : ' '}</span>{sentenceParts[1]}
-            </p>
-          )}
-          {!item.speak && !sentenceParts && <p className="text-gray-500 font-semibold">{tx.writeTheWord}</p>}
-          {item.speak && <p className="text-gray-500 font-semibold">{tx.listenAndWrite}</p>}
-        </div>
-
-        {bank && (
-          <div className="flex gap-2 flex-wrap justify-center">
-            {bank.map((w) => (
-              <span key={w} className="px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 font-bold text-sm">{w}</span>
-            ))}
-          </div>
+    <div className="flex flex-col items-center gap-5">
+      <div className={`flex flex-col items-center gap-4 ${shake ? 'animate-shake' : ''}`}>
+        {item.image && <img src={item.image} alt="" className="max-h-44 max-w-[16rem] object-contain rounded-2xl bg-surface p-2 shadow-sm" />}
+        {showHear && (
+          <button
+            onClick={() => playWord(item.speak ?? word, 'word')}
+            className={`w-24 h-24 rounded-full bg-duo-blue text-white text-5xl shadow-lg transition-all cursor-pointer ${speaking ? 'animate-pulse-grow' : 'hover:scale-105'}`}
+            aria-label={tx.hearWord}
+          >🔊</button>
         )}
+        {sentenceParts && (
+          <>
+            <p className="text-2xl font-bold text-gray-700 text-center max-w-xs">
+              {sentenceParts[0]}<span className="inline-block min-w-[6rem] border-b-4 border-gray-400 text-duo-green">{feedback === 'correct' ? word : ' '}</span>{sentenceParts[1]}
+            </p>
+            <Button variant="ghost" size="sm" className="text-duo-blue" onClick={() => speakText(sentenceAloud!)}>{tx.hearSentence}</Button>
+          </>
+        )}
+        {kind === 'dictation' && <p className="text-gray-500 font-semibold">{tx.listenAndWrite}</p>}
+        {kind === 'picture' && <p className="text-gray-500 font-semibold">{tx.writeTheWord}</p>}
+      </div>
 
-        <input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') check() }}
-          disabled={!!feedback}
-          autoFocus
-          autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false}
-          placeholder={tx.typeHere}
-          className={inputCls + (feedback === 'correct' ? 'border-duo-green bg-green-50 text-duo-green' : feedback === 'wrong' ? 'border-duo-red bg-red-50 text-duo-red' : 'border-gray-200 bg-surface text-gray-800 focus:border-duo-blue')}
-        />
+      {bank && (
+        <div className="flex gap-2 flex-wrap justify-center">
+          {bank.map((w) => (
+            <span key={w} className="px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 font-bold text-sm">{w}</span>
+          ))}
+        </div>
+      )}
+
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') check() }}
+        disabled={feedback === 'correct'}
+        autoFocus
+        autoCapitalize="none" autoCorrect="off" autoComplete="off" spellCheck={false}
+        placeholder={tx.typeHere}
+        aria-label={tx.typeHere}
+        className={inputCls + (feedback === 'correct' ? 'border-duo-green bg-green-50 text-duo-green' : feedback === 'wrong' ? 'border-duo-red bg-red-50 text-duo-red' : 'border-gray-200 bg-surface text-gray-800 focus:border-duo-blue')}
+      />
+      <div className="flex gap-3 items-center">
         <Button onClick={check} disabled={!!feedback || !value.trim()} className="duo-button bg-duo-green hover:bg-duo-green/90 text-white font-black text-lg px-10 py-6 rounded-2xl">
           {tx.check}
         </Button>
-        {feedback === 'correct' && <p className="font-bold text-duo-green text-xl">{item.answer}</p>}
-        <Feedback feedback={feedback} />
+        {kind === 'dictation' && feedback !== 'correct' && (
+          <Button variant="outline" onClick={() => playWord(word, 'spell')} className="rounded-2xl py-6 font-bold">{tx.spellIt}</Button>
+        )}
       </div>
+
+      {misses === 1 && feedback !== 'correct' && (
+        <p className="text-sm font-bold text-duo-orange text-center">💡 {tx.startsWith(word[0].toUpperCase(), word.length)}</p>
+      )}
+      {(misses >= 2 || feedback === 'correct') && (
+        <div className="flex flex-col items-center gap-2">
+          <SpellStrip word={word} size="lg" />
+          {feedback !== 'correct' && <p className="text-sm font-bold text-duo-orange text-center">{tx.copyIt}</p>}
+        </div>
+      )}
+      {feedback === 'correct' && <SkipButton onClick={h.next} />}
+      <FeedbackSheet feedback={feedback} message={feedback === 'wrong' && misses === 1 ? tx.tryAgain : feedback === 'wrong' ? tx.answerWas(word) : undefined} />
     </div>
   )
 }
 
-export function DictationView({ items, ...p }: LessonProps & { items: TypedItem[] }) {
-  const { t, lang } = useI18n()
-  const tx = t.study
-  return <TypedLesson title={lessonTitle('ws-dictation', lang)} items={items} {...p} />
+function TypedLesson({ lessonId, items, bank, kind, limit, xp, onComplete, onGameOver, onBack }: LessonProps & {
+  lessonId: string; items: TypedItem[]; bank?: string[]; kind: TypedKind; limit?: number
+}) {
+  const rounds = useMemo(() => buildDeck(items, Math.min(limit ?? items.length, items.length), (a, b) => a.answer === b.answer), [items, limit])
+  return (
+    <Runner
+      lessonId={lessonId} questions={rounds}
+      xpPerCorrect={xp / rounds.length} completeXp={xp}
+      onComplete={onComplete} onGameOver={onGameOver} onBack={onBack}
+    >
+      {(q, h) => <TypedQuestion item={q} bank={bank} kind={kind} h={h} />}
+    </Runner>
+  )
 }
 
-export function ImageWordsView({ items, ...p }: LessonProps & { items: TypedItem[] }) {
-  const { t, lang } = useI18n()
-  const tx = t.study
-  return <TypedLesson title={lessonTitle('ws-image-words', lang)} items={items} {...p} />
+export function DictationView({ items, limit, ...p }: LessonProps & { items: TypedItem[]; limit?: number }) {
+  return <TypedLesson lessonId="ws-dictation" kind="dictation" items={items} limit={limit} {...p} />
+}
+
+export function ImageWordsView({ items, limit, ...p }: LessonProps & { items: TypedItem[]; limit?: number }) {
+  return <TypedLesson lessonId="ws-image-words" kind="picture" items={items} limit={limit} {...p} />
 }
 
 export function CompleteSentencesView({ items, bank, ...p }: LessonProps & { items: TypedItem[]; bank: string[] }) {
-  const { t, lang } = useI18n()
-  const tx = t.study
-  return <TypedLesson title={lessonTitle('ws-complete-sentences', lang)} items={items} bank={bank} {...p} />
+  return <TypedLesson lessonId="ws-complete-sentences" kind="sentence" items={items} bank={bank} {...p} />
 }
 
 // ============ FREE-TEXT SHELL (Wh questions / long answers) ============
@@ -156,7 +183,7 @@ function FreeTextLesson({ title, total, round, prompt, extra, value, setValue, h
   value: string; setValue: (v: string) => void; hint: string | null; done: boolean
   onSubmit: () => void; onBack: () => void; rows?: number
 }) {
-  const { t, lang } = useI18n()
+  const { t } = useI18n()
   const tx = t.study
   return (
     <div className="min-h-screen bg-app flex flex-col">
@@ -171,6 +198,7 @@ function FreeTextLesson({ title, total, round, prompt, extra, value, setValue, h
           rows={rows}
           autoCorrect="off" autoComplete="off" spellCheck={false}
           placeholder={tx.typeAnswer}
+          aria-label={tx.typeAnswer}
           className={'w-full max-w-sm text-lg font-semibold rounded-2xl border-4 px-4 py-3 outline-none transition-all resize-none ' + (done ? 'border-duo-green bg-green-50 text-duo-green' : 'border-gray-200 bg-surface text-gray-800 focus:border-duo-blue')}
         />
         {hint && !done && <p className="text-sm font-bold text-duo-orange text-center max-w-sm">💡 {hint}</p>}
@@ -190,11 +218,15 @@ export function WhQuestionsView({ words, xp, onComplete, onBack }: { words: WhQu
   const { t, lang } = useI18n()
   const tx = t.study
   const later = useLater()
+  useSpeechCleanup()
   const [round, setRound] = useState(0)
   const [value, setValue] = useState('')
   const [hint, setHint] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const item = words[round]
+
+  // The keyword is read (and spelled) when it appears; the student then writes the question.
+  useDelayed(() => playWord(item.word, 'spell'), 500, done, item.word)
 
   const submit = useCallback(() => {
     const text = value.trim()
@@ -211,7 +243,7 @@ export function WhQuestionsView({ words, xp, onComplete, onBack }: { words: WhQu
       if (round + 1 >= words.length) onComplete(xp)
       else { setRound((r) => r + 1); setValue(''); setHint(null); setDone(false) }
     }, 1400)
-  }, [value, item, round, words.length, xp, onComplete, later])
+  }, [value, item, round, words.length, xp, onComplete, later, tx])
 
   return (
     <FreeTextLesson
@@ -222,6 +254,8 @@ export function WhQuestionsView({ words, xp, onComplete, onBack }: { words: WhQu
           {item.image && <img src={item.image} alt="" className="max-h-32 max-w-[12rem] object-contain rounded-2xl bg-surface p-2 shadow-sm" />}
           <p className="text-gray-500 font-semibold text-center">{tx.writeQuestionWith}</p>
           <p className="text-4xl font-black text-duo-purple capitalize">{item.word}</p>
+          <SpellStrip word={item.word} />
+          <Button variant="ghost" size="sm" className="text-duo-blue" onClick={() => playWord(item.word, 'spell')}>{tx.hearAgain}</Button>
         </div>
       }
       extra={
@@ -245,16 +279,14 @@ export function LongAnswersView({ questions, xp, onComplete, onBack }: { questio
   const { t, lang } = useI18n()
   const tx = t.study
   const later = useLater()
+  useSpeechCleanup()
   const [round, setRound] = useState(0)
   const [value, setValue] = useState('')
   const [hint, setHint] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const item = questions[round]
 
-  useEffect(() => {
-    const t = setTimeout(() => speak(item.question), 300)
-    return () => clearTimeout(t)
-  }, [item])
+  useAutoText(item.question, 400, done)
 
   const submit = useCallback(() => {
     const problem = countWords(value) < 3 ? tx.longAnswerHint(item.starter) : null
@@ -265,7 +297,7 @@ export function LongAnswersView({ questions, xp, onComplete, onBack }: { questio
       if (round + 1 >= questions.length) onComplete(xp)
       else { setRound((r) => r + 1); setValue(''); setHint(null); setDone(false) }
     }, 1400)
-  }, [value, item, round, questions.length, xp, onComplete, later])
+  }, [value, item, round, questions.length, xp, onComplete, later, tx])
 
   return (
     <FreeTextLesson
@@ -274,7 +306,7 @@ export function LongAnswersView({ questions, xp, onComplete, onBack }: { questio
       prompt={
         <div className="flex flex-col items-center gap-2">
           <p className="text-2xl font-black text-gray-800 text-center max-w-xs">{item.question}</p>
-          <Button variant="ghost" size="sm" className="text-duo-blue" onClick={() => speak(item.question)}>{tx.hearAgain}</Button>
+          <Button variant="ghost" size="sm" className="text-duo-blue" onClick={() => speakText(item.question)}>{tx.hearAgain}</Button>
         </div>
       }
       extra={<p className="text-sm text-gray-400 font-semibold text-center max-w-sm">{tx.startLike} {item.starter}</p>}
@@ -283,73 +315,90 @@ export function LongAnswersView({ questions, xp, onComplete, onBack }: { questio
 }
 
 // ============ GROUP & CIRCLE ============
-export function SortCircleView({ content, xp, onComplete, onGameOver, onBack }: LessonProps & { content: WorkshopContent['sort'] }) {
-  const { t, lang } = useI18n()
+type SortQuestion =
+  | { kind: 'sort'; word: string; group: string }
+  | { kind: 'circle'; prompt: string; options: string[]; answer: string }
+
+function SortQuestionView({ q, groups, h }: { q: SortQuestion; groups: [string, string]; h: Handlers }) {
+  const { t } = useI18n()
   const tx = t.study
   const later = useLater()
-  const items = useMemo(() => shuffle(content.items), [content.items])
-  const circleOptions = useMemo(() => shuffle([...content.circle.options]), [content.circle.options])
-  const total = items.length + 1 // sorting rounds + the final "circle" question
-  const [round, setRound] = useState(0)
-  const [hearts, setHearts] = useState(3)
-  const [correct, setCorrect] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null)
-  const [anim, setAnim] = useState('animate-slide-up')
+  const [feedback, setFeedback] = useState<Feedback>(null)
+  const [shake, setShake] = useState(false)
+  const [dead, setDead] = useState(false)
+  const options = useMemo(() => (q.kind === 'circle' ? shuffle(q.options) : [...groups]), [q, groups])
+  const right = q.kind === 'circle' ? q.answer : q.group
 
-  const isCircle = round >= items.length
-  const item = items[round]
-  const right = isCircle ? content.circle.answer : item.group
+  // The word to sort is heard and spelled; for a circle question the prompt is read aloud.
+  useDelayed(() => {
+    if (q.kind === 'sort') playWord(q.word, 'spell')
+    else speakText(q.prompt)
+  }, 450, feedback !== null, q)
 
-  const pick = useCallback((choice: string) => {
-    if (feedback) return
+  const pick = (choice: string) => {
+    if (feedback || dead) return
     setSelected(choice)
     if (choice === right) {
       setFeedback('correct')
-      setCorrect((c) => c + 1)
-      later(() => {
-        if (round + 1 >= total) onComplete(xp)
-        else { setRound((r) => r + 1); setSelected(null); setFeedback(null); setAnim('animate-slide-up'); later(() => setAnim(''), 400) }
-      }, 1000)
-    } else {
-      setFeedback('wrong'); setAnim('animate-shake'); later(() => setAnim(''), 500)
-      const nh = hearts - 1
-      setHearts(nh)
-      if (nh <= 0) later(() => onGameOver(Math.round((correct / total) * xp)), 800)
-      else later(() => { setFeedback(null); setSelected(null) }, 1000)
+      h.correct()
+      if (q.kind === 'circle') playWord(q.answer, 'spell', () => later(h.next, 400))
+      else playWord(q.word, 'word', () => later(h.next, 400))
+      later(h.next, CELEBRATION_MAX_MS)
+      return
     }
-  }, [feedback, right, round, total, hearts, correct, xp, onComplete, onGameOver, later])
-
-  const options = isCircle ? circleOptions : [...content.groups]
+    setFeedback('wrong')
+    setShake(true)
+    later(() => setShake(false), 500)
+    if (h.miss() <= 0) { setDead(true); return }
+    later(() => { setFeedback(null); setSelected(null) }, 1000)
+  }
 
   return (
-    <div className="min-h-screen bg-app flex flex-col">
-      <div className="px-4 pt-4"><LAHeader title={lessonTitle('ws-sort-circle', lang)} hearts={hearts} current={round + 1} total={total} onBack={onBack} /></div>
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-6 gap-6">
-        <div className={`flex flex-col items-center gap-3 ${anim}`}>
-          {isCircle ? (
-            <p className="text-xl font-black text-gray-800 text-center max-w-xs">{content.circle.prompt}</p>
-          ) : (
-            <>
-              <p className="text-gray-500 font-semibold">{tx.putInGroup}</p>
-              <p className="text-5xl font-black text-gray-800">{item.word}</p>
-              <button onClick={() => speak(item.word)} className="text-duo-blue font-bold text-sm cursor-pointer">{tx.hearIt}</button>
-            </>
-          )}
-        </div>
-        <div className="flex gap-4">
-          {options.map((opt) => {
-            const isSel = selected === opt
-            const isRight = opt === right
-            let cls = 'min-w-[8rem] h-20 px-4 text-2xl font-black rounded-3xl border-4 transition-all cursor-pointer '
-            if (feedback === 'correct' && isRight) cls += 'bg-green-100 border-duo-green text-duo-green scale-105'
-            else if (feedback === 'wrong' && isSel) cls += 'bg-red-100 border-duo-red text-duo-red'
-            else cls += 'bg-surface border-gray-200 text-gray-700 hover:border-duo-blue hover:bg-blue-50'
-            return <button key={opt} disabled={!!feedback} onClick={() => pick(opt)} className={cls}>{opt}</button>
-          })}
-        </div>
-        <Feedback feedback={feedback} />
+    <div className="flex flex-col items-center gap-6">
+      <div className="flex flex-col items-center gap-3">
+        {q.kind === 'circle' ? (
+          <>
+            <p className="text-xl font-black text-gray-800 text-center max-w-xs">{q.prompt}</p>
+            <Button variant="ghost" size="sm" className="text-duo-blue" onClick={() => speakText(q.prompt)}>{tx.hearAgain}</Button>
+          </>
+        ) : (
+          <>
+            <p className="text-gray-500 font-semibold">{tx.putInGroup}</p>
+            <p className="text-5xl font-black text-gray-800">{q.word}</p>
+            <SpellStrip word={q.word} />
+            <button onClick={() => playWord(q.word, 'spell')} className="text-duo-blue font-bold text-sm cursor-pointer">{tx.hearIt}</button>
+          </>
+        )}
       </div>
+      <div className={`flex gap-4 flex-wrap justify-center ${shake ? 'animate-shake' : ''}`}>
+        {options.map((opt) => {
+          const isSel = selected === opt
+          const isRight = opt === right
+          let cls = 'min-w-[8rem] h-20 px-4 text-2xl font-black rounded-3xl border-4 transition-all cursor-pointer '
+          if (feedback === 'correct' && isRight) cls += 'bg-green-100 border-duo-green text-duo-green scale-105'
+          else if (feedback === 'wrong' && isSel) cls += 'bg-red-100 border-duo-red text-duo-red'
+          else cls += 'bg-surface border-gray-200 text-gray-700 hover:border-duo-blue hover:bg-blue-50'
+          return <button key={opt} disabled={!!feedback} onClick={() => pick(opt)} className={cls}>{opt}</button>
+        })}
+      </div>
+      <FeedbackSheet feedback={feedback} />
     </div>
+  )
+}
+
+export function SortCircleView({ content, xp, onComplete, onGameOver, onBack }: LessonProps & { content: WorkshopContent['sort'] }) {
+  const questions = useMemo<SortQuestion[]>(() => [
+    ...shuffle(content.items).map((i): SortQuestion => ({ kind: 'sort', word: i.word, group: i.group })),
+    ...content.circles.map((c): SortQuestion => ({ kind: 'circle', prompt: c.prompt, options: [...c.options], answer: c.answer })),
+  ], [content])
+  return (
+    <Runner
+      lessonId="ws-sort-circle" questions={questions}
+      xpPerCorrect={xp / questions.length} completeXp={xp}
+      onComplete={onComplete} onGameOver={onGameOver} onBack={onBack}
+    >
+      {(q, h) => <SortQuestionView q={q} groups={content.groups} h={h} />}
+    </Runner>
   )
 }

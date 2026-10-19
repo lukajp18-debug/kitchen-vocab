@@ -3,6 +3,7 @@
 // A typed-answer round: the student writes a word (dictation, picture, or blank).
 export interface TypedItem {
   answer: string        // the exact word the student must write
+  alsoAccept?: string[] // other words that fit the sentence just as well
   image?: string        // optional picture shown with the prompt
   sentence?: string     // optional sentence with "___" where the word goes
   speak?: string        // if set, the prompt is audio-only (dictation): the text to read aloud
@@ -35,6 +36,8 @@ export interface WorkshopContent {
   whWords: WhQuestionItem[]
   completeSentences: TypedItem[]
   wordBank: string[]
-  sort: { groups: [string, string]; items: SortItem[]; circle: CircleItem }
+  sort: { groups: [string, string]; items: SortItem[]; circles: CircleItem[] }
   longAnswers: LongAnswerItem[]
+  // Optional cap on how many rounds a typed lesson plays (a random sample each time).
+  limits?: { dictation?: number; imageWords?: number }
 }
