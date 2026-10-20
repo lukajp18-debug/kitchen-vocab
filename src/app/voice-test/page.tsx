@@ -5,7 +5,7 @@
 // Open /voice-test on the phone or tablet Luca uses.
 import { useEffect, useState } from 'react'
 import { SpellStrip } from '@/components/kid/SpellStrip'
-import { currentVoiceName, playWord, speakText, stopSpeech } from '@/lib/speech'
+import { recordedVoiceName, playWord, speakText, stopSpeech } from '@/lib/speech'
 
 const WORDS = ['start', 'finish', 'friend', 'friendship', 'think', 'together', 'rules', 'class', 'guess', 'heavy', 'technology', 'after', 'before', 'neighborhood', 'neighbor']
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
@@ -15,10 +15,8 @@ export default function VoiceTestPage() {
   const [shown, setShown] = useState<string>('start')
 
   useEffect(() => {
-    const update = () => setVoice(currentVoiceName())
-    update()
-    window.speechSynthesis?.addEventListener?.('voiceschanged', update)
-    return () => { window.speechSynthesis?.removeEventListener?.('voiceschanged', update); stopSpeech() }
+    recordedVoiceName().then(setVoice)
+    return () => { stopSpeech() }
   }, [])
 
   const btn = 'px-3 py-2 rounded-xl border-2 border-line bg-surface text-ink font-bold text-sm active:scale-95'
@@ -29,12 +27,12 @@ export default function VoiceTestPage() {
         <header>
           <h1 className="text-2xl font-black">Prueba de voz</h1>
           <p className="text-sm text-ink-soft">
-            Voz del dispositivo: <b>{voice ?? 'no se encontró una voz en inglés (se usará la predeterminada)'}</b>
+            Voz grabada (la misma en todos los dispositivos): <b>{voice ?? 'cargando…'}</b>
           </p>
         </header>
 
         <section>
-          <h2 className="font-black mb-2">Abecedario (así dice las letras la app)</h2>
+          <h2 className="font-black mb-2">Abecedario (con la voz grabada)</h2>
           <div className="grid grid-cols-6 gap-2">
             {ALPHABET.map((l) => (
               <button key={l} className={btn} onClick={() => playWord(l, 'letters')}>{l.toUpperCase()}</button>
@@ -43,7 +41,7 @@ export default function VoiceTestPage() {
         </section>
 
         <section>
-          <h2 className="font-black mb-2">Palabras de la Semana 6 (palabra, letras, palabra)</h2>
+          <h2 className="font-black mb-2">Palabras de la Semana 6 (palabra, letras, palabra; las letras dobles dicen "double")</h2>
           <SpellStrip word={shown} size="lg" className="mb-3" />
           <div className="flex flex-wrap gap-2">
             {WORDS.map((w) => (

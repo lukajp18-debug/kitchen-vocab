@@ -15,6 +15,9 @@ function audio(): AudioContext | null {
   return ctx
 }
 
+// Shared with the lesson voice (src/lib/speech.ts) so the whole app uses one AudioContext.
+export const getAudioContext = audio
+
 // One soft bell-like note: sine + quiet octave, quick attack, smooth decay.
 function note(ac: AudioContext, freq: number, start: number, duration: number, volume: number) {
   const gain = ac.createGain()

@@ -33,6 +33,7 @@ export function SpellStrip({ word, reveal = true, size = 'md', className = '' }:
   const lower = word.toLowerCase()
   const mine = sv.word === lower
   const active = mine && sv.phase === 'spelling' ? sv.index : -1
+  const span = sv.span
   const saying = mine && sv.phase === 'word'
   const step = SIZES[size].find((s) => word.length <= s.max)!
 
@@ -43,7 +44,7 @@ export function SpellStrip({ word, reveal = true, size = 'md', className = '' }:
       aria-label={reveal ? word.split('').join(' ') : ''}
     >
       {word.split('').map((ch, i) => {
-        const isActive = i === active
+        const isActive = active >= 0 && i >= active && i < active + span
         const spoken = mine && sv.phase === 'spelling' && i < active
         let cls = `${step.tile} shrink-0 rounded-lg border-2 font-black flex items-center justify-center uppercase transition-[transform,background-color,border-color,color,box-shadow] duration-150 `
         if (isActive) cls += 'bg-brand text-white border-brand scale-110 -translate-y-1 shadow-lg z-10'

@@ -17,8 +17,9 @@ export type Feedback = 'correct' | 'wrong' | null
 export type Mode = 'practice' | 'test'
 
 export interface Handlers {
-  correct: () => void // adds XP for this question
+  correct: () => void // adds XP for this question (none if the student used the spelling help)
   miss: () => number // loses a heart, returns hearts left
+  helped: () => void // the student used the spelling help: this word comes back later, without help
   next: () => void // goes to the next question (or finishes); safe to call twice
 }
 
@@ -81,14 +82,16 @@ export function useAutoText(text: string, delay = 400, cancelled = false) {
 // Wrong answers in a practice round: after 2 misses the word is spelled aloud with a hint,
 // after 3 "learning mode" keeps spelling it every few seconds until the round is solved.
 // Once the round is solved (`solved`) the hints stay quiet.
-export function useMissHelp(word: string, enabled: boolean, solved: boolean) {
+export function useMissHelp(word: string, enabled: boolean, solved: boolean, onHelp?: () => void) {
   const [misses, setMisses] = useState(0)
   const solvedRef = useRef(solved)
-  useEffect(() => { solvedRef.current = solved })
+  const onHelpRef = useRef(onHelp)
+  useEffect(() => { solvedRef.current = solved; onHelpRef.current = onHelp })
   const hint = misses >= 2
   const learning = misses >= 3
   useEffect(() => {
     if (!enabled || !hint) return
+    onHelpRef.current?.() // the spelled hint counts as help
     const id = setTimeout(() => { if (!solvedRef.current) playWord(word, 'spell') }, 1300)
     return () => clearTimeout(id)
   }, [enabled, hint, word])
@@ -135,11 +138,36 @@ export function SkipButton({ onClick }: { onClick: () => void }) {
   )
 }
 
+// Help for the exercises where the spelling is NOT given up front: the student can ask for
+// the word to be spelled, but then it counts as "helped" and comes back at the end of the
+// lesson until it is written without help.
+export function HelpSpellButton({ word, h, disabled }: { word: string; h: Handlers; disabled?: boolean }) {
+  const { t } = useI18n()
+  const tx = t.study
+  const [used, setUsed] = useState(false)
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <Button
+        variant="outline"
+        disabled={disabled}
+        onClick={() => { h.helped(); setUsed(true); playWord(word, 'spell') }}
+        className="rounded-2xl py-5 font-bold"
+      >
+        {tx.spellHelp}
+      </Button>
+      {used && <p className="text-xs font-semibold text-ink-soft text-center max-w-xs">{tx.helpUsedNote}</p>}
+    </div>
+  )
+}
+
 // ============ RUNNER ============
 class Score {
   private xp = 0
   private hearts = 3
   private lastAdvanced = -1
+  private helpedRounds = new Set<number>()
+  markHelped(round: number) { this.helpedRounds.add(round) }
+  wasHelped(round: number) { return this.helpedRounds.has(round) }
   addXp(n: number) { this.xp += n }
   xpRounded() { return Math.round(this.xp) }
   loseHeart() { this.hearts -= 1; return this.hearts }
@@ -154,7 +182,9 @@ class Score {
 // One component owns hearts, XP and the round counter; each question is its own component,
 // mounted fresh for every round (key = round), so no state leaks between questions and
 // the last round always finishes instead of running off the end of the list.
-export function Runner<Q>({ lessonId, questions, xpPerCorrect = 10, completeXp, onComplete, onGameOver, onBack, label, children }: {
+// When a question was solved with the spelling help and `rebuild` is given, the same word is
+// added at the end as a new question, so the lesson only ends once it is solved without help.
+export function Runner<Q>({ lessonId, questions, xpPerCorrect = 10, completeXp, onComplete, onGameOver, onBack, label, rebuild, children }: {
   lessonId: string
   questions: Q[]
   xpPerCorrect?: number
@@ -163,48 +193,54 @@ export function Runner<Q>({ lessonId, questions, xpPerCorrect = 10, completeXp, 
   onGameOver: (xp: number) => void
   onBack: () => void
   label?: (q: Q) => string
+  rebuild?: (q: Q) => Q
   children: (q: Q, h: Handlers) => ReactNode
 }) {
-  const { lang } = useI18n()
+  const { t, lang } = useI18n()
   const later = useLater()
   useSpeechCleanup()
   const [round, setRound] = useState(0)
   const [hearts, setHearts] = useState(3)
+  const [entries, setEntries] = useState(() => questions.map((q) => ({ q, retry: false })))
   // Running totals live in a small object of their own so timers (the celebration ends
   // a second after the answer) always see the latest values.
   const [score] = useState(() => new Score())
 
   const handlers = useMemo<Handlers>(() => ({
-    correct: () => score.addXp(xpPerCorrect),
+    correct: () => score.addXp(score.wasHelped(round) ? 0 : xpPerCorrect),
     miss: () => {
       const left = score.loseHeart()
       setHearts(left)
       if (left <= 0) later(() => { stopSpeech(); onGameOver(score.xpRounded()) }, 800)
       return left
     },
+    helped: () => score.markHelped(round),
     next: () => {
       if (!score.advance(round)) return
       stopSpeech()
-      if (round + 1 >= questions.length) onComplete(completeXp ?? score.xpRounded())
+      const again = score.wasHelped(round) && !!rebuild
+      if (again) setEntries((e) => [...e, { q: rebuild!(e[round].q), retry: true }])
+      if (!again && round + 1 >= entries.length) onComplete(completeXp ?? score.xpRounded())
       else setRound(round + 1)
     },
-  }), [score, round, questions.length, xpPerCorrect, completeXp, onComplete, onGameOver, later])
+  }), [score, round, entries.length, rebuild, xpPerCorrect, completeXp, onComplete, onGameOver, later])
 
-  const q = questions[round]
+  const entry = entries[round]
   return (
     <div className="min-h-screen bg-app flex flex-col">
       <div className="px-4 pt-4">
-        <LAHeader title={lessonTitle(lessonId, lang)} hearts={hearts} current={round + 1} total={questions.length} onBack={onBack} />
+        <LAHeader title={lessonTitle(lessonId, lang)} hearts={hearts} current={round + 1} total={entries.length} onBack={onBack} />
       </div>
       {/* Bottom padding keeps the question and the Skip button clear of the answer sheet that slides up from the bottom. */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-36">
         <div key={round} className="w-full max-w-sm animate-slide-up">
-          {label && (
-            <div className="text-center mb-3">
-              <span className="text-xs font-bold px-3 py-1 rounded-full bg-duo-gold/20 text-duo-gold">{label(q)}</span>
+          {(label || entry.retry) && (
+            <div className="text-center mb-3 flex flex-col items-center gap-1">
+              {label && <span className="text-xs font-bold px-3 py-1 rounded-full bg-duo-gold/20 text-duo-gold">{label(entry.q)}</span>}
+              {entry.retry && <span className="text-xs font-bold px-3 py-1 rounded-full bg-brand-soft text-brand">{t.study.retryNoHelp}</span>}
             </div>
           )}
-          {children(q, handlers)}
+          {children(entry.q, handlers)}
         </div>
       </div>
     </div>

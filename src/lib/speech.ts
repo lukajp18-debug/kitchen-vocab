@@ -1,20 +1,24 @@
 // Spoken English for the lessons: say a word, spell it letter by letter, or read a sentence.
 //
-// Everything goes through one queue so a new request always cancels the previous one,
-// including its pending timers. (The old per-view code left letter timers running, so
-// leaving a lesson mid-spelling kept reading letters on the next screen.)
+// The voice is a set of recordings (public/audio/en, made by scripts/build-audio.py with one
+// English neural voice), so every phone and tablet says exactly the same thing and a letter
+// is never read as another one. The browser's own voice (speechSynthesis) is only a fallback
+// for a text that has no recording yet.
 //
-// While a word is being spelled, `useSpeechView()` tells the UI which letter is being
-// said so `SpellStrip` can light it up in sync with the voice.
+// Everything goes through one queue so a new request always cancels the previous one,
+// including its pending timers. While a word is being spelled, `useSpeechView()` tells the UI
+// which letter(s) are being said so `SpellStrip` can light them up in sync with the voice.
 import { useSyncExternalStore } from 'react'
+import { getAudioContext } from './sound'
 
 export type SpeechView = {
   word: string | null // lower-case word being said/spelled, null for free text
-  index: number // index of the letter being spelled, -1 otherwise
+  index: number // index of the first letter being spelled, -1 otherwise
+  span: number // how many letters it covers ("double s" covers two)
   phase: 'idle' | 'word' | 'spelling'
 }
 
-const IDLE: SpeechView = { word: null, index: -1, phase: 'idle' }
+const IDLE: SpeechView = { word: null, index: -1, span: 1, phase: 'idle' }
 let view: SpeechView = IDLE
 const listeners = new Set<() => void>()
 
@@ -31,65 +35,99 @@ export function useSpeechView(): SpeechView {
   )
 }
 
-// ---------- voices ----------
-// Letter names written the way a text-to-speech voice reads them correctly. A bare "a" or
-// "i" is read as a word or a sound, "R" as "ar" and so on, so each letter gets a spelling
-// of its name.
+const norm = (text: string) => text.trim().toLowerCase().replace(/\s+/g, ' ')
+
+// ---------- recordings ----------
+const BASE = '/audio/en/'
+let files: Record<string, string> | null = null
+let voiceLabel: string | null = null
+let manifestLoad: Promise<void> | null = null
+const buffers = new Map<string, Promise<AudioBuffer | null>>()
+
+function loadManifest(): Promise<void> {
+  if (!manifestLoad) {
+    manifestLoad = fetch(`${BASE}manifest.json`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error('manifest'))))
+      .then((m: { voice: string; files: Record<string, string> }) => { files = m.files; voiceLabel = m.voice })
+      .catch(() => { files = {} })
+  }
+  return manifestLoad
+}
+
+function loadBuffer(file: string): Promise<AudioBuffer | null> {
+  let p = buffers.get(file)
+  if (!p) {
+    const ctx = getAudioContext()
+    p = !ctx
+      ? Promise.resolve(null)
+      : fetch(BASE + file)
+          .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error('audio'))))
+          .then((data) => ctx.decodeAudioData(data))
+          .catch(() => null)
+    buffers.set(file, p)
+  }
+  return p
+}
+
+// Name of the recorded voice, for the /voice-test page.
+export async function recordedVoiceName(): Promise<string | null> {
+  await loadManifest()
+  return voiceLabel
+}
+
+// Warms the cache so a spelled word has no gaps between letters.
+function preloadLetters() {
+  loadManifest().then(() => {
+    Object.entries(files ?? {}).forEach(([key, file]) => { if (key.startsWith('letter:') || key === 'double') loadBuffer(file) })
+  })
+}
+
+// Loads the recordings for some words before they are needed.
+export function preloadWords(words: string[]) {
+  loadManifest().then(() => words.forEach((w) => { const f = files?.[norm(w)]; if (f) loadBuffer(f) }))
+}
+
+// ---------- fallback voice ----------
+// Only used when a text has no recording: the device's own English voice. Letter names are
+// respelled the way most engines read them.
 const LETTER_NAMES: Record<string, string> = {
   a: 'ay', b: 'bee', c: 'see', d: 'dee', e: 'ee', f: 'eff', g: 'jee', h: 'aitch', i: 'eye',
   j: 'jay', k: 'kay', l: 'ell', m: 'em', n: 'en', o: 'oh', p: 'pee', q: 'cue', r: 'are',
   s: 'ess', t: 'tee', u: 'you', v: 'vee', w: 'double you', x: 'ex', y: 'why', z: 'zee',
 }
 
-const VOICE_PREFERENCE = [/Google US English/i, /Samantha|Ava|Allison|Susan/i, /Aria|Jenny|Ana\b|Natural/i, /Zira|Hazel|Female/i]
-let voice: SpeechSynthesisVoice | null = null
-
 function synth(): SpeechSynthesis | null {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
   return window.speechSynthesis
 }
 
-function pickVoice(): SpeechSynthesisVoice | null {
+let voice: SpeechSynthesisVoice | null = null
+function englishVoice(): SpeechSynthesisVoice | null {
   const s = synth()
   if (!s) return null
   if (voice) return voice
-  const all = s.getVoices()
-  if (all.length === 0) return null
+  const all = s.getVoices().filter((v) => /^en[-_]/i.test(v.lang))
   const us = all.filter((v) => /^en[-_]US$/i.test(v.lang))
-  const en = all.filter((v) => /^en[-_]/i.test(v.lang))
-  for (const re of VOICE_PREFERENCE) {
-    const hit = us.find((v) => re.test(v.name)) ?? en.find((v) => re.test(v.name))
-    if (hit) return (voice = hit)
-  }
-  return (voice = us[0] ?? en[0] ?? null)
+  return (voice = us.find((v) => /Google US English|Samantha|Aria|Jenny/i.test(v.name)) ?? us[0] ?? all[0] ?? null)
 }
 
-export function currentVoiceName(): string | null {
-  return pickVoice()?.name ?? null
-}
-
-let hooked = false
-function hookVoices() {
-  const s = synth()
-  if (!s || hooked) return
-  hooked = true
-  // Voices load asynchronously (Chrome, Android): choose again once they arrive.
-  s.addEventListener?.('voiceschanged', () => { voice = null })
-}
-
-// iOS/Safari only start speaking after a tap. The first tap on the page "unlocks" it
-// with a silent utterance so lessons that start speaking on their own can do it.
+// ---------- first tap ----------
+// Browsers only let audio start after a tap. The first tap on the page unlocks the audio
+// context (and Safari's speech) and starts loading the letters.
 let primed = false
 export function primeSpeech() {
-  const s = synth()
-  if (!s || primed) return
+  if (primed) return
   primed = true
-  hookVoices()
-  try {
-    const u = new SpeechSynthesisUtterance(' ')
-    u.volume = 0
-    s.speak(u)
-  } catch { /* ignore */ }
+  getAudioContext()
+  preloadLetters()
+  const s = synth()
+  if (s) {
+    try {
+      const u = new SpeechSynthesisUtterance(' ')
+      u.volume = 0
+      s.speak(u)
+    } catch { /* ignore */ }
+  }
 }
 if (typeof window !== 'undefined') {
   window.addEventListener('pointerdown', primeSpeech, { once: true, capture: true })
@@ -98,20 +136,23 @@ if (typeof window !== 'undefined') {
 // ---------- queue ----------
 let runId = 0
 let timers: ReturnType<typeof setTimeout>[] = []
+let current: AudioBufferSourceNode | null = null
 
 function later(fn: () => void, ms: number) {
   timers.push(setTimeout(fn, ms))
 }
 
 // Cancels whatever is being said and everything still scheduled.
-function begin(): { id: number; hadSpeech: boolean } {
+function begin(): number {
   runId += 1
   timers.forEach(clearTimeout)
   timers = []
-  const s = synth()
-  const hadSpeech = !!s && (s.speaking || s.pending)
-  if (s) s.cancel()
-  return { id: runId, hadSpeech }
+  if (current) {
+    try { current.onended = null; current.stop() } catch { /* already stopped */ }
+    current = null
+  }
+  synth()?.cancel()
+  return runId
 }
 
 export function stopSpeech() {
@@ -119,28 +160,49 @@ export function stopSpeech() {
   setView(IDLE)
 }
 
-// Says one utterance and calls `done` when it ends. Some browsers never fire `onend`
-// (no voice installed, autoplay blocked), so a timer moves the sequence along anyway.
-function say(text: string, id: number, opts: { rate: number; pitch: number; fallbackMs: number }, done: () => void) {
-  const s = synth()
+// Plays one clip: the recording for `key` if there is one, otherwise `fallbackText` with the
+// device voice. `done` runs when it ends (never if it was cancelled meanwhile).
+function clip(key: string, fallbackText: string, id: number, done: () => void) {
   let finished = false
   const finish = () => {
     if (finished || id !== runId) return
     finished = true
     done()
   }
-  later(finish, opts.fallbackMs)
-  if (!s) return
-  hookVoices()
-  const u = new SpeechSynthesisUtterance(text)
-  u.lang = 'en-US'
-  const v = pickVoice()
-  if (v) u.voice = v
-  u.rate = opts.rate
-  u.pitch = opts.pitch
-  u.onend = finish
-  u.onerror = finish
-  s.speak(u)
+  const speakFallback = () => {
+    if (id !== runId) return
+    later(finish, 1000 + fallbackText.length * 140) // some browsers never report the end
+    const s = synth()
+    if (!s) return
+    later(() => {
+      const u = new SpeechSynthesisUtterance(fallbackText)
+      u.lang = 'en-US'
+      const v = englishVoice()
+      if (v) u.voice = v
+      u.rate = 0.8
+      u.onend = finish
+      u.onerror = finish
+      s.speak(u)
+    }, 90) // Chrome can drop an utterance queued in the same tick as cancel()
+  }
+
+  loadManifest().then(() => {
+    if (id !== runId) return
+    const file = files?.[key]
+    if (!file) return speakFallback()
+    loadBuffer(file).then((buf) => {
+      if (id !== runId) return
+      const ctx = getAudioContext()
+      if (!buf || !ctx) return speakFallback()
+      const src = ctx.createBufferSource()
+      src.buffer = buf
+      src.connect(ctx.destination)
+      src.onended = finish
+      current = src
+      later(finish, buf.duration * 1000 + 1500) // safety net if `ended` never arrives
+      src.start()
+    })
+  })
 }
 
 export type PlayMode =
@@ -149,18 +211,40 @@ export type PlayMode =
   | 'full' // the word, its letters, the word again (audio-only exercises)
   | 'letters' // only the letters
 
-const LETTER_GAP_MS = 200
-const WORD_GAP_MS = 420
+const LETTER_GAP_MS = 130
+const WORD_GAP_MS = 380
+
+type Step =
+  | { kind: 'word' }
+  | { kind: 'letter'; index: number; letter: string; double: boolean }
+
+// Letters of a word as spoken: "ss" is "double s" (one step covering both tiles).
+function letterSteps(lower: string): Step[] {
+  const steps: Step[] = []
+  let i = 0
+  while (i < lower.length) {
+    const ch = lower[i]
+    if (!LETTER_NAMES[ch]) { i += 1; continue }
+    let run = 1
+    while (lower[i + run] === ch) run += 1
+    if (run === 2) {
+      steps.push({ kind: 'letter', index: i, letter: ch, double: true })
+      i += 2
+    } else {
+      steps.push({ kind: 'letter', index: i, letter: ch, double: false })
+      i += 1
+    }
+  }
+  return steps
+}
 
 // Plays a word as described by `mode`. `onDone` runs when it finishes without being cancelled.
 export function playWord(word: string, mode: PlayMode = 'spell', onDone?: () => void) {
   const lower = word.toLowerCase()
-  const { id, hadSpeech } = begin()
-  const steps: Array<{ kind: 'word' } | { kind: 'letter'; index: number }> = []
+  const id = begin()
+  const steps: Step[] = []
   if (mode !== 'letters') steps.push({ kind: 'word' })
-  if (mode !== 'word') {
-    for (let i = 0; i < lower.length; i++) if (LETTER_NAMES[lower[i]]) steps.push({ kind: 'letter', index: i })
-  }
+  if (mode !== 'word') steps.push(...letterSteps(lower))
   if (mode === 'full') steps.push({ kind: 'word' })
 
   const next = (n: number) => {
@@ -173,28 +257,25 @@ export function playWord(word: string, mode: PlayMode = 'spell', onDone?: () => 
     const step = steps[n]
     const after = (gap: number) => () => later(() => next(n + 1), gap)
     if (step.kind === 'word') {
-      setView({ word: lower, index: -1, phase: 'word' })
-      say(word, id, { rate: 0.8, pitch: 1.05, fallbackMs: 900 + word.length * 140 }, after(WORD_GAP_MS))
+      setView({ word: lower, index: -1, span: 1, phase: 'word' })
+      clip(norm(word), word, id, after(WORD_GAP_MS))
+    } else if (step.double) {
+      setView({ word: lower, index: step.index, span: 2, phase: 'spelling' })
+      clip('double', 'double', id, () => clip(`letter:${step.letter}`, LETTER_NAMES[step.letter], id, after(LETTER_GAP_MS)))
     } else {
-      setView({ word: lower, index: step.index, phase: 'spelling' })
-      say(LETTER_NAMES[lower[step.index]], id, { rate: 0.85, pitch: 1, fallbackMs: 1000 }, after(LETTER_GAP_MS))
+      setView({ word: lower, index: step.index, span: 1, phase: 'spelling' })
+      clip(`letter:${step.letter}`, LETTER_NAMES[step.letter], id, after(LETTER_GAP_MS))
     }
   }
-  // Chrome can drop an utterance queued in the same tick as cancel().
-  if (hadSpeech) later(() => next(0), 90)
-  else next(0)
+  next(0)
 }
 
 // Reads free text (a question, a sentence) once.
 export function speakText(text: string, onDone?: () => void) {
-  const { id, hadSpeech } = begin()
-  const go = () => {
-    setView({ word: null, index: -1, phase: 'word' })
-    say(text, id, { rate: 0.85, pitch: 1.05, fallbackMs: 1200 + text.length * 120 }, () => {
-      setView(IDLE)
-      onDone?.()
-    })
-  }
-  if (hadSpeech) later(go, 90)
-  else go()
+  const id = begin()
+  setView({ word: null, index: -1, span: 1, phase: 'word' })
+  clip(norm(text), text, id, () => {
+    setView(IDLE)
+    onDone?.()
+  })
 }

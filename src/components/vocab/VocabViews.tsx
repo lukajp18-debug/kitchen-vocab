@@ -21,7 +21,7 @@ import { FeedbackSheet } from '@/components/kid/FeedbackSheet'
 import { SpellStrip } from '@/components/kid/SpellStrip'
 import { LAHeader, shuffle } from '@/components/language/LanguageViews'
 import {
-  Feedback, Mode, Handlers, Runner, SkipButton, HelpPanels,
+  Feedback, Mode, Handlers, Runner, SkipButton, HelpPanels, HelpSpellButton,
   buildDeck, sample, scramble, useAutoPlay, useMissHelp, useSpeechCleanup, CELEBRATION_MAX_MS,
 } from '@/components/kid/lessonKit'
 import { playWord, stopSpeech, useSpeechView } from '@/lib/speech'
@@ -274,7 +274,7 @@ function SpellQuestion({ target, tiles, mode, h }: { target: WordDef; tiles: str
   const [shake, setShake] = useState(false)
   const [dead, setDead] = useState(false)
   const [showAnswer, setShowAnswer] = useState(false)
-  const { misses, addMiss } = useMissHelp(word, mode === 'practice', feedback === 'correct')
+  const { misses, addMiss } = useMissHelp(word, mode === 'practice', feedback === 'correct', h.helped)
   useAutoPlay(word, 'word', 300, feedback !== null)
 
   const used = new Set(slots.filter((s): s is number => s !== null))
@@ -336,6 +336,9 @@ function SpellQuestion({ target, tiles, mode, h }: { target: WordDef; tiles: str
       <Button onClick={() => playWord(word, 'word')} className="w-full duo-button bg-duo-blue hover:bg-duo-blue/90 text-white font-bold text-base py-4 rounded-2xl mb-3">
         {tx.hearWord}
       </Button>
+      <div className="mb-3 flex justify-center">
+        <HelpSpellButton word={word} h={h} disabled={feedback !== null} />
+      </div>
       <HelpPanels word={word} misses={misses} learningText={tx.learningSpellAlong} />
 
       <div className={`flex justify-center mb-6 ${word.length > 8 ? 'gap-1' : 'gap-2 flex-wrap'} ${shake ? 'animate-shake' : ''}`}>
@@ -381,7 +384,7 @@ function SpellQuestion({ target, tiles, mode, h }: { target: WordDef; tiles: str
 export function SpellingChallengeView({ words, onComplete, onGameOver, onBack }: LessonProps) {
   const rounds = useMemo(() => deckOf(words, ROUNDS).map((target) => ({ target, tiles: scramble(target.word) })), [words])
   return (
-    <Runner lessonId="spelling-challenge" questions={rounds} onComplete={onComplete} onGameOver={onGameOver} onBack={onBack}>
+    <Runner lessonId="spelling-challenge" questions={rounds} rebuild={(q) => ({ target: q.target, tiles: scramble(q.target.word) })} onComplete={onComplete} onGameOver={onGameOver} onBack={onBack}>
       {(q, h) => <SpellQuestion target={q.target} tiles={q.tiles} mode="practice" h={h} />}
     </Runner>
   )
@@ -399,7 +402,7 @@ function MissingQuestion({ target, display, letter, options, mode, h }: {
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [shake, setShake] = useState(false)
   const [dead, setDead] = useState(false)
-  const { misses, addMiss } = useMissHelp(word, mode === 'practice', feedback === 'correct')
+  const { misses, addMiss } = useMissHelp(word, mode === 'practice', feedback === 'correct', h.helped)
   useAutoPlay(word, 'word', 300, feedback !== null)
 
   const pick = (choice: string) => {
@@ -468,6 +471,9 @@ function MissingQuestion({ target, display, letter, options, mode, h }: {
       </div>
 
       <Button variant="ghost" className="w-full mt-4 text-duo-blue font-bold" onClick={() => playWord(word, 'word')}>{tx.hearWord}</Button>
+      <div className="mt-1 flex justify-center">
+        <HelpSpellButton word={word} h={h} disabled={feedback !== null} />
+      </div>
       {feedback === 'correct' && mode === 'practice' && <SkipButton onClick={h.next} />}
       <FeedbackSheet feedback={feedback} message={feedback === 'wrong' ? (mode === 'test' ? tx.answerWas(word) : tx.notQuite) : undefined} />
     </>
@@ -477,7 +483,7 @@ function MissingQuestion({ target, display, letter, options, mode, h }: {
 export function WhatsMissingView({ words, onComplete, onGameOver, onBack }: LessonProps) {
   const rounds = useMemo(() => deckOf(words, ROUNDS).map((target) => ({ target, ...missingRound(target.word) })), [words])
   return (
-    <Runner lessonId="whats-missing" questions={rounds} onComplete={onComplete} onGameOver={onGameOver} onBack={onBack}>
+    <Runner lessonId="whats-missing" questions={rounds} rebuild={(q) => ({ target: q.target, ...missingRound(q.target.word) })} onComplete={onComplete} onGameOver={onGameOver} onBack={onBack}>
       {(q, h) => <MissingQuestion target={q.target} display={q.display} letter={q.letter} options={q.options} mode="practice" h={h} />}
     </Runner>
   )
@@ -513,6 +519,15 @@ function buildFinalTest(words: WordDef[]): FinalQuestion[] {
   })
 }
 
+// A question solved with the spelling help comes back (same word, new arrangement).
+function rebuildFinal(q: FinalQuestion): FinalQuestion {
+  switch (q.type) {
+    case 'spelling': return { type: 'spelling', target: q.target, tiles: scramble(q.target.word) }
+    case 'whats-missing': return { type: 'whats-missing', target: q.target, ...missingRound(q.target.word) }
+    default: return q
+  }
+}
+
 export function FinalTestView({ words, onComplete, onGameOver, onBack }: LessonProps) {
   const { lang } = useI18n()
   const questions = useMemo(() => buildFinalTest(words), [words])
@@ -524,6 +539,7 @@ export function FinalTestView({ words, onComplete, onGameOver, onBack }: LessonP
       onGameOver={onGameOver}
       onBack={onBack}
       label={(q) => `${FINAL_LABEL[q.type].icon} ${lessonTitle(FINAL_LABEL[q.type].lesson, lang)}`}
+      rebuild={rebuildFinal}
     >
       {(q, h) => {
         switch (q.type) {

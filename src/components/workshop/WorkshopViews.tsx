@@ -8,7 +8,7 @@ import { FeedbackSheet } from '@/components/kid/FeedbackSheet'
 import { SpellStrip } from '@/components/kid/SpellStrip'
 import { LAHeader, shuffle } from '@/components/language/LanguageViews'
 import {
-  Feedback, Handlers, Runner, SkipButton, buildDeck, useAutoText, useDelayed, useSpeechCleanup, CELEBRATION_MAX_MS,
+  Feedback, Handlers, Runner, SkipButton, HelpSpellButton, buildDeck, useAutoText, useDelayed, useSpeechCleanup, CELEBRATION_MAX_MS,
 } from '@/components/kid/lessonKit'
 import { playWord, speakText, useSpeechView } from '@/lib/speech'
 import { useLater } from '@/lib/useLater'
@@ -71,6 +71,7 @@ function TypedQuestion({ item, bank, kind, h }: { item: TypedItem; bank?: string
     const nm = misses + 1
     setMisses(nm)
     if (nm === 2) {
+      h.helped() // the word is shown and spelled for the student: it comes back later, without help
       setValue('') // start the copy from a clean box
       later(() => playWord(word, 'spell'), 900)
     }
@@ -128,10 +129,8 @@ function TypedQuestion({ item, bank, kind, h }: { item: TypedItem; bank?: string
         <Button onClick={check} disabled={!!feedback || !value.trim()} className="duo-button bg-duo-green hover:bg-duo-green/90 text-white font-black text-lg px-10 py-6 rounded-2xl">
           {tx.check}
         </Button>
-        {kind === 'dictation' && feedback !== 'correct' && (
-          <Button variant="outline" onClick={() => playWord(word, 'spell')} className="rounded-2xl py-6 font-bold">{tx.spellIt}</Button>
-        )}
       </div>
+      {feedback !== 'correct' && <HelpSpellButton word={word} h={h} />}
 
       {misses === 1 && feedback !== 'correct' && (
         <p className="text-sm font-bold text-duo-orange text-center">💡 {tx.startsWith(word[0].toUpperCase(), word.length)}</p>
@@ -154,7 +153,7 @@ function TypedLesson({ lessonId, items, bank, kind, limit, xp, onComplete, onGam
   const rounds = useMemo(() => buildDeck(items, Math.min(limit ?? items.length, items.length), (a, b) => a.answer === b.answer), [items, limit])
   return (
     <Runner
-      lessonId={lessonId} questions={rounds}
+      lessonId={lessonId} questions={rounds} rebuild={(q) => q}
       xpPerCorrect={xp / rounds.length} completeXp={xp}
       onComplete={onComplete} onGameOver={onGameOver} onBack={onBack}
     >
