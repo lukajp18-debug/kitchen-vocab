@@ -21,6 +21,37 @@ export const LESSONS: LessonDef[] = [
 ]
 
 export const TOPICS: TopicDef[] = [
+  {
+    id: 'vocab-week-7',
+    name: 'Vocabulario del Colegio - Semana 7 (del lunes 26 oct)',
+    displayName: 'School Vocab - Week 7 (week of Mon Oct 26)',
+    icon: '🏫',
+    color: '#4C6FFF',
+    bgColor: '#E3E8FF',
+    weekLabel: 'Vocabulary #5 · Semana 7',
+    words: [
+      { word: 'burrow', image: '/images/vocab-weekly/week7/burrow.webp' },
+      { word: 'liter', image: '/images/vocab-weekly/week7/liter.webp' },
+      { word: 'lungs', image: '/images/vocab-weekly/week7/lungs.webp' },
+      { word: 'sentence', image: '/images/vocab-weekly/week7/sentence.webp' },
+      { word: 'den', image: '/images/vocab-weekly/week7/den.webp' },
+      { word: 'street', image: '/images/vocab-weekly/week7/street.webp' },
+      { word: 'strong', image: '/images/vocab-weekly/week7/strong.webp' },
+      { word: 'gills', image: '/images/vocab-weekly/week7/gills.webp' },
+      { word: 'hard', image: '/images/vocab-weekly/week7/hard.webp' },
+      { word: 'dinner', image: '/images/vocab-weekly/week7/dinner.webp' },
+      { word: 'oxygen', image: '/images/vocab-weekly/week7/oxygen.webp' },
+      { word: 't shirt', image: '/images/vocab-weekly/week7/t-shirt.webp' },
+      { word: 'tick', image: '/images/vocab-weekly/week7/tick.webp' },
+      { word: 'cross', image: '/images/vocab-weekly/week7/cross.webp' },
+      { word: 'hive', image: '/images/vocab-weekly/week7/hive.webp' },
+    ],
+    rewards: [
+      { id: 'sticker-pack', name: 'Sticker Pack', image: '/images/rewards/panelita.png', lessonsRequired: 2, description: 'Complete 2 lessons (33%)', is3D: false },
+      { id: 'extra-playtime', name: 'Tiempo Extra de Juego', image: '/images/rewards/trululu.png', lessonsRequired: 4, description: 'Complete 4 lessons (66%)', is3D: false },
+      { id: 'surprise-prize', name: 'Premio Sorpresa', image: '/images/rewards/hotwheels.png', lessonsRequired: 6, description: 'Complete ALL lessons (100%)', is3D: false },
+    ]
+  },
   WORKSHOP_4_TOPIC,
   {
     id: 'vocab-week-6',

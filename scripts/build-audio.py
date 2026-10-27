@@ -44,7 +44,7 @@ def file_for(kind: str, text: str) -> str:
     if kind == "letter":
         return f"l-{text}.mp3"
     if kind == "word":
-        return f"w-{text}.mp3"
+        return f"w-{text.replace(' ', '-')}.mp3"  # "t shirt" -> w-t-shirt.mp3
     return "p-" + hashlib.sha1(norm(text).encode()).hexdigest()[:10] + ".mp3"
 
 

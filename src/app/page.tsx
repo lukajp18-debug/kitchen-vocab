@@ -161,6 +161,11 @@ const VIRTUAL_REWARD_INFO: Record<string, { emoji: string; name: string; nameEs:
     { emoji: '🥈', name: 'Vocab Builder',   nameEs: 'Constructor de Vocabulario' },
     { emoji: '🏆', name: 'Vocab Champion',  nameEs: 'Campeón del Vocabulario' },
   ],
+  'vocab-week-7': [
+    { emoji: '🥉', name: 'Class Learner',   nameEs: 'Aprendiz de Clase' },
+    { emoji: '🥈', name: 'Vocab Builder',   nameEs: 'Constructor de Vocabulario' },
+    { emoji: '🏆', name: 'Vocab Champion',  nameEs: 'Campeón del Vocabulario' },
+  ],
   'vocab-week-6': [
     { emoji: '🥉', name: 'Class Learner',   nameEs: 'Aprendiz de Clase' },
     { emoji: '🥈', name: 'Vocab Builder',   nameEs: 'Constructor de Vocabulario' },

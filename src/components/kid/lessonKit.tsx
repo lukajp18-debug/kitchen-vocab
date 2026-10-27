@@ -43,11 +43,16 @@ export function buildDeck<T>(items: T[], n: number, same: (a: T, b: T) => boolea
 }
 
 // Letters in a shuffled order that is never already the right spelling.
+// Letters only: a space ("t shirt") is a fixed gap on screen, never a tile to place.
+export const isLetter = (ch: string) => /[a-z]/i.test(ch)
+export const lettersOf = (word: string) => word.split('').filter(isLetter).join('')
+
 export function scramble(word: string): string[] {
-  const letters = word.split('')
+  const plain = lettersOf(word)
+  const letters = plain.split('')
   if (new Set(letters).size < 2) return letters
   let out = shuffle(letters)
-  for (let i = 0; i < 12 && out.join('') === word; i++) out = shuffle(letters)
+  for (let i = 0; i < 12 && out.join('') === plain; i++) out = shuffle(letters)
   return out
 }
 

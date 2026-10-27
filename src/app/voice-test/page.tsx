@@ -1,18 +1,18 @@
 'use client'
 
 // Quick check of how the device pronounces the lesson audio: the alphabet (as the lessons
-// say each letter), the Week 6 words spelled out, and a question read aloud.
+// say each letter), the newest week's words spelled out, and a question read aloud.
 // Open /voice-test on the phone or tablet Luca uses.
 import { useEffect, useState } from 'react'
 import { SpellStrip } from '@/components/kid/SpellStrip'
 import { recordedVoiceName, playWord, speakText, stopSpeech } from '@/lib/speech'
 
-const WORDS = ['start', 'finish', 'friend', 'friendship', 'think', 'together', 'rules', 'class', 'guess', 'heavy', 'technology', 'after', 'before', 'neighborhood', 'neighbor']
+const WORDS = ['burrow', 'liter', 'lungs', 'sentence', 'den', 'street', 'strong', 'gills', 'hard', 'dinner', 'oxygen', 't shirt', 'tick', 'cross', 'hive']
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('')
 
 export default function VoiceTestPage() {
   const [voice, setVoice] = useState<string | null>(null)
-  const [shown, setShown] = useState<string>('start')
+  const [shown, setShown] = useState<string>('burrow')
 
   useEffect(() => {
     recordedVoiceName().then(setVoice)
@@ -41,7 +41,7 @@ export default function VoiceTestPage() {
         </section>
 
         <section>
-          <h2 className="font-black mb-2">Palabras de la Semana 6 (palabra, letras, palabra; las letras dobles dicen "double")</h2>
+          <h2 className="font-black mb-2">Palabras de la Semana 7 (palabra, letras, palabra; las letras dobles dicen "double")</h2>
           <SpellStrip word={shown} size="lg" className="mb-3" />
           <div className="flex flex-wrap gap-2">
             {WORDS.map((w) => (

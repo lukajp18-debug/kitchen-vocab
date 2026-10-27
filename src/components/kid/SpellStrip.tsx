@@ -44,6 +44,7 @@ export function SpellStrip({ word, reveal = true, size = 'md', className = '' }:
       aria-label={reveal ? word.split('').join(' ') : ''}
     >
       {word.split('').map((ch, i) => {
+        if (!/[a-z]/i.test(ch)) return <span key={i} className="w-3 shrink-0" aria-hidden="true" />
         const isActive = active >= 0 && i >= active && i < active + span
         const spoken = mine && sv.phase === 'spelling' && i < active
         let cls = `${step.tile} shrink-0 rounded-lg border-2 font-black flex items-center justify-center uppercase transition-[transform,background-color,border-color,color,box-shadow] duration-150 `

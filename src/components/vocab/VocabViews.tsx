@@ -22,7 +22,7 @@ import { SpellStrip } from '@/components/kid/SpellStrip'
 import { LAHeader, shuffle } from '@/components/language/LanguageViews'
 import {
   Feedback, Mode, Handlers, Runner, SkipButton, HelpPanels, HelpSpellButton,
-  buildDeck, sample, scramble, useAutoPlay, useMissHelp, useSpeechCleanup, CELEBRATION_MAX_MS,
+  buildDeck, sample, scramble, isLetter, lettersOf, useAutoPlay, useMissHelp, useSpeechCleanup, CELEBRATION_MAX_MS,
 } from '@/components/kid/lessonKit'
 import { playWord, stopSpeech, useSpeechView } from '@/lib/speech'
 import { useLater } from '@/lib/useLater'
@@ -52,7 +52,9 @@ function wordOptions(target: WordDef, words: WordDef[]): string[] {
 }
 
 function missingRound(word: string) {
-  const idx = word.length > 1 ? 1 + Math.floor(Math.random() * (word.length - 1)) : 0
+  // Never the first letter (too easy to guess) and never the space of "t shirt".
+  const spots = word.split('').map((ch, i) => (i > 0 && isLetter(ch) ? i : -1)).filter((i) => i >= 0)
+  const idx = spots.length ? spots[Math.floor(Math.random() * spots.length)] : 0
   const letter = word[idx]
   const display = word.slice(0, idx) + '_' + word.slice(idx + 1)
   const wrong = sample(ALPHABET.split('').filter((l) => l !== letter && !word.includes(l)), 3)
@@ -268,8 +270,9 @@ function SpellQuestion({ target, tiles, mode, h }: { target: WordDef; tiles: str
   const tx = t.study
   const later = useLater()
   const word = target.word
+  const plain = lettersOf(word) // what the tiles must spell ("t shirt" -> "tshirt")
   // Each slot holds the index of the tile placed there, so duplicate letters never get mixed up.
-  const [slots, setSlots] = useState<(number | null)[]>(() => Array(word.length).fill(null))
+  const [slots, setSlots] = useState<(number | null)[]>(() => Array(plain.length).fill(null))
   const [feedback, setFeedback] = useState<Feedback>(null)
   const [shake, setShake] = useState(false)
   const [dead, setDead] = useState(false)
@@ -296,7 +299,7 @@ function SpellQuestion({ target, tiles, mode, h }: { target: WordDef; tiles: str
     setSlots(next)
     if (next.includes(null)) return
     const attempt = next.map((i) => tiles[i!]).join('')
-    if (attempt === word) {
+    if (attempt === plain) {
       setFeedback('correct')
       celebrate()
       return
@@ -312,7 +315,7 @@ function SpellQuestion({ target, tiles, mode, h }: { target: WordDef; tiles: str
       later(h.next, 1800)
     } else {
       later(() => {
-        setSlots(Array(word.length).fill(null))
+        setSlots(Array(plain.length).fill(null))
         setFeedback(null)
         if (misses + 1 < 2) playWord(word, 'word')
       }, 1200)
@@ -345,18 +348,24 @@ function SpellQuestion({ target, tiles, mode, h }: { target: WordDef; tiles: str
         {feedback === 'correct' || showAnswer ? (
           <SpellStrip word={word} size="lg" />
         ) : (
-          slots.map((tileIndex, i) => (
-            <button
-              key={i}
-              onClick={() => remove(i)}
-              className={`spelling-slot ${tileIndex !== null ? 'filled' : ''} ${feedback === 'wrong' && tileIndex !== null ? 'wrong' : ''}`}
-              style={word.length > 8 ? { minWidth: word.length > 10 ? 24 : 30, fontSize: '1.2rem' } : undefined}
-              disabled={feedback !== null}
-              aria-label={tileIndex !== null ? tiles[tileIndex] : '_'}
-            >
-              {tileIndex !== null ? tiles[tileIndex].toUpperCase() : ''}
-            </button>
-          ))
+          word.split('').map((ch, pos) => {
+            // A space in the word is a fixed gap; every letter position maps to the next slot.
+            if (!isLetter(ch)) return <span key={pos} className="w-3 shrink-0" aria-hidden="true" />
+            const i = lettersOf(word.slice(0, pos)).length
+            const tileIndex = slots[i]
+            return (
+              <button
+                key={pos}
+                onClick={() => remove(i)}
+                className={`spelling-slot ${tileIndex !== null ? 'filled' : ''} ${feedback === 'wrong' && tileIndex !== null ? 'wrong' : ''}`}
+                style={word.length > 8 ? { minWidth: word.length > 10 ? 24 : 30, fontSize: '1.2rem' } : undefined}
+                disabled={feedback !== null}
+                aria-label={tileIndex !== null ? tiles[tileIndex] : '_'}
+              >
+                {tileIndex !== null ? tiles[tileIndex].toUpperCase() : ''}
+              </button>
+            )
+          })
         )}
       </div>
 
@@ -440,7 +449,7 @@ function MissingQuestion({ target, display, letter, options, mode, h }: {
         {feedback === 'correct' ? (
           <SpellStrip word={word} size="lg" />
         ) : (
-          display.split('').map((ch, i) => (
+          display.split('').map((ch, i) => ch === ' ' ? <span key={i} className="inline-block w-4" aria-hidden="true" /> : (
             <span
               key={i}
               className={`inline-block w-9 h-12 leading-[48px] text-center text-2xl font-bold border-b-4 mx-0.5 ${

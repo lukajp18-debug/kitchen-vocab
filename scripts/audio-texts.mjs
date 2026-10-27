@@ -26,7 +26,7 @@ const { TOPICS } = load(resolve(root, 'src/data/topics.ts'))
 
 const words = new Set()
 const phrases = new Set()
-const word = (w) => { if (w && /^[A-Za-z]+$/.test(w.trim())) words.add(w.trim().toLowerCase()) }
+const word = (w) => { if (w && /^[A-Za-z]+( [A-Za-z]+)*$/.test(w.trim())) words.add(w.trim().toLowerCase()) }
 const phrase = (p) => { if (p) phrases.add(p.trim()) }
 
 for (const t of TOPICS) {
